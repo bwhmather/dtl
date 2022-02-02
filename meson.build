@@ -1,0 +1,56 @@
+project('tt', 'cpp', default_options: [])
+
+cc = meson.get_compiler('cpp')
+
+m_dep = cc.find_library('m', required : false)
+
+dependencies = [m_dep]
+
+includes = include_directories('src')
+
+
+### Library ###
+
+lib_sources = [
+  'src/dtl-ast.cpp',
+]
+
+lib = both_libraries(
+  'dtl', lib_sources,
+  include_directories : includes,
+  dependencies : dependencies,
+  install : true,
+)
+
+
+### Executable ###
+
+test_exe = executable(
+  'dtl',
+  'src/main.cpp',
+  include_directories : includes,
+  dependencies : dependencies,
+  link_with : lib,
+  install : true,
+)
+
+
+### Tests ###
+
+test_includes = include_directories('include', 'tests')
+
+test_suites = {
+}
+
+foreach suite, tests : test_suites
+  foreach test_name : tests
+    test_exe = executable(
+      'test-' + suite + '-' + test_name,
+      'tests/' + suite + '/test-' + test_name + '.c',
+      include_directories : test_includes,
+      link_with : lib,
+      install : false,
+    )
+    test(suite + '-' + test_name, test_exe, timeout: 10)
+  endforeach
+endforeach
