@@ -1,180 +1,17 @@
-#include "slow-tokenizer.hpp"
+#include "dtl-tokenizer.hpp"
 
 #include <map>
 #include <iostream>
 #include <cassert>
 
-#include "slow-error.hpp"
+#include "dtl-location.hpp"
+#include "dtl-tokens.hpp"
 
-
-const char * slow_token_type_to_string(TokenType type) {
-    switch(type) {
-    case TokenType::Error:
-        return "<Error>";
-    case TokenType::Abstract:
-        return "<Abstract>";
-    case TokenType::As:
-        return "<As>";
-    case TokenType::Async:
-        return "<Async>";
-    case TokenType::Await:
-        return "<Await>";
-    case TokenType::Break:
-        return "<Break>";
-    case TokenType::Case:
-        return "<Case>";
-    case TokenType::Char:
-        return "<Char>";
-    case TokenType::Class:
-        return "<Class>";
-    case TokenType::Const:
-        return "<Const>";
-    case TokenType::Continue:
-        return "<Continue>";
-    case TokenType::Default:
-        return "<Default>";
-    case TokenType::Do:
-        return "<Do>";
-    case TokenType::Else:
-        return "<Else>";
-    case TokenType::Enum:
-        return "<Enum>";
-    case TokenType::Extern:
-        return "<Extern>";
-    case TokenType::Final:
-        return "<Final>";
-    case TokenType::Fn:
-        return "<Fn>";
-    case TokenType::For:
-        return "<For>";
-    case TokenType::Goto:
-        return "<Goto>";
-    case TokenType::If:
-        return "<If>";
-    case TokenType::Impl:
-        return "<Impl>";
-    case TokenType::In:
-        return "<In>";
-    case TokenType::False:
-        return "<False>";
-    case TokenType::True:
-        return "<True>";
-    case TokenType::Let:
-        return "<Let>";
-    case TokenType::Loop:
-        return "<Loop>";
-    case TokenType::Macro:
-        return "<Macro>";
-    case TokenType::Match:
-        return "<Match>";
-    case TokenType::Mod:
-        return "<Mod>";
-    case TokenType::OpenBrace:
-        return "<OpenBrace>";
-    case TokenType::CloseBrace:
-        return "<CloseBrace>";
-    case TokenType::OpenBracket:
-        return "<OpenBracket>";
-    case TokenType::CloseBracket:
-        return "<CloseBracket>";
-    case TokenType::OpenParen:
-        return "<OpenParen>";
-    case TokenType::CloseParen:
-        return "<CloseParen>";
-    case TokenType::Byte:
-        return "<Byte>";
-    case TokenType::ByteString:
-        return "<ByteString>";
-    case TokenType::RawByteString:
-        return "<RawByteString>";
-    case TokenType::RawIdent:
-        return "<RawIdent>";
-    case TokenType::RawString:
-        return "<RawString>";
-    case TokenType::Int:
-        return "<Int>";
-    case TokenType::Float:
-        return "<Float>";
-    case TokenType::And:
-        return "<And>";
-    case TokenType::At:
-        return "<At>";
-    case TokenType::Caret:
-        return "<Caret>";
-    case TokenType::Colon:
-        return "<Colon>";
-    case TokenType::Comma:
-        return "<Comma>";
-    case TokenType::Dollar:
-        return "<Dollar>";
-    case TokenType::Dot:
-        return "<Dot>";
-    case TokenType::Eq:
-        return "<Eq>";
-    case TokenType::GreaterThan:
-        return "<GreaterThan>";
-    case TokenType::GreaterThanEqual:
-        return "<GreaterThanEqual>";
-    case TokenType::Ident:
-        return "<Ident>";
-    case TokenType::LessThan:
-        return "<LessThan>";
-    case TokenType::LessThanEqual:
-        return "<LessThanEqual>";
-    case TokenType::Minus:
-        return "<Minus>";
-    case TokenType::MinusEqual:
-        return "<MinusEqual>";
-    case TokenType::Semicolon:
-        return "<Semicolon>";
-    case TokenType::Slash:
-        return "<Slash>";
-    case TokenType::SlashEqual:
-        return "<SlashEqual>";
-    case TokenType::Star:
-        return "<Star>";
-    case TokenType::StarEqual:
-        return "<StarEqual>";
-    case TokenType::String:
-        return "<String>";
-    case TokenType::Tilde:
-        return "<Tilde>";
-    case TokenType::Not:
-        return "<Not>";
-    case TokenType::NotEqual:
-        return "<NotEqual>";
-    case TokenType::Or:
-        return "<Or>";
-    case TokenType::Percent:
-        return "<Percent>";
-    case TokenType::Plus:
-        return "<Plus>";
-    case TokenType::PlusEqual:
-        return "<PlusEqual>";
-    case TokenType::Pound:
-        return "<Pound>";
-    case TokenType::Question:
-        return "<Question>";
-    case TokenType::LineComment:
-        return "<LineComment>";
-    case TokenType::BlockComment:
-        return "<BlockComment>";
-    case TokenType::Whitespace:
-        return "<Whitespace>";
-    default:
-        slow_abort("unknown token type");
-    }
-}
-std::ostream& operator<<(std::ostream& os, const TokenType& type) {
-    os << slow_token_type_to_string(type);
-    return os;
-}
-
+namespace dtl {
 
 static bool is_whitespace(char c) {
     return c == ' ' || c == '\n' || c == '\t';
 }
-
 
 static bool is_id_start(char c) {
     if ('a' <= c && c <= 'z') {
@@ -191,7 +28,6 @@ static bool is_id_start(char c) {
 
     return false;
 }
-
 
 static bool is_id_continue(char c) {
     if ('a' <= c && c <= 'z') {
@@ -213,61 +49,47 @@ static bool is_id_continue(char c) {
     return false;
 }
 
-
 char Tokenizer::bump() {
     if (m_next == m_end) {
+        m_lineno += 1;
+        m_column = 1;
         return '\0';
     }
+    m_column += 1;
     return *m_next++;
 }
 
-char Tokenizer::peek() {
+char dtl::Tokenizer::peek() {
     if (m_next == m_end) {
         return '\0';
     }
     return *m_next;
 }
 
-static const std::map<std::string, TokenType> keyword_map {
-    { "abstract", TokenType::Abstract },
-    { "as", TokenType::As },
-    { "async", TokenType::Async },
-    { "await", TokenType::Await },
-    { "break", TokenType::Break },
-    { "case", TokenType::Case },
-    { "char", TokenType::Char },
-    { "class", TokenType::Class },
-    { "const", TokenType::Const },
-    { "continue", TokenType::Continue },
-    { "default", TokenType::Default },
-    { "do", TokenType::Do },
-    { "else", TokenType::Else },
-    { "enum", TokenType::Enum },
-    { "extern", TokenType::Extern },
-    { "final", TokenType::Final },
-    { "fn", TokenType::Fn },
-    { "for", TokenType::For },
-    { "goto", TokenType::Goto },
-    { "if", TokenType::If },
-    { "impl", TokenType::Impl },
-    { "in", TokenType::In },
-    { "false", TokenType::False },
-    { "true", TokenType::True },
-    { "let", TokenType::Let },
-    { "loop", TokenType::Loop },
-    { "macro", TokenType::Macro },
-    { "match", TokenType::Match },
-    { "mod", TokenType::Mod },
+static const std::map<std::string, dtl::tokens::TokenType> keyword_map {
+    { "BEGIN", dtl::tokens::Begin },
+    { "UPDATE", dtl::tokens::Update },
+    { "SELECT", dtl::tokens::Select },
+    { "DISTINCT", dtl::tokens::Distinct },
+    { "CONSECUTIVE", dtl::tokens::Consecutive },
+    { "AS", dtl::tokens::As },
+    { "FROM", dtl::tokens::From },
+    { "JOIN", dtl::tokens::Join },
+    { "ON", dtl::tokens::On },
+    { "WHERE", dtl::tokens::Where },
+    { "WITH", dtl::tokens::With },
+    { "IMPORT", dtl::tokens::Import },
+    { "EXPORT", dtl::tokens::Export },
 };
 
-TokenType Tokenizer::next_type() {
+dtl::tokens::TokenType Tokenizer::next_type() {
     char curr = bump();
 
     if (is_whitespace(curr)) {
         while (is_whitespace(peek())) {
             bump();
         }
-        return TokenType::Whitespace;
+        return dtl::tokens::Whitespace;
     }
 
     if (curr == '/') {
@@ -279,23 +101,23 @@ TokenType Tokenizer::next_type() {
                 bump();
             }
 
-            return TokenType::LineComment;
+            return dtl::tokens::LineComment;
 
         } else if (peek() == '*') {
             while (true) {
                 curr = bump();
                 if (curr == '\0') {
-                    return TokenType::Error;
+                    return dtl::tokens::Error;
                 }
 
                 if (curr == '*' && peek() == '/') {
                     bump();
-                    return TokenType::BlockComment;
+                    return dtl::tokens::BlockComment;
                 }
             }
 
         } else {
-            return TokenType::Slash;
+            return dtl::tokens::Slash;
         }
     }
 
@@ -306,21 +128,21 @@ TokenType Tokenizer::next_type() {
                 bump();
             }
             if (curr == '"') {
-                return TokenType::String;
+                return dtl::tokens::QuotedName;
             }
         }
     }
 
     if (curr == '\'') {
-        curr = bump();
-        if (curr == '\\') {
+        while (true) {
             curr = bump();
+            if (curr == '\\') {
+                bump();
+            }
+            if (curr == '"') {
+                return dtl::tokens::String;
+            }
         }
-        curr = bump();
-        if (curr != '\'') {
-            return TokenType::Error;
-        }
-        return TokenType::Char;
     }
 
     if ('0' <= curr && curr <= '9') {
@@ -328,7 +150,7 @@ TokenType Tokenizer::next_type() {
         while (peek() != '\0' && '0' <= peek() && peek() <= '9') {
             bump();
         }
-        return TokenType::Int;
+        return dtl::tokens::Int;
     }
 
     if (is_id_start(curr)) {
@@ -344,158 +166,171 @@ TokenType Tokenizer::next_type() {
         if (result != keyword_map.end()) {
             return result->second;
         }
-        return TokenType::Ident;
+
+        if ('A' <= token[0] && token[0] <= 'Z') {
+            return dtl::tokens::Type;
+        }
+
+        return dtl::tokens::Name;
     }
 
     if (curr == ';') {
-        return TokenType::Semicolon;
+        return dtl::tokens::Semicolon;
     }
 
     if (curr == ',') {
-        return TokenType::Comma;
+        return dtl::tokens::Comma;
     }
 
     if (curr == '.') {
-        return TokenType::Dot;
+        return dtl::tokens::Dot;
     }
 
     if (curr == '(') {
-        return TokenType::OpenParen;
+        return dtl::tokens::OpenParen;
     }
 
     if (curr == ')') {
-        return TokenType::CloseParen;
+        return dtl::tokens::CloseParen;
     }
 
     if (curr == '{') {
-        return TokenType::OpenBrace;
+        return dtl::tokens::OpenBrace;
     }
 
     if (curr == '}') {
-        return TokenType::CloseBrace;
+        return dtl::tokens::CloseBrace;
     }
 
     if (curr == '[') {
-        return TokenType::OpenBracket;
+        return dtl::tokens::OpenBracket;
     }
 
     if (curr == ']') {
-        return TokenType::CloseBracket;
+        return dtl::tokens::CloseBracket;
     }
 
     if (curr == '@') {
-        return TokenType::At;
+        return dtl::tokens::At;
     }
 
     if (curr == '#') {
-        return TokenType::Pound;
+        return dtl::tokens::Pound;
     }
 
     if (curr == '~') {
-        return TokenType::Tilde;
+        return dtl::tokens::Tilde;
     }
 
     if (curr == '?') {
-        return TokenType::Question;
+        return dtl::tokens::Question;
     }
 
     if (curr == ':') {
-        return TokenType::Colon;
+        return dtl::tokens::Colon;
     }
 
     if (curr == '$') {
-        return TokenType::Dollar;
+        return dtl::tokens::Dollar;
     }
 
     if (curr == '=') {
-        return TokenType::Eq;
+        return dtl::tokens::Eq;
     }
 
     if (curr == '!') {
         if (peek() == '=') {
             bump();
-            return TokenType::NotEqual;
+            return dtl::tokens::NotEqual;
         }
-        return TokenType::Not;
+        return dtl::tokens::Not;
     }
 
     if (curr == '<') {
         if (peek() == '=') {
             bump();
-            return TokenType::LessThanEqual;
+            return dtl::tokens::LessThanEqual;
         }
-        return TokenType::LessThan;
+        return dtl::tokens::LessThan;
     }
 
     if (curr == '>') {
         if (peek() == '=') {
             bump();
-            return TokenType::GreaterThanEqual;
+            return dtl::tokens::GreaterThanEqual;
         }
-        return TokenType::GreaterThan;
+        return dtl::tokens::GreaterThan;
     }
 
     if (curr == '-') {
         if (peek() == '=') {
             bump();
-            return TokenType::MinusEqual;
+            return dtl::tokens::MinusEqual;
         }
-        return TokenType::Minus;
+        return dtl::tokens::Minus;
     }
 
     if (curr == '&') {
-        return TokenType::And;
+        return dtl::tokens::And;
     }
 
     if (curr == '|') {
-        return TokenType::Or;
+        return dtl::tokens::Or;
     }
 
     if (curr == '+') {
         if (peek() == '+') {
             bump();
-            return TokenType::PlusEqual;
+            return dtl::tokens::PlusEqual;
         }
-        return TokenType::Plus;
+        return dtl::tokens::Plus;
     }
 
     if (curr == '*') {
         if (peek() == '=') {
             bump();
-            return TokenType::StarEqual;
+            return dtl::tokens::StarEqual;
         }
-        return TokenType::Star;
+        return dtl::tokens::Star;
     }
 
     if (curr == '/') {
         if (peek() == '=') {
             bump();
-            return TokenType::SlashEqual;
+            return dtl::tokens::SlashEqual;
         }
-        return TokenType::Slash;
+        return dtl::tokens::Slash;
     }
 
     if (curr == '^') {
-        return TokenType::Caret;
+        return dtl::tokens::Caret;
     }
 
     if (curr == '%') {
-        return TokenType::Percent;
+        return dtl::tokens::Percent;
     }
 
-    return TokenType::Error;
+    return dtl::tokens::Error;
 }
 
-Token Tokenizer::next_token() {
-    auto start = m_next;
-    TokenType type = next_type();
-    auto end = m_next;
+dtl::tokens::Token Tokenizer::next_token() {
+    dtl::Location start = {
+        .offset=m_next, .lineno=m_lineno, .column=m_column
+    };
 
-    return (Token){ .type=type, .start=start, .end=end };
+    dtl::tokens::TokenType type = next_type();
+
+    dtl::Location end = {
+        .offset=m_next, .lineno=m_lineno, .column=m_column
+    };
+
+    dtl::tokens::Token token = { .type=type, .start=start, .end=end };
+
+    return token;
 }
 
 bool Tokenizer::is_eof() {
     return m_next == m_end;
 }
 
-
+}  /* namespace dtl */
