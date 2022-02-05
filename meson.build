@@ -15,6 +15,8 @@ includes = include_directories('src')
 
 lib_sources = [
   'src/dtl-ast.cpp',
+  'src/dtl-tokens.cpp',
+  'src/dtl-tokenizer.cpp',
 ]
 
 lib = both_libraries(
