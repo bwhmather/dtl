@@ -13,10 +13,19 @@ includes = include_directories('src')
 
 ### Library ###
 
+bison = find_program('bison')
+
+parser_source = custom_target(
+    'parser',
+    input: ['src/dtl-parser.y'], output: ['dtl-parser.cpp'],
+    command: [bison, '-o', '@OUTPUT@', '@INPUT@'],
+)
+
 lib_sources = [
   'src/dtl-ast.cpp',
   'src/dtl-tokens.cpp',
   'src/dtl-tokenizer.cpp',
+  parser_source,
 ]
 
 lib = both_libraries(
