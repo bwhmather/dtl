@@ -1,4 +1,6 @@
-project('tt', 'cpp', default_options: [])
+project('dtl', 'cpp', default_options: [
+    'cpp_std=c++20',
+])
 
 cc = meson.get_compiler('cpp')
 
