@@ -10,7 +10,11 @@ namespace ast {
 
 /* === Literals ============================================================= */
 
-void String::accept(NodeVisitor& visitor) {
+void Literal::accept(NodeVisitor& visitor) {
+    this->accept(static_cast<LiteralVisitor&>(visitor));
+}
+
+void String::accept(LiteralVisitor& visitor) {
     visitor.visit_string(*this);
 }
 

@@ -5,9 +5,12 @@
 #include <string>
 #include <memory>
 
+#include "dtl-location.hpp"
+
 namespace dtl {
 namespace ast {
 
+class LiteralVisitor;
 class ColumnNameVisitor;
 class ExpressionVisitor;
 class ColumnBindingVisitor;
@@ -18,14 +21,6 @@ class StatementVisitor;
 class NodeVisitor;
 
 class TableExpression;
-
-
-class Location {
-  public:
-    size_t offset;
-    size_t lineno;
-    size_t column;
-};
 
 class Node {
   public:
@@ -38,11 +33,17 @@ class Node {
 
 /* === Literals ============================================================= */
 
-class String final : public Node {
+class Literal : public Node {
+  public:
+    void accept(NodeVisitor& visitor) override final;
+    virtual void accept(LiteralVisitor& visitor) = 0;
+};
+
+class String final : public Literal {
   public:
     std::string value;
 
-    void accept(NodeVisitor& visitor) override final;
+    void accept(LiteralVisitor& visitor) override final;
 };
 
 /* === Columns ============================================================== */
@@ -77,6 +78,13 @@ class Expression : public Node {
 class ColumnReferenceExpression final : public Expression {
   public:
     std::unique_ptr<ColumnName> name;
+
+    void accept(ExpressionVisitor& visitor) override final;
+};
+
+class LiteralExpression final : public Expression {
+  public:
+    std::unique_ptr<Literal> value;
 
     void accept(ExpressionVisitor& visitor) override final;
 };
@@ -331,6 +339,12 @@ class Script final : public Node {
 
 /* === Visitors ============================================================= */
 
+class LiteralVisitor {
+  public:
+    virtual ~LiteralVisitor() {}
+
+    virtual void visit_string(String& string) = 0;
+};
 
 class ColumnNameVisitor {
   public:
@@ -345,6 +359,7 @@ class ExpressionVisitor {
     virtual ~ExpressionVisitor() {}
 
     virtual void visit_column_reference_expression(ColumnReferenceExpression& expr) = 0;
+    virtual void visit_literal_expression(LiteralExpression& expr) = 0;
     virtual void visit_function_call_expression(FunctionCallExpression& expr) = 0;
     virtual void visit_add_expression(AddExpression& expr) = 0;
     virtual void visit_subtract_expression(SubtractExpression& expr) = 0;
@@ -399,6 +414,7 @@ class StatementVisitor {
 
 class NodeVisitor :
     public ColumnNameVisitor,
+    public LiteralVisitor,
     public ExpressionVisitor,
     public ColumnBindingVisitor,
     public TableBindingVisitor,
@@ -407,7 +423,6 @@ class NodeVisitor :
     public StatementVisitor
 {
   public:
-    virtual void visit_string(String& string) = 0;
     virtual void visit_table_name(TableName& table_name) = 0;
     virtual void visit_distinct_clause(DistinctClause& clause) = 0;
     virtual void visit_from_clause(FromClause& clause) = 0;
