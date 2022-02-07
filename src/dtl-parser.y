@@ -2,7 +2,7 @@
 %require "3.8.1"
 %header
 
-%define arg.value.type variant
+%define api.value.type variant
 %define api.namespace dtl
 %define api.token.raw
 
@@ -96,254 +96,429 @@
 
 
 
-%type <std::unique_ptr<Literal>> literal;
-%type <std::unique_ptr<String>> string;
+%type <std::unique_ptr<dtl::ast::Literal>> literal;
+%type <std::unique_ptr<dtl::ast::String>> string;
 
-%type <std::unique_ptr<ColumnName>> column_name;
-%type <std::unique_ptr<UnqualifiedColumnName>> unqualified_column_name;
-%type <std::unique_ptr<QualifiedColumnName>> qualified_column_name;
+%type <std::unique_ptr<dtl::ast::ColumnName>> column_name;
+%type <std::vector<std::unique_ptr<dtl::ast::ColumnName>>> column_name_list;
+%type <std::unique_ptr<dtl::ast::UnqualifiedColumnName>> unqualified_column_name;
+%type <std::unique_ptr<dtl::ast::QualifiedColumnName>> qualified_column_name;
 
-%type <std::unique_ptr<Expression>> expression;
-%type <std::unique_ptr<ColumnReferenceExpression>> column_reference_expression;
-%type <std::unique_ptr<LiteralExpression>> literal_expression;
-%type <std::unique_ptr<FunctionCallExpression>> function_call_expression;
-%type <std::unique_ptr<AddExpression>> add_expression;
-%type <std::unique_ptr<SubtractExpression>> subtract_expression;
-%type <std::unique_ptr<MultiplyExpression>> multiply_expression;
-%type <std::unique_ptr<DivideExpression>> divide_expression;
+%type <std::unique_ptr<dtl::ast::Expression>> expression;
+%type <std::unique_ptr<dtl::ast::ColumnReferenceExpression>> column_reference_expression;
+%type <std::unique_ptr<dtl::ast::LiteralExpression>> literal_expression;
+%type <std::vector<std::unique_ptr<dtl::ast::Expression>>> function_call_arg_list;
+%type <std::unique_ptr<dtl::ast::FunctionCallExpression>> function_call_expression;
+%type <std::unique_ptr<dtl::ast::AddExpression>> add_expression;
+%type <std::unique_ptr<dtl::ast::SubtractExpression>> subtract_expression;
+%type <std::unique_ptr<dtl::ast::MultiplyExpression>> multiply_expression;
+%type <std::unique_ptr<dtl::ast::DivideExpression>> divide_expression;
 
-%type <std::unique_ptr<TableName>> table_name;
-%type <std::unique_ptr<DistinctClause>> distinct_clause;
+%type <std::unique_ptr<dtl::ast::TableName>> table_name;
+%type <std::unique_ptr<dtl::ast::DistinctClause>> distinct_clause;
 
-%type <std::unique_ptr<ColumnBinding>> column_binding;
-%type <std::unique_ptr<WildcardColumnBinding>> wildcard_column_binding;
-%type <std::unique_ptr<ImplicitColumnBinding>> implicit_column_binding;
-%type <std::unique_ptr<AliasedColumnBinding>> aliased_column_binding;
+%type <std::unique_ptr<dtl::ast::ColumnBinding>> column_binding;
+%type <std::vector<std::unique_ptr<dtl::ast::ColumnBinding>>> column_binding_list;
+%type <std::unique_ptr<dtl::ast::WildcardColumnBinding>> wildcard_column_binding;
+%type <std::unique_ptr<dtl::ast::ImplicitColumnBinding>> implicit_column_binding;
+%type <std::unique_ptr<dtl::ast::AliasedColumnBinding>> aliased_column_binding;
 
-%type <std::unique_ptr<FromClause>> from_clause;
+%type <std::unique_ptr<dtl::ast::FromClause>> from_clause;
 
-%type <std::unique_ptr<JoinConstraint>> join_constraint;
-%type <std::unique_ptr<JoinOnConstraint>> join_on_constraint;
-%type <std::unique_ptr<JoinUsingConstraint>> join_using_constraint;
+%type <std::unique_ptr<dtl::ast::JoinConstraint>> join_constraint;
+%type <std::unique_ptr<dtl::ast::JoinOnConstraint>> join_on_constraint;
+%type <std::unique_ptr<dtl::ast::JoinUsingConstraint>> join_using_constraint;
 
-%type <std::unique_ptr<JoinClause>> join_clause;
-%type <std::unique_ptr<WhereClause>> where_clause;
-%type <std::unique_ptr<GroupByClause>> group_by_clause;
+%type <std::unique_ptr<dtl::ast::JoinClause>> join_clause;
+%type <std::vector<std::unique_ptr<dtl::ast::JoinClause>>> join_clause_list;
 
-%type <std::unique_ptr<TableExpression>> table_expression;
-%type <std::unique_ptr<SelectExpression>> select_expression;
-%type <std::unique_ptr<ImportExpression>> import_expression;
-%type <std::unique_ptr<TableReferenceExpression>> table_reference_expression;
+%type <std::unique_ptr<dtl::ast::WhereClause>> where_clause;
+%type <std::unique_ptr<dtl::ast::GroupByClause>> group_by_clause;
 
-%type <std::unique_ptr<Statement>> statement;
-%type <std::unique_ptr<AssignmentStatement>> assignment_statement;
-%type <std::unique_ptr<UpdateStatement>> update_statement;
-%type <std::unique_ptr<DeleteStatement>> delete_statement;
-%type <std::unique_ptr<InsertStatement>> insert_statement;
-%type <std::unique_ptr<ExportStatement>> export_statement;
+%type <std::unique_ptr<dtl::ast::TableExpression>> table_expression;
+%type <std::unique_ptr<dtl::ast::SelectExpression>> select_expression;
+%type <std::unique_ptr<dtl::ast::ImportExpression>> import_expression;
+%type <std::unique_ptr<dtl::ast::TableReferenceExpression>> table_reference_expression;
 
-%type <std::unique_ptr<Script>> script;
+%type <std::unique_ptr<dtl::ast::Statement>> statement;
+%type <std::vector<std::unique_ptr<dtl::ast::Statement>>> statement_list;
+%type <std::unique_ptr<dtl::ast::AssignmentStatement>> assignment_statement;
+//%type <std::unique_ptr<dtl::ast::UpdateStatement>> update_statement;
+//%type <std::unique_ptr<dtl::ast::DeleteStatement>> delete_statement;
+//%type <std::unique_ptr<dtl::ast::InsertStatement>> insert_statement;
+%type <std::unique_ptr<dtl::ast::ExportStatement>> export_statement;
+
+%type <std::unique_ptr<dtl::ast::Script>> script;
 
 %%
+%start script;
 
 name
     : QuotedName
     | Name
-
-literal
-    : string
     ;
 
-string 
+literal
+    : string { $$ = static_cast<dtl::ast::Literal>($1); }
+    ;
+
+string
     : String
     ;
 
 column_name
-    : unqualified_column_name
-    | qualified_column_name
+    : unqualified_column_name {
+        $$ = static_cast<dtl::ast::ColumnName>($1);
+    }
+    | qualified_column_name {
+        $$ = static_cast<dtl::ast::ColumnName>($1);
+    }
     ;
 
 unqualified_column_name
-    : name
+    : name[column_name] {
+        $$ = std::make_unique<UnqualifiedColumnName>();
+        $$->column_name = std::move($column_name);
+    }
     ;
 
 qualified_column_name
-    : name Dot name
+    : name[table_name] Dot name[column_name] {
+        $$ = std::make_unique<QualifiedColumnName>();
+        $$->table_name = std::move($table_name);
+        $$->column_name = std::move($column_name);
+    }
     ;
 
 expression
-    : column_reference_expression
-    | literal_expression
-    | function_call_expression
-    | add_expression
-    | subtract_expression
-    | multiply_expression
-    | divide_expression
+    : column_reference_expression {
+        $$ = static_cast<dtl::ast::Expression>($1);
+    }
+    | literal_expression {
+        $$ = static_cast<dtl::ast::Expression>($1);
+    }
+    | function_call_expression {
+        $$ = static_cast<dtl::ast::Expression>($1);
+    }
+    | add_expression {
+        $$ = static_cast<dtl::ast::Expression>($1);
+    }
+    | subtract_expression {
+        $$ = static_cast<dtl::ast::Expression>($1);
+    }
+    | multiply_expression {
+        $$ = static_cast<dtl::ast::Expression>($1);
+    }
+    | divide_expression {
+        $$ = static_cast<dtl::ast::Expression>($1);
+    }
     ;
 
 column_reference_expression
-    : column_name
+    : column_name[name] {
+        $$ = std::make_unique<ColumnReferenceExpression>();
+        $$->name = std::move($name);
+    }
     ;
 
 literal_expression
-    : literal
+    : literal[value] {
+        $$ = std::make_unique<LiteralExpression>();
+        $$->value = std::move($value);
+    }
     ;
 
-
 function_call_arg_list
-    : expression
-    | function_call_arg_list Comma expression
+    : expression[head] {
+        $$->push_back(std::move($head));
+    }
+    | function_call_arg_list[prev] Comma expression[next] {
+        $$ = std::move($prev);
+        $$->push_back(std::move($next));
+    }
     ;
 
 function_call_expression
-    : name OpenParen function_call_arg_list CloseParen
+    : name OpenParen function_call_arg_list[arguments] CloseParen {
+        $$ = std::make_unique(dtl::ast::FunctionCallExpression>();
+        $$->name = std::move($name);
+        $$->arguments = std::move($arguments);
+    }
     ;
 
 add_expression
-    : expression Plus expression
+    : expression[left] Plus expression[right] {
+        $$ = std::make_unique<dtl::ast::AddExpression>();
+        $$->left = std::move($left);
+        $$->right = std::move($right);
+    }
     ;
 
 subtract_expression
-    : expression Minus expression
+    : expression[left] Minus expression[right] {
+        $$ = std::make_unique<dtl::ast::SubtractExpression>();
+        $$->left = std::move($left);
+        $$->right = std::move($right);
+    }
     ;
 
 multiply_expression
-    : expression Star expression
+    : expression[left] Star expression[right] {
+        $$ = std::make_unique<dtl::ast::MultiplyExpression>();
+        $$->left = std::move($left);
+        $$->right = std::move($right);
+    }
     ;
 
 divide_expression
-    : expression Slash expression
+    : expression[left] Slash expression[right] {
+        $$ = std::make_unique<dtl::ast::DivideExpression>();
+        $$->left = std::move($left);
+        $$->right = std::move($right);
+    }
     ;
 
 table_name
-    : name
+    : name[table_name] {
+        $$ = std::make_unique<dtl::ast::TableName>();
+        $$->table_name = std::move($table_name);
+    }
     ;
 
 distinct_clause
-    : Distinct
-    | Distinct Consecutive
-    | %empty
+    : Distinct {
+        $$ = std::make_unique<dtl::ast::DistinctClause>();
+        $$->consecutive = false;
+    }
+    | Distinct Consecutive {
+        $$ = std::make_unique<dtl::ast::DistinctClause>();
+        $$->consecutive = true;
+    }
+    | %empty {}
     ;
 
 column_binding
-    : wildcard_column_binding
-    | implicit_column_binding
-    | aliased_column_binding
+    : wildcard_column_binding {
+        $$ = static_cast<dtl::ast::ColumnBinding>($1);
+    }
+    | implicit_column_binding {
+        $$ = static_cast<dtl::ast::ColumnBinding>($1);
+    }
+    | aliased_column_binding {
+        $$ = static_cast<dtl::ast::ColumnBinding>($1);
+    }
     ;
 
 wildcard_column_binding
-    : Star
+    : Star {
+        $$ = std::make_unique<WildcardColumnBinding>();
+    }
     ;
 
 implicit_column_binding
-    : expression
+    : expression {
+        $$ = std::make_unique<ImplicitColumnBinding>();
+        $$->expression = std::move($expression);
+    }
     ;
 
 aliased_column_binding
-    : expression As name
+    : expression As name[alias] {
+        $$ = std::make_unique<AliasedColumnBinding>();
+        $$->expression = std::move($expression);
+        $$->aliase = std::move($aliase);
+    }
     ;
 
 column_binding_list
-    : column_binding
-    | column_binding_list Comma column_binding
+    : column_binding[head] {
+        $$->push_back(std::move($head));
+    }
+    | column_binding_list[prev] Comma column_binding[next] {
+        $$ = std::move($prev);
+        $$->push_back(std::move($next));
+    }
+    ;
+
+table_binding
+    : OpenParen table_expression CloseParen
+    | table_reference_expression
+    | OpenParen table_expression CloseParen As name
+    | table_reference_expression As name
     ;
 
 from_clause
-    : From OpenParen table_expression CloseParen
-    | From table_reference_expression
-    | From OpenParen table_expression CloseParent As name
-    | From table_reference_expression As name
-    ;
-
-aliased_table_binding
-    : table_expression As name
+    : From table_binding {
+        $$ = std::make_unique<FromClause>();
+        $$->binding = std::move($table_binding);
+    }
     ;
 
 join_constraint
-    : join_on_constraint
-    | join_using_constraint
+    : join_on_constraint {
+        $$ = static_cast<dtl::ast::JoinConstraint>($1);
+    }
+    | join_using_constraint {
+        $$ = static_cast<dtl::ast::JoinConstraint>($1);
+    }
     ;
 
 join_on_constraint
-    : On expression
+    : On expression[predicate] {
+        $$ = std::make_unique<JoinOnConstraint>();
+        $$->predicate = std::move($predicate);
+    }
     ;
 
 column_name_list
-    : unqualified_column_name
-    | column_name_list Comma unqualified_column_name
+    : unqualified_column_name[head] {
+        $$->push_back(std::move($head))
+    }
+    | column_name_list[prev] Comma unqualified_column_name[next] {
+        $$ = std::move($prev);
+        $$->push_back(std::move($next));
+    }
     ;
 
 join_using_constraint
-    : Using OpenParen column_name_list CloseParen
+    : Using OpenParen column_name_list CloseParen {
+        $$ = std::make_unique<JoinUsingConstraint>();
+        $$->columns = std::move($column_name_list);
+    }
     ;
 
 join_clause
-    : Join table_binding join_constraint
+    : Join table_binding join_constraint {
+        $$ = std::make_unique<JoinClause>();
+        $$->binding = std::move($table_binding);
+        $$->constraint = std::move($join_constraint);
+    }
     ;
 
 join_clause_list
-    : %empty
-    | join_clause_list join_clause
+    : %empty {}
+    | join_clause_list[prev] join_clause[next] {
+        $$ = std::move($prev);
+        $$->push_back(std::move($next));
+    }
     ;
 
 where_clause
-    : Where expression
-    | %empty
+    : Where expression {
+        $$ = std::make_unique<WhereClause>();
+        $$->predicate = std::move($expression);
+    }
+    | %empty {}
     ;
 
 group_by_clause
-    : Group By expression
-    | Group Consecutive By expression
-    | %empty
+    : Group By expression[pattern] {
+        $$ = std::make_unique<dtl::ast::GroupBy>();
+
+        $$->pattern = std::move($pattern);
+        $$->consecutive = false;
+    }
+    | Group Consecutive By expression {
+        $$ = std::make_unique<dtl::ast::GroupBy>();
+
+        $$->pattern = std::move($pattern);
+        $$->consecutive = true;
+    }
+    | %empty {}
     ;
 
 table_expression
-    : select_expression
-    | import_expression
-    | table_reference_expression
+    : select_expression {
+        $$ = static_cast<dtl::ast::TableExpression>($1);
+    }
+    | import_expression {
+        $$ = static_cast<dtl::ast::TableExpression>($1);
+    }
+    | table_reference_expression {
+        $$ = static_cast<dtl::ast::TableExpression>($1);
+    }
     ;
 
 select_expression
     : Select
-        distinct_clause
-        column_binding_list
-        from_clause
-        join_clause_list
-        where_clause
-        group_by_clause
-    ; 
+        distinct_clause[distinct]
+        column_binding_list[columns]
+        from_clause[source]
+        join_clause_list[joins]
+        where_clause[where]
+        group_by_clause[group_by] {
+            $$ = std::make_unique<dtl::ast::SelectExpression>();
+
+            $$->distinct = std::move($distinct);
+            $$->columns = std::move($columns);
+            $$->source = std::move($source);
+            $$->joins = std::move($joins);
+            $$->where = std::move($where);
+            $$->group_by = std::move($group_by);
+        }
+    ;
 
 import_expression
-    : Import string
+    : Import string {
+        $$ = std::make_unique<ImportExpression>();
+        $$->location = std::move($string);
+    }
     ;
 
 table_reference_expression
-    : name
+    : name {
+        $$ = std::make_unique<dtl::ast::TableReferenceExpression>();
+        $$->name = std::move($name);
+    }
     ;
 
 statement
-    : assignment_statement
-//   | update_statement
-//   | delete_statement
-//    | insert_statement
-    | export_statement
+    : assignment_statement {
+        $$ = static_cast<dtl::ast::Statement>($1);
+    }
+//   | update_statement {
+//        $$ = static_cast<dtl::ast::Statement>($1);
+//    }
+//   | delete_statement {
+//        $$ = static_cast<dtl::ast::Statement>($1);
+//    }
+//    | insert_statement {
+//        $$ = static_cast<dtl::ast::Statement>($1);
+//    }
+    | export_statement {
+        $$ = static_cast<dtl::ast::Statement>($1);
+    }
     ;
 
 assignment_statement
-    : name Eq expression Semicolon
+    : name Eq expression Semicolon {
+        $$ = std::make_unique<AssignmentStatement>();
+        $$->target = std::move($name);
+        $$->expression = std::move($expression);
+    }
     ;
 
 export_statement
-    : Export table_expression To string Semicolon
+    : Export table_expression To string Semicolon {
+        $$ = std::make_unique<ExportStatement>();
+        $$->location = std::move($string);
+        $$->expression = std::move($table_expression)
+    }
     ;
 
 statement_list
-    : %empty
-    | statement_list statement
+    : %empty {}
+    | statement_list[prev] statement[next] {
+        $$ = std::move($prev);
+        $$->push_back(std::move($next));
+    }
     ;
 
 script
-    : statement_list
+    : statement_list {
+        $$ = std::make_unique<dtl::ast::Script>();
+        $$->statements = std::move($statement_list);
+    }
     ;
-    
+
 %%
