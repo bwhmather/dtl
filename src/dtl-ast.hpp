@@ -200,6 +200,8 @@ class AliasedTableBinding final : public TableBinding {
 
 class FromClause final : public Node {
   public:
+    std::unique_ptr<TableBinding> binding;
+
     void accept(NodeVisitor& visitor) override final;
 };
 
@@ -227,7 +229,7 @@ class JoinUsingConstraint final : public JoinConstraint {
 
 class JoinClause final : public Node {
   public:
-    std::unique_ptr<TableBinding> table;
+    std::unique_ptr<TableBinding> binding;
     std::unique_ptr<JoinConstraint> constraint;
 
     void accept(NodeVisitor& visitor) override final;
