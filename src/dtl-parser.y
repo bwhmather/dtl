@@ -16,81 +16,81 @@
 
 }
 
-%token Int
-%token Float
-%token Char
-%token Byte
-%token String
-%token ByteString
-%token RawString
-%token RawByteString
+%token INT
+%token FLOAT
+%token CHAR
+%token BYTE
+%token STRING
+%token BYTE_STRING
+%token RAW_STRING
+%token RAW_BYTE_STRING
 
 /* Keywords. */
-%token Begin
-%token Update
-%token Select
-%token Distinct
-%token Consecutive
-%token As
-%token From
-%token Join
-%token On
-%token Using
-%token Where
-%token Group
-%token By
-%token With
-%token Import
-%token Export
-%token To
+%token BEGIN
+%token UPDATE
+%token SELECT
+%token DISTINCT
+%token CONSECUTIVE
+%token AS
+%token FROM
+%token JOIN
+%token ON
+%token USING
+%token WHERE
+%token GROUP
+%token BY
+%token WITH
+%token IMPORT
+%token EXPORT
+%token TO
 
 /* Symbols */
-%token Semicolon
-%token Comma
-%token Dot
-%token OpenParen
-%token CloseParen
-%token OpenBrace
-%token CloseBrace
-%token OpenBracket
-%token CloseBracket
-%token At
-%token Pound
-%token Tilde
-%token Question
-%token Colon
-%token Dollar
+%token SEMICOLON
+%token COMMA
+%token DOT
+%token OPEN_PAREN
+%token CLOSE_PAREN
+%token OPEN_BRACE
+%token CLOSE_BRACE
+%token OPEN_BRACKET
+%token CLOSE_BRACKET
+%token AT
+%token POUND
+%token TILDE
+%token QUESTION
+%token COLON
+%token DOLLAR
 
 /* Operators */
-%token Eq
-%token Not
-%token NotEqual
-%token LessThan
-%token LessThanEqual
-%token GreaterThan
-%token GreaterThanEqual
-%token Minus
-%token MinusEqual
-%token And
-%token Or
-%token Plus
-%token PlusEqual
-%token Star
-%token StarEqual
-%token Slash
-%token SlashEqual
-%token Caret
-%token Percent
+%token EQ
+%token NOT
+%token NOT_EQUAL
+%token LESS_THAN
+%token LESS_THAN_EQUAL
+%token GREATER_THAN
+%token GREATER_THAN_EQUAL
+%token MINUS
+%token MINUS_EQUAL
+%token AND
+%token OR
+%token PLUS
+%token PLUSE_QUAL
+%token STAR
+%token STAR_EQUAL
+%token SLASH
+%token SLASH_EQUAL
+%token CARET
+%token PERCENT
 
-    /* Identifiers */
-%token Type
-%token <std::string> Name
-%token <std::string> QuotedName
+/* Identifiers */
+%token TYPE
+%token <std::string> NAME
+%token <std::string> QUOTED_NAME
 
-    /* Blanks */
-%token LineComment
-%token BlockComment
-%token Whitespace
+/* Blanks */
+%token LINE_COMMENT
+%token BLOCK_COMMENT
+%token WHITESPACE
 
 
 %type <std::string> name;
@@ -157,8 +157,8 @@
 %start script;
 
 name
-    : QuotedName
-    | Name
+    : QUOTED_NAME
+    | NAME
     ;
 
 literal
@@ -166,7 +166,7 @@ literal
     ;
 
 string
-    : String {
+    : STRING {
 
     }
     ;
@@ -188,7 +188,7 @@ unqualified_column_name
     ;
 
 qualified_column_name
-    : name[table_name] Dot name[column_name] {
+    : name[table_name] DOT name[column_name] {
         $$ = std::make_unique<dtl::ast::QualifiedColumnName>();
         $$->table_name = std::move($table_name);
         $$->column_name = std::move($column_name);
@@ -237,14 +237,14 @@ expression_list
     : expression[head] {
         $$.push_back(std::move($head));
     }
-    | expression_list[prev] Comma expression[next] {
+    | expression_list[prev] COMMA expression[next] {
         $$ = std::move($prev);
         $$.push_back(std::move($next));
     }
     ;
 
 function_call_expression
-    : name OpenParen expression_list[arguments] CloseParen {
+    : name OPEN_PAREN expression_list[arguments] CLOSE_PAREN {
         $$ = std::make_unique<dtl::ast::FunctionCallExpression>();
         $$->name = std::move($name);
         $$->arguments = std::move($arguments);
@@ -252,7 +252,7 @@ function_call_expression
     ;
 
 add_expression
-    : expression[left] Plus expression[right] {
+    : expression[left] PLUS expression[right] {
         $$ = std::make_unique<dtl::ast::AddExpression>();
         $$->left = std::move($left);
         $$->right = std::move($right);
@@ -260,7 +260,7 @@ add_expression
     ;
 
 subtract_expression
-    : expression[left] Minus expression[right] {
+    : expression[left] MINUS expression[right] {
         $$ = std::make_unique<dtl::ast::SubtractExpression>();
         $$->left = std::move($left);
         $$->right = std::move($right);
@@ -268,7 +268,7 @@ subtract_expression
     ;
 
 multiply_expression
-    : expression[left] Star expression[right] {
+    : expression[left] STAR expression[right] {
         $$ = std::make_unique<dtl::ast::MultiplyExpression>();
         $$->left = std::move($left);
         $$->right = std::move($right);
@@ -276,7 +276,7 @@ multiply_expression
     ;
 
 divide_expression
-    : expression[left] Slash expression[right] {
+    : expression[left] SLASH expression[right] {
         $$ = std::make_unique<dtl::ast::DivideExpression>();
         $$->left = std::move($left);
         $$->right = std::move($right);
@@ -291,11 +291,11 @@ table_name
     ;
 
 distinct_clause
-    : Distinct {
+    : DISTINCT {
         $$ = std::make_unique<dtl::ast::DistinctClause>();
         $$->consecutive = false;
     }
-    | Distinct Consecutive {
+    | DISTINCT CONSECUTIVE {
         $$ = std::make_unique<dtl::ast::DistinctClause>();
         $$->consecutive = true;
     }
@@ -315,7 +315,7 @@ column_binding
     ;
 
 wildcard_column_binding
-    : Star {
+    : STAR {
         $$ = std::make_unique<dtl::ast::WildcardColumnBinding>();
     }
     ;
@@ -328,7 +328,7 @@ implicit_column_binding
     ;
 
 aliased_column_binding
-    : expression As name[alias] {
+    : expression AS name[alias] {
         $$ = std::make_unique<dtl::ast::AliasedColumnBinding>();
         $$->expression = std::move($expression);
         $$->alias = std::move($alias);
@@ -339,7 +339,7 @@ column_binding_list
     : column_binding[head] {
         $$.push_back(std::move($head));
     }
-    | column_binding_list[prev] Comma column_binding[next] {
+    | column_binding_list[prev] COMMA column_binding[next] {
         $$ = std::move($prev);
         $$.push_back(std::move($next));
     }
@@ -355,7 +355,7 @@ table_binding
     ;
 
 implicit_table_binding
-    : OpenParen table_expression CloseParen {
+    : OPEN_PAREN table_expression CLOSE_PAREN {
         $$ = std::make_unique<dtl::ast::ImplicitTableBinding>();
         $$->expression = std::move($table_expression);
     }
@@ -366,12 +366,12 @@ implicit_table_binding
     ;
 
 aliased_table_binding
-    : OpenParen table_expression CloseParen As name {
+    : OPEN_PAREN table_expression CLOSE_PAREN AS name {
         $$ = std::make_unique<dtl::ast::AliasedTableBinding>();
         $$->expression = std::move($table_expression);
         $$->alias = std::move($name);
     }
-    | table_reference_expression As name {
+    | table_reference_expression AS name {
         $$ = std::make_unique<dtl::ast::AliasedTableBinding>();
         $$->expression = std::move($table_reference_expression);
         $$->alias = std::move($name);
@@ -379,7 +379,7 @@ aliased_table_binding
     ;
 
 from_clause
-    : From table_binding {
+    : FROM table_binding {
         $$ = std::make_unique<dtl::ast::FromClause>();
         $$->binding = std::move($table_binding);
     }
@@ -395,7 +395,7 @@ join_constraint
     ;
 
 join_on_constraint
-    : On expression[predicate] {
+    : ON expression[predicate] {
         $$ = std::make_unique<dtl::ast::JoinOnConstraint>();
         $$->predicate = std::move($predicate);
     }
@@ -405,21 +405,21 @@ unqualified_column_name_list
     : unqualified_column_name[head] {
         $$.push_back(std::move($head));
     }
-    | unqualified_column_name_list[prev] Comma unqualified_column_name[next] {
+    | unqualified_column_name_list[prev] COMMA unqualified_column_name[next] {
         $$ = std::move($prev);
         $$.push_back(std::move($next));
     }
     ;
 
 join_using_constraint
-    : Using OpenParen unqualified_column_name_list CloseParen {
+    : USING OPEN_PAREN unqualified_column_name_list CLOSE_PAREN {
         $$ = std::make_unique<dtl::ast::JoinUsingConstraint>();
         $$->columns = std::move($unqualified_column_name_list);
     }
     ;
 
 join_clause
-    : Join table_binding join_constraint {
+    : JOIN table_binding join_constraint {
         $$ = std::make_unique<dtl::ast::JoinClause>();
         $$->binding = std::move($table_binding);
         $$->constraint = std::move($join_constraint);
@@ -435,7 +435,7 @@ join_clause_list
     ;
 
 where_clause
-    : Where expression {
+    : WHERE expression {
         $$ = std::make_unique<dtl::ast::WhereClause>();
         $$->predicate = std::move($expression);
     }
@@ -443,13 +443,13 @@ where_clause
     ;
 
 group_by_clause
-    : Group By expression_list[pattern] {
+    : GROUP BY expression_list[pattern] {
         $$ = std::make_unique<dtl::ast::GroupByClause>();
 
         $$->pattern = std::move($pattern);
         $$->consecutive = false;
     }
-    | Group Consecutive By expression_list[pattern] {
+    | GROUP CONSECUTIVE BY expression_list[pattern] {
         $$ = std::make_unique<dtl::ast::GroupByClause>();
 
         $$->pattern = std::move($pattern);
@@ -471,7 +471,7 @@ table_expression
     ;
 
 select_expression
-    : Select
+    : SELECT
         distinct_clause[distinct]
         column_binding_list[columns]
         from_clause[source]
@@ -490,7 +490,7 @@ select_expression
     ;
 
 import_expression
-    : Import string {
+    : IMPORT string {
         $$ = std::make_unique<dtl::ast::ImportExpression>();
         $$->location = std::move($string);
     }
@@ -522,7 +522,7 @@ statement
     ;
 
 assignment_statement
-    : name Eq table_expression Semicolon {
+    : name EQ table_expression SEMICOLON {
         $$ = std::make_unique<dtl::ast::AssignmentStatement>();
         $$->target = std::move($name);
         $$->expression = std::move($table_expression);
@@ -530,7 +530,7 @@ assignment_statement
     ;
 
 export_statement
-    : Export table_expression To string Semicolon {
+    : EXPORT table_expression TO string SEMICOLON {
         $$ = std::make_unique<dtl::ast::ExportStatement>();
         $$->location = std::move($string);
         $$->expression = std::move($table_expression);
