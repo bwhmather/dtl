@@ -82,6 +82,8 @@
 %token BLOCK_COMMENT
 %token WHITESPACE
 
+%left PLUS MINUS
+%left STAR SLASH
 
 %type <std::string> name;
 
