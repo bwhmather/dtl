@@ -265,9 +265,9 @@ class TableExpression : public Node {
 class SelectExpression final : public TableExpression {
   public:
     std::unique_ptr<DistinctClause> distinct;  /* nullable */
-    std::vector<ColumnBinding> columns;
+    std::vector<std::unique_ptr<ColumnBinding>> columns;
     std::unique_ptr<FromClause> source;
-    std::vector<JoinClause> joins;
+    std::vector<std::unique_ptr<JoinClause>> joins;
     std::unique_ptr<WhereClause> where;  /* nullable */
     std::unique_ptr<GroupByClause> group_by;  /* nullable */
 
