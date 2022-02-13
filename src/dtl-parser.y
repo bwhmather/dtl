@@ -18,12 +18,8 @@
 
 %token INT
 %token FLOAT
-%token CHAR
-%token BYTE
 %token STRING
 %token BYTE_STRING
-%token RAW_STRING
-%token RAW_BYTE_STRING
 
 /* Keywords. */
 %token BEGIN
@@ -70,15 +66,9 @@
 %token GREATER_THAN
 %token GREATER_THAN_EQUAL
 %token MINUS
-%token MINUS_EQUAL
-%token AND
-%token OR
 %token PLUS
-%token PLUSE_QUAL
 %token STAR
-%token STAR_EQUAL
 %token SLASH
-%token SLASH_EQUAL
 %token CARET
 %token PERCENT
 
