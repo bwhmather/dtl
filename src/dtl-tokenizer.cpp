@@ -8,6 +8,7 @@
 #include "dtl-tokens.hpp"
 
 namespace dtl {
+namespace tokenizer {
 
 static bool is_whitespace(char c) {
     return c == ' ' || c == '\n' || c == '\t';
@@ -59,7 +60,7 @@ char Tokenizer::bump() {
     return *m_next++;
 }
 
-char dtl::Tokenizer::peek() {
+char Tokenizer::peek() {
     if (m_next == m_end) {
         return '\0';
     }
@@ -67,19 +68,22 @@ char dtl::Tokenizer::peek() {
 }
 
 static const std::map<std::string, dtl::tokens::TokenType> keyword_map {
-    { "BEGIN", dtl::tokens::Begin },
-    { "UPDATE", dtl::tokens::Update },
-    { "SELECT", dtl::tokens::Select },
-    { "DISTINCT", dtl::tokens::Distinct },
-    { "CONSECUTIVE", dtl::tokens::Consecutive },
     { "AS", dtl::tokens::As },
+    { "By", dtl::tokens::By },
+    { "CONSECUTIVE", dtl::tokens::Consecutive },
+    { "DISTINCT", dtl::tokens::Distinct },
+    { "EXPORT", dtl::tokens::Export },
     { "FROM", dtl::tokens::From },
+    { "GROUP", dtl::tokens::Group },
+    { "IMPORT", dtl::tokens::Import },
     { "JOIN", dtl::tokens::Join },
     { "ON", dtl::tokens::On },
+    { "SELECT", dtl::tokens::Select },
+    { "TO", dtl::tokens::To },
+    { "UPDATE", dtl::tokens::Update },
+    { "USING", dtl::tokens::Using },
     { "WHERE", dtl::tokens::Where },
     { "WITH", dtl::tokens::With },
-    { "IMPORT", dtl::tokens::Import },
-    { "EXPORT", dtl::tokens::Export },
 };
 
 dtl::tokens::TokenType Tokenizer::next_type() {
@@ -263,42 +267,18 @@ dtl::tokens::TokenType Tokenizer::next_type() {
     }
 
     if (curr == '-') {
-        if (peek() == '=') {
-            bump();
-            return dtl::tokens::MinusEqual;
-        }
         return dtl::tokens::Minus;
     }
 
-    if (curr == '&') {
-        return dtl::tokens::And;
-    }
-
-    if (curr == '|') {
-        return dtl::tokens::Or;
-    }
-
     if (curr == '+') {
-        if (peek() == '+') {
-            bump();
-            return dtl::tokens::PlusEqual;
-        }
         return dtl::tokens::Plus;
     }
 
     if (curr == '*') {
-        if (peek() == '=') {
-            bump();
-            return dtl::tokens::StarEqual;
-        }
         return dtl::tokens::Star;
     }
 
     if (curr == '/') {
-        if (peek() == '=') {
-            bump();
-            return dtl::tokens::SlashEqual;
-        }
         return dtl::tokens::Slash;
     }
 
@@ -333,4 +313,5 @@ bool Tokenizer::is_eof() {
     return m_next == m_end;
 }
 
+}  /* namespace tokenizer */
 }  /* namespace dtl */

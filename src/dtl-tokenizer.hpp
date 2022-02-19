@@ -6,6 +6,7 @@
 #include "dtl-tokens.hpp"
 
 namespace dtl {
+namespace tokenizer {
 
 class Tokenizer {
     size_t m_lineno;
@@ -27,5 +28,6 @@ public:
     bool is_eof();
 };
 
+}  /* namespace tokenizer */
 }  /* namespace dtl */
 
