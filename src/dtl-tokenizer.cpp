@@ -52,10 +52,14 @@ static bool is_id_continue(char c) {
 
 char Tokenizer::bump() {
     if (m_next == m_end) {
-        m_lineno += 1;
-        m_column = 1;
         return '\0';
     }
+
+    if (*m_next == '\n') {
+        m_lineno += 1;
+        m_column = 0;
+    }
+
     m_column += 1;
     return *m_next++;
 }
