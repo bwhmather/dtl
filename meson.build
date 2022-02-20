@@ -53,8 +53,12 @@ test_exe = executable(
 test_includes = include_directories('src', 'tests')
 
 test_suites = {
+  'parser': [
+    'basic',
+  ],
   'tokenizer': [
     'all-keywords',
+    'basic',
     'concatenated-keyword',
     'empty',
     'keyword',
