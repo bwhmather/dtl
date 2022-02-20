@@ -100,6 +100,10 @@ dtl::tokens::TokenType Tokenizer::next_type() {
         return dtl::tokens::Whitespace;
     }
 
+    if (curr == '\0') {
+        return dtl::tokens::EndOfFile;
+    }
+
     if (curr == '/') {
         if (peek() == '/') {
             bump();
@@ -311,10 +315,6 @@ dtl::tokens::Token Tokenizer::next_token() {
     dtl::tokens::Token token = { .type=type, .start=start, .end=end };
 
     return token;
-}
-
-bool Tokenizer::is_eof() {
-    return m_next == m_end;
 }
 
 }  /* namespace tokenizer */

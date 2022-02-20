@@ -25,7 +25,6 @@ public:
     ) : m_lineno(1), m_column(1), m_next(begin), m_end(end) {}
 
     dtl::tokens::Token next_token();
-    bool is_eof();
 };
 
 }  /* namespace tokenizer */
