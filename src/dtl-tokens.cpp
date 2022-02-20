@@ -7,7 +7,7 @@
 namespace dtl {
 namespace tokens {
 
-const char * slow_token_type_to_string(TokenType type) {
+const char * dtl_token_type_to_string(TokenType type) {
     switch(type) {
     case TokenType::Error:
         return "<Error>";
@@ -18,7 +18,7 @@ const char * slow_token_type_to_string(TokenType type) {
 }
 
 std::ostream& operator<<(std::ostream& os, const TokenType& type) {
-    os << slow_token_type_to_string(type);
+    os << dtl_token_type_to_string(type);
     return os;
 }
 

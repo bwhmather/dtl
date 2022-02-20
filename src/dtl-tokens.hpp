@@ -9,6 +9,7 @@ namespace dtl {
 namespace tokens {
 
 enum TokenType {
+    EndOfFile,
     Error,
 
     /* Literals. */
@@ -75,10 +76,10 @@ enum TokenType {
     /* Blanks */
     LineComment,
     BlockComment,
-    Whitespace,
+    Whitespace
 };
 
-const char * slow_token_type_to_string(TokenType type);
+const char * dtl_token_type_to_string(TokenType type);
 
 std::ostream& operator<<(std::ostream& os, const TokenType& type);
 
