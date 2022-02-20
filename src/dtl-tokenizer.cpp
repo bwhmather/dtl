@@ -73,7 +73,7 @@ char Tokenizer::peek() {
 
 static const std::map<std::string, dtl::tokens::TokenType> keyword_map {
     { "AS", dtl::tokens::As },
-    { "By", dtl::tokens::By },
+    { "BY", dtl::tokens::By },
     { "CONSECUTIVE", dtl::tokens::Consecutive },
     { "DISTINCT", dtl::tokens::Distinct },
     { "EXPORT", dtl::tokens::Export },
