@@ -23,6 +23,7 @@ public:
         std::string::iterator begin,
         std::string::iterator end
     ) : m_lineno(1), m_column(1), m_next(begin), m_end(end) {}
+    Tokenizer(std::string& source) : Tokenizer(source.begin(), source.end()) {}
 
     dtl::tokens::Token next_token();
 };
