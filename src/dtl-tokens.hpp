@@ -79,7 +79,7 @@ enum TokenType {
     Whitespace
 };
 
-const char * dtl_token_type_to_string(TokenType type);
+const char* type_to_string(TokenType type);
 
 std::ostream& operator<<(std::ostream& os, const TokenType& type);
 
