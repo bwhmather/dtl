@@ -148,10 +148,13 @@ dtl::tokens::TokenType Tokenizer::next_type() {
     if (curr == '\'') {
         while (true) {
             curr = bump();
+            if (curr == '\0') {
+                return dtl::tokens::Error;
+            }
             if (curr == '\\') {
                 bump();
             }
-            if (curr == '"') {
+            if (curr == '\'') {
                 return dtl::tokens::String;
             }
         }
