@@ -50,16 +50,23 @@ test_exe = executable(
 
 ### Tests ###
 
-test_includes = include_directories('include', 'tests')
+test_includes = include_directories('src', 'tests')
 
 test_suites = {
+  'tokenizer': [
+    'all-keywords',
+    'concatenated-keyword',
+    'empty',
+    'keyword',
+    'linebreak',
+  ],
 }
 
 foreach suite, tests : test_suites
   foreach test_name : tests
     test_exe = executable(
       'test-' + suite + '-' + test_name,
-      'tests/' + suite + '/test-' + test_name + '.c',
+      'tests/' + suite + '/test-' + test_name + '.cpp',
       include_directories : test_includes,
       link_with : lib,
       install : false,
