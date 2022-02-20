@@ -40,6 +40,10 @@ void ColumnReferenceExpression::accept(ExpressionVisitor& visitor) {
     visitor.visit_column_reference_expression(*this);
 }
 
+void LiteralExpression::accept(ExpressionVisitor& visitor) {
+    visitor.visit_literal_expression(*this);
+}
+
 void FunctionCallExpression::accept(ExpressionVisitor& visitor) {
     visitor.visit_function_call_expression(*this);
 }
