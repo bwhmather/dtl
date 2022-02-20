@@ -1,86 +1,256 @@
 %skeleton "lalr1.cc"
 %require "3.8.1"
-%header
 
 %define api.value.type variant
-%define api.namespace dtl
+
+%define api.parser.class {StateMachine}
+%define api.namespace {dtl::parser}
+
 %define api.token.raw
+%define api.token.constructor
+
+%define parse.assert
+
+%locations
+%define api.location.file none
 
 %code requires {
-#include <memory>
-#include <locale>
-#include <vector>
-#include <iostream>
+    #include <memory>
+    #include <locale>
+    #include <vector>
+    #include <iostream>
 
-#include "dtl-ast.hpp"
-
+    #include "dtl-ast.hpp"
+    #include "dtl-tokenizer.hpp"
+    #include "dtl-tokens.hpp"
 }
 
-%token INT
-%token FLOAT
-%token STRING
-%token BYTE_STRING
+%token <std::string_view> INT
+%token <std::string_view> FLOAT
+%token <std::string_view> STRING
+%token <std::string_view> BYTE_STRING
 
 /* Keywords. */
-%token BEGIN
-%token UPDATE
-%token SELECT
-%token DISTINCT
-%token CONSECUTIVE
-%token AS
-%token FROM
-%token JOIN
-%token ON
-%token USING
-%token WHERE
-%token GROUP
-%token BY
-%token WITH
-%token IMPORT
-%token EXPORT
-%token TO
+%token <std::string_view> UPDATE
+%token <std::string_view> SELECT
+%token <std::string_view> DISTINCT
+%token <std::string_view> CONSECUTIVE
+%token <std::string_view> AS
+%token <std::string_view> FROM
+%token <std::string_view> JOIN
+%token <std::string_view> ON
+%token <std::string_view> USING
+%token <std::string_view> WHERE
+%token <std::string_view> GROUP
+%token <std::string_view> BY
+%token <std::string_view> WITH
+%token <std::string_view> IMPORT
+%token <std::string_view> EXPORT
+%token <std::string_view> TO
 
 /* Symbols */
-%token SEMICOLON
-%token COMMA
-%token DOT
-%token OPEN_PAREN
-%token CLOSE_PAREN
-%token OPEN_BRACE
-%token CLOSE_BRACE
-%token OPEN_BRACKET
-%token CLOSE_BRACKET
-%token AT
-%token POUND
-%token TILDE
-%token QUESTION
-%token COLON
-%token DOLLAR
+%token <std::string_view> SEMICOLON
+%token <std::string_view> COMMA
+%token <std::string_view> DOT
+%token <std::string_view> OPEN_PAREN
+%token <std::string_view> CLOSE_PAREN
+%token <std::string_view> OPEN_BRACE
+%token <std::string_view> CLOSE_BRACE
+%token <std::string_view> OPEN_BRACKET
+%token <std::string_view> CLOSE_BRACKET
+%token <std::string_view> AT
+%token <std::string_view> POUND
+%token <std::string_view> TILDE
+%token <std::string_view> QUESTION
+%token <std::string_view> COLON
+%token <std::string_view> DOLLAR
 
 /* Operators */
-%token EQ
-%token NOT
-%token NOT_EQUAL
-%token LESS_THAN
-%token LESS_THAN_EQUAL
-%token GREATER_THAN
-%token GREATER_THAN_EQUAL
-%token MINUS
-%token PLUS
-%token STAR
-%token SLASH
-%token CARET
-%token PERCENT
+%token <std::string_view> EQ
+%token <std::string_view> NOT
+%token <std::string_view> NOT_EQUAL
+%token <std::string_view> LESS_THAN
+%token <std::string_view> LESS_THAN_EQUAL
+%token <std::string_view> GREATER_THAN
+%token <std::string_view> GREATER_THAN_EQUAL
+%token <std::string_view> MINUS
+%token <std::string_view> PLUS
+%token <std::string_view> STAR
+%token <std::string_view> SLASH
+%token <std::string_view> CARET
+%token <std::string_view> PERCENT
 
 /* Identifiers */
-%token TYPE
-%token <std::string> NAME
-%token <std::string> QUOTED_NAME
+%token <std::string_view> TYPE
+%token <std::string_view> NAME
+%token <std::string_view> QUOTED_NAME
 
 /* Blanks */
-%token LINE_COMMENT
-%token BLOCK_COMMENT
-%token WHITESPACE
+%token <std::string_view> LINE_COMMENT
+%token <std::string_view> BLOCK_COMMENT
+%token <std::string_view> WHITESPACE
+
+%param {dtl::tokenizer::Tokenizer& tokenizer}
+%parse-param {std::unique_ptr<dtl::ast::Script>& result}
+
+%code {
+    static dtl::parser::StateMachine::symbol_type
+    yylex(dtl::tokenizer::Tokenizer& tokenizer) {
+        using sm = dtl::parser::StateMachine;
+
+        while (true) {
+            auto token = tokenizer.next_token();
+
+            /* Map tokenizer location to parser location. */
+            dtl::parser::position token_start(
+                nullptr, token.start.lineno, token.start.column
+            );
+            dtl::parser::position token_end(
+                nullptr, token.end.lineno, token.end.column
+            );
+            dtl::parser::location token_location(token_start, token_end);
+
+            /* Map tokenizer start and end pointers to parser string view. */
+            // TODO is should be able to construct a string view from two
+            // iterators in c++20, but constructor not found.
+            std::string_view token_value(
+                token.start.offset.operator->(),
+                token.end.offset - token.start.offset
+            );
+
+            /* Map tokenizer type to parser token type. */
+            switch (token.type) {
+            case dtl::tokens::Int:
+                return sm::make_INT(token_value, token_location);
+            case dtl::tokens::Float:
+                return sm::make_FLOAT(token_value, token_location);
+            case dtl::tokens::String:
+                return sm::make_STRING(token_value, token_location);
+            case dtl::tokens::ByteString:
+                return sm::make_BYTE_STRING(token_value, token_location);
+
+            /* Keywords. */
+            case dtl::tokens::As:
+                return sm::make_AS(token_value, token_location);
+            case dtl::tokens::By:
+                return sm::make_BY(token_value, token_location);
+            case dtl::tokens::Consecutive:
+                return sm::make_CONSECUTIVE(token_value, token_location);
+            case dtl::tokens::Distinct:
+                return sm::make_DISTINCT(token_value, token_location);
+            case dtl::tokens::Export:
+                return sm::make_EXPORT(token_value, token_location);
+            case dtl::tokens::From:
+                return sm::make_FROM(token_value, token_location);
+            case dtl::tokens::Group:
+                return sm::make_GROUP(token_value, token_location);
+            case dtl::tokens::Import:
+                return sm::make_IMPORT(token_value, token_location);
+            case dtl::tokens::Join:
+                return sm::make_JOIN(token_value, token_location);
+            case dtl::tokens::On:
+                return sm::make_ON(token_value, token_location);
+            case dtl::tokens::Select:
+                return sm::make_SELECT(token_value, token_location);
+            case dtl::tokens::To:
+                return sm::make_TO(token_value, token_location);
+            case dtl::tokens::Update:
+                return sm::make_UPDATE(token_value, token_location);
+            case dtl::tokens::Using:
+                return sm::make_USING(token_value, token_location);
+            case dtl::tokens::Where:
+                return sm::make_WHERE(token_value, token_location);
+            case dtl::tokens::With:
+                return sm::make_WITH(token_value, token_location);
+
+            /* Symbols */
+            case dtl::tokens::Semicolon:
+                return sm::make_SEMICOLON(token_value, token_location);
+            case dtl::tokens::Comma:
+                return sm::make_COMMA(token_value, token_location);
+            case dtl::tokens::Dot:
+                return sm::make_DOT(token_value, token_location);
+            case dtl::tokens::OpenParen:
+                return sm::make_OPEN_PAREN(token_value, token_location);
+            case dtl::tokens::CloseParen:
+                return sm::make_CLOSE_PAREN(token_value, token_location);
+            case dtl::tokens::OpenBrace:
+                return sm::make_OPEN_BRACE(token_value, token_location);
+            case dtl::tokens::CloseBrace:
+                return sm::make_CLOSE_BRACE(token_value, token_location);
+            case dtl::tokens::OpenBracket:
+                return sm::make_OPEN_BRACKET(token_value, token_location);
+            case dtl::tokens::CloseBracket:
+                return sm::make_CLOSE_BRACKET(token_value, token_location);
+            case dtl::tokens::At:
+                return sm::make_AT(token_value, token_location);
+            case dtl::tokens::Pound:
+                return sm::make_POUND(token_value, token_location);
+            case dtl::tokens::Tilde:
+                return sm::make_TILDE(token_value, token_location);
+            case dtl::tokens::Question:
+                return sm::make_QUESTION(token_value, token_location);
+            case dtl::tokens::Colon:
+                return sm::make_COLON(token_value, token_location);
+            case dtl::tokens::Dollar:
+                return sm::make_DOLLAR(token_value, token_location);
+
+            /* Operators */
+            case dtl::tokens::Eq:
+                return sm::make_EQ(token_value, token_location);
+            case dtl::tokens::Not:
+                return sm::make_NOT(token_value, token_location);
+            case dtl::tokens::NotEqual:
+                return sm::make_NOT_EQUAL(token_value, token_location);
+            case dtl::tokens::LessThan:
+                return sm::make_LESS_THAN(token_value, token_location);
+            case dtl::tokens::LessThanEqual:
+                return sm::make_LESS_THAN_EQUAL(token_value, token_location);
+            case dtl::tokens::GreaterThan:
+                return sm::make_GREATER_THAN(token_value, token_location);
+            case dtl::tokens::GreaterThanEqual:
+                return sm::make_GREATER_THAN_EQUAL(token_value, token_location);
+            case dtl::tokens::Minus:
+                return sm::make_MINUS(token_value, token_location);
+            case dtl::tokens::Plus:
+                return sm::make_PLUS(token_value, token_location);
+            case dtl::tokens::Star:
+                return sm::make_STAR(token_value, token_location);
+            case dtl::tokens::Slash:
+                return sm::make_SLASH(token_value, token_location);
+            case dtl::tokens::Caret:
+                return sm::make_CARET(token_value, token_location);
+            case dtl::tokens::Percent:
+                return sm::make_PERCENT(token_value, token_location);
+
+            /* Identifiers */
+            case dtl::tokens::Type:
+                return sm::make_TYPE(token_value, token_location);
+            case dtl::tokens::Name:
+                return sm::make_NAME(token_value, token_location);
+            case dtl::tokens::QuotedName:
+                return sm::make_QUOTED_NAME(token_value, token_location);
+
+            /* Blanks */
+            case dtl::tokens::LineComment:
+                continue;
+            case dtl::tokens::BlockComment:
+                continue;
+            case dtl::tokens::Whitespace:
+                continue;
+
+            /* Special */
+            case dtl::tokens::EndOfFile:
+                return sm::make_YYEOF(token_location);
+            case dtl::tokens::Error:
+                return sm::make_YYUNDEF(token_location);
+
+            default:
+                assert(false);
+            }
+        }
+    }
+}
 
 %left PLUS MINUS
 %left STAR SLASH
@@ -144,13 +314,19 @@
 %type <std::unique_ptr<dtl::ast::ExportStatement>> export_statement;
 
 %type <std::unique_ptr<dtl::ast::Script>> script;
+%type result;
 
 %%
-%start script;
+%start result;
 
 name
-    : QUOTED_NAME
-    | NAME
+    : QUOTED_NAME {
+        // TODO unquote.
+        $$ = std::string($1);
+    }
+    | NAME {
+        $$ = std::string($1);
+    }
     ;
 
 literal
@@ -514,9 +690,9 @@ statement
     ;
 
 assignment_statement
-    : name EQ table_expression SEMICOLON {
+    : table_name EQ table_expression SEMICOLON {
         $$ = std::make_unique<dtl::ast::AssignmentStatement>();
-        $$->target = std::move($name);
+        $$->target = std::move($table_name);
         $$->expression = std::move($table_expression);
     }
     ;
@@ -544,4 +720,30 @@ script
     }
     ;
 
+result
+    : script {
+        result = std::move($script);
+    }
+    ;
+
 %%
+
+void dtl::parser::StateMachine::error(
+    const location_type& location, const std::string& message
+) {
+    std::cerr << location << ": " << message << '\n';
+}
+
+namespace dtl {
+namespace parser {
+
+std::unique_ptr<dtl::ast::Script> parse(dtl::tokenizer::Tokenizer& tokenizer) {
+    std::unique_ptr<dtl::ast::Script> result;
+    dtl::parser::StateMachine state_machine(tokenizer, result);
+    assert(!state_machine.parse());
+    return result;
+}
+
+}  /* namespace parser */
+}  /* namespace dtl */
+
