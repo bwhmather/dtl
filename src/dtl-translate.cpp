@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <arrow/type.h>
+
 #include "dtl-ast.hpp"
 #include "dtl-ir.hpp"
 
@@ -21,6 +23,9 @@ class Context {
     std::vector<dtl::ir::Export> m_exports;
 
   public:
+    Context() {};
+    Context(Context& context) = delete;
+
     void trace_column_expression(
         std::shared_ptr<dtl::ir::Table> table,
         dtl::Location start,
@@ -77,6 +82,10 @@ class Context {
         m_traces.push_back(std::move(trace));
     }
 
+    void add_input(std::string name, std::shared_ptr<dtl::ir::Table> table) {
+        m_inputs.insert_or_assign(name, table);
+    }
+
     std::shared_ptr<dtl::ir::Table> import_table(std::string name) const {
         return m_inputs.at(name);
     }
@@ -106,11 +115,11 @@ class Context {
 };
 
 class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
-    Context m_context;
+    Context& m_context;
     std::optional<std::shared_ptr<dtl::ir::Table>> m_result;
 
   public:
-    TableExpressionCompiler(Context context) : m_context(context) {}
+    TableExpressionCompiler(Context& context) : m_context(context) {}
 
     void visit_select_expression(
         dtl::ast::SelectExpression& expr
@@ -147,7 +156,7 @@ class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
 
 static std::shared_ptr<dtl::ir::Table>
 compile_table_expression(
-    dtl::ast::TableExpression& expression, Context context
+    dtl::ast::TableExpression& expression, Context& context
 ) {
     TableExpressionCompiler compiler(context);
     return compiler.visit(expression);
@@ -171,9 +180,9 @@ static std::shared_ptr<dtl::ir::Table> strip_namespaces(std::shared_ptr<dtl::ir:
 }
 
 class StatementCompiler : public dtl::ast::StatementVisitor {
-    Context m_context;
+    Context& m_context;
   public:
-    StatementCompiler(Context context) : m_context(context) {};
+    StatementCompiler(Context& context) : m_context(context) {};
 
     void visit_assignment_statement(
         dtl::ast::AssignmentStatement& statement
@@ -227,12 +236,38 @@ class StatementCompiler : public dtl::ast::StatementVisitor {
     };
 };
 
-static void compile_statement(dtl::ast::Statement& statement, Context context) {
+static void compile_statement(dtl::ast::Statement& statement, Context& context) {
     StatementCompiler compiler(context);
     compiler.visit(statement);
 }
 
-dtl::ir::Program ast_to_ir(dtl::ast::Script& script) {
+static void compile_input_table(
+    std::string& table_name, std::shared_ptr<arrow::Schema> schema, Context& context
+) {
+    auto table = std::make_shared<dtl::ir::Table>();
+
+    for (int i = 0; i < schema->num_fields(); i++) {
+        auto field = schema->field(i);
+
+        auto expr = std::make_shared<dtl::ir::ImportExpression>();
+        expr->dtype = dtl::ir::DType::DOUBLE;  // TODO field->type->type
+        expr->location = table_name;
+        expr->name = field->name();
+
+        dtl::ir::Column column;
+        column.name = field->name();
+        column.expression = expr;
+
+        table->columns.push_back(std::move(column));
+    }
+
+    context.add_input(table_name, table);
+}
+
+dtl::ir::Program ast_to_ir(
+    dtl::ast::Script& script,
+    std::unordered_map<std::string, std::shared_ptr<arrow::Schema>> input_schemas
+) {
     Context context;
 
     for (auto&& statement : script.statements) {
