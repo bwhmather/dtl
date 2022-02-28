@@ -162,7 +162,9 @@ compile_table_expression(
     return compiler.visit(expression);
 }
 
-static std::shared_ptr<dtl::ir::Table> strip_namespaces(std::shared_ptr<dtl::ir::Table> input) {
+static std::shared_ptr<dtl::ir::Table> strip_namespaces(
+    std::shared_ptr<dtl::ir::Table> input
+) {
     auto output = std::make_shared<dtl::ir::Table>();
 
     for (auto&& input_column : input->columns) {
@@ -242,7 +244,9 @@ static void compile_statement(dtl::ast::Statement& statement, Context& context) 
 }
 
 static void compile_input_table(
-    std::string& table_name, std::shared_ptr<arrow::Schema> schema, Context& context
+    const std::string& table_name,
+    std::shared_ptr<arrow::Schema> schema,
+    Context& context
 ) {
     auto table = std::make_shared<dtl::ir::Table>();
 
@@ -269,6 +273,10 @@ dtl::ir::Program ast_to_ir(
     std::unordered_map<std::string, std::shared_ptr<arrow::Schema>> input_schemas
 ) {
     Context context;
+
+    for (auto&& entry : input_schemas) {
+        compile_input_table(entry.first, entry.second, context);
+    }
 
     for (auto&& statement : script.statements) {
         compile_statement(*statement, context);

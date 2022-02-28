@@ -5,8 +5,9 @@ project('dtl', 'cpp', default_options: [
 cc = meson.get_compiler('cpp')
 
 m_dep = cc.find_library('m', required : false)
+arrow_dep = dependency('arrow')
 
-dependencies = [m_dep]
+dependencies = [m_dep, arrow_dep]
 
 includes = include_directories('src')
 
@@ -25,6 +26,8 @@ lib_sources = [
   'src/dtl-ast.cpp',
   'src/dtl-tokens.cpp',
   'src/dtl-tokenizer.cpp',
+  'src/dtl-translate.cpp',
+  'src/dtl-ir.cpp',
   parser_source,
 ]
 
