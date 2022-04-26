@@ -24,7 +24,6 @@ parser_source = custom_target(
 
 lib_sources = [
   'src/dtl-ast.cpp',
-  'src/dtl-ast-default-visitor.cpp',
   'src/dtl-tokens.cpp',
   'src/dtl-tokenizer.cpp',
   'src/dtl-translate.cpp',
