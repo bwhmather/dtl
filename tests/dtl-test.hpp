@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include <cstdlib>
 
 #define dtl_assert(dtl_test_condition) do {                                 \
         if (!(dtl_test_condition)) {                                        \
