@@ -1,4 +1,4 @@
-#include "dtl-translate.hpp"
+#include "dtl-ast-to-ir.hpp"
 
 #include <cassert>
 #include <memory>
@@ -13,7 +13,7 @@
 #include "dtl-ir.hpp"
 
 namespace dtl {
-namespace translate {
+namespace ast {
 
 class Context {
     std::unordered_map<std::string, std::shared_ptr<dtl::ir::Table> > m_inputs;
@@ -268,7 +268,7 @@ static void compile_input_table(
     context.add_input(table_name, table);
 }
 
-dtl::ir::Program ast_to_ir(
+dtl::ir::Program to_ir(
     dtl::ast::Script& script,
     std::unordered_map<std::string, std::shared_ptr<arrow::Schema>> input_schemas
 ) {
@@ -285,5 +285,5 @@ dtl::ir::Program ast_to_ir(
     return context.freeze();
 }
 
-}  /* namespace translate */
+}  /* namespace ast */
 }  /* namespace dtl */
