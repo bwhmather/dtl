@@ -82,7 +82,9 @@ class ChildNodeVisitor : public NodeVisitor {
     }
 
     virtual void visit_select_expression(SelectExpression& expr) override {
-        expr.distinct->accept(m_visitor);
+        if (expr.distinct) {
+            expr.distinct->accept(m_visitor);
+        }
         for (auto&& column : expr.columns) {
             column->accept(m_visitor);
         }
@@ -90,8 +92,12 @@ class ChildNodeVisitor : public NodeVisitor {
         for (auto&& join : expr.joins) {
             join->accept(m_visitor);
         }
-        expr.where->accept(m_visitor);
-        expr.group_by->accept(m_visitor);
+        if (expr.where) {
+            expr.where->accept(m_visitor);
+        }
+        if (expr.group_by) {
+            expr.group_by->accept(m_visitor);
+        }
     }
     virtual void visit_import_expression(ImportExpression& expr) override {
         expr.location->accept(m_visitor);
