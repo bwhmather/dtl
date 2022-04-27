@@ -335,7 +335,9 @@ literal
 
 string
     : STRING {
-
+        $$ = std::make_unique<dtl::ast::String>();
+        // TODO unquote.
+        $$->value = std::string($1);
     }
     ;
 
