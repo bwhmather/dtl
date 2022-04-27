@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "dtl-ast.hpp"
-#include "dtl-ast-default-visitor.hpp"
+#include "dtl-ast-defaulted-visitor.tpp"
 #include "dtl-ast-traversal.hpp"
 
 namespace dtl {
