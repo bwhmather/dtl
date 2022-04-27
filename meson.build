@@ -24,6 +24,7 @@ parser_source = custom_target(
 
 lib_sources = [
   'src/dtl-ast.cpp',
+  'src/dtl-ast-find-imports.cpp',
   'src/dtl-ast-traversal.cpp',
   'src/dtl-tokens.cpp',
   'src/dtl-tokenizer.cpp',
@@ -57,6 +58,9 @@ test_exe = executable(
 test_includes = include_directories('src', 'tests')
 
 test_suites = {
+  'ast': [
+    'find-imports',
+  ],
   'parser': [
     'basic',
   ],
