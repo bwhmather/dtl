@@ -5,7 +5,7 @@
 
 #include "dtl-ast.hpp"
 #include "dtl-ast-defaulted-visitor.tpp"
-#include "dtl-ast-traversal.hpp"
+#include "dtl-ast-visit-children.hpp"
 
 namespace dtl {
 namespace ast {
