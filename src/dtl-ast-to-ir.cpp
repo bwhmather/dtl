@@ -145,8 +145,8 @@ class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
         m_result = std::move(table);
     };
 
-    std::shared_ptr<dtl::ir::Table> visit(dtl::ast::TableExpression& expr) {
-        expr.accept(*this);
+    std::shared_ptr<dtl::ir::Table> run(dtl::ast::TableExpression& expr) {
+        visit(expr);
 
         std::optional<std::shared_ptr<dtl::ir::Table>> result;
         std::swap(result, m_result);
@@ -159,7 +159,7 @@ compile_table_expression(
     dtl::ast::TableExpression& expression, Context& context
 ) {
     TableExpressionCompiler compiler(context);
-    return compiler.visit(expression);
+    return compiler.run(expression);
 }
 
 static std::shared_ptr<dtl::ir::Table> strip_namespaces(
@@ -231,10 +231,6 @@ class StatementCompiler : public dtl::ast::StatementVisitor {
 
         m_context.trace_statement(result_table, statement.start, statement.end);
         m_context.export_table(statement.location->value, result_table);
-    };
-
-    void visit(dtl::ast::Statement& statement) {
-        statement.accept(*this);
     };
 };
 
