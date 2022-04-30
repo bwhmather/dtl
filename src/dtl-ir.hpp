@@ -10,6 +10,14 @@
 namespace dtl {
 namespace ir {
 
+class ExpressionVisitor;
+class ShapeExpressionVisitor;
+class ArrayExpressionVisitor;
+
+class Expression;
+class ShapeExpression;
+class ArrayExpression;
+
 enum class DType {
     BOOL,
     INT32,
@@ -20,98 +28,175 @@ enum class DType {
 
 /* === Expressions ========================================================== */
 
-class ExpressionVisitor;
-
 class Expression : public std::enable_shared_from_this<Expression> {
   public:
-    DType dtype;
-
     virtual ~Expression() {};
+
+  private:
+    friend class ExpressionVisitor;
     virtual void accept(ExpressionVisitor& visitor) const = 0;
 };
 
-class ImportExpression : public Expression {
+/* --- Shape Expressions ---------------------------------------------------- */
+
+class ShapeExpression : public Expression {
+  private:
+    void accept(ExpressionVisitor& visitor) const override final;
+
+    friend class ShapeExpressionVisitor;
+    virtual void accept(ShapeExpressionVisitor& visitor) const = 0;
+};
+
+class ImportShapeExpression : public ShapeExpression {
+  public:
+    std::string location;
+
+  private:
+    void accept(ShapeExpressionVisitor& visitor) const override final;
+};
+
+class WhereShapeExpression : public ShapeExpression {
+  public:
+    std::shared_ptr<const ArrayExpression> mask;
+
+  private:
+    void accept(ShapeExpressionVisitor& visitor) const override final;
+};
+
+class JoinShapeExpression : public ShapeExpression {
+  public:
+    std::shared_ptr<const ShapeExpression> shape_a;
+    std::shared_ptr<const ShapeExpression> shape_b;
+
+  private:
+    void accept(ShapeExpressionVisitor& visitor) const override final;
+};
+
+/* --- Array Expressions ---------------------------------------------------- */
+
+class ArrayExpression : public Expression {
+  public:
+    DType dtype;
+    std::shared_ptr<const ShapeExpression> shape;
+
+  private:
+    void accept(ExpressionVisitor& visitor) const override final;
+
+    friend class ArrayExpressionVisitor;
+    virtual void accept(ArrayExpressionVisitor& visitor) const = 0;
+};
+
+class ImportExpression : public ArrayExpression {
   public:
     std::string location;
     std::string name;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class WhereExpression : public Expression {
+class WhereExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> source;
     std::shared_ptr<const Expression> mask;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class PickExpression : public Expression {
+class PickExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> source;
     std::shared_ptr<const Expression> indexes;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class IndexExpression : public Expression {
+class IndexExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> source;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class JoinLeftExpression : public Expression {
+class JoinLeftExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> left;
     std::shared_ptr<const Expression> right;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class JoinRightExpression : public Expression {
+class JoinRightExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> left;
     std::shared_ptr<const Expression> right;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class AddExpression : public Expression {
+class AddExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> left;
     std::shared_ptr<const Expression> right;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class SubtractExpression : public Expression {
+class SubtractExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> left;
     std::shared_ptr<const Expression> right;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class MultiplyExpression : public Expression {
+class MultiplyExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> left;
     std::shared_ptr<const Expression> right;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class DivideExpression : public Expression {
+class DivideExpression : public ArrayExpression {
   public:
     std::shared_ptr<const Expression> left;
     std::shared_ptr<const Expression> right;
 
-    void accept(ExpressionVisitor& visitor) const override final;
+  private:
+    void accept(ArrayExpressionVisitor& visitor) const override final;
 };
 
-class ExpressionVisitor {
+/* --- Visitors ------------------------------------------------------------- */
+
+class ShapeExpressionVisitor {
   public:
-    virtual ~ExpressionVisitor() {};
+    virtual ~ShapeExpressionVisitor() {};
+
+    virtual void visit_import_shape_expression(
+        const ImportShapeExpression& expression
+    ) = 0;
+    virtual void visit_join_shape_expression(
+        const JoinShapeExpression& expression
+    ) = 0;
+    virtual void visit_where_shape_expression(
+        const WhereShapeExpression& expression
+    ) = 0;
+
+    void visit(const ShapeExpression& expression);
+};
+
+class ArrayExpressionVisitor {
+  public:
+    virtual ~ArrayExpressionVisitor() {};
 
     virtual void visit_import_expression(const ImportExpression& expression) = 0;
     virtual void visit_where_expression(const WhereExpression& expression) = 0;
@@ -124,9 +209,15 @@ class ExpressionVisitor {
     virtual void visit_multiply_expression(const MultiplyExpression& expression) = 0;
     virtual void visit_divide_expression(const DivideExpression& expression) = 0;
 
-    void visit(const Expression& expression) {
-        expression.accept(*this);
-    }
+    void visit(const ArrayExpression& expression);
+};
+
+class ExpressionVisitor : public ShapeExpressionVisitor, public ArrayExpressionVisitor {
+  public:
+    using ShapeExpressionVisitor::visit;
+    using ArrayExpressionVisitor::visit;
+
+    void visit(const Expression& expression);
 };
 
 /* === Tables =============================================================== */
