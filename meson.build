@@ -6,8 +6,9 @@ cc = meson.get_compiler('cpp')
 
 m_dep = cc.find_library('m', required : false)
 arrow_dep = dependency('arrow')
+parquet_dep = dependency('parquet')
 
-dependencies = [m_dep, arrow_dep]
+dependencies = [m_dep, arrow_dep, parquet_dep]
 
 includes = include_directories('src')
 
@@ -27,6 +28,7 @@ lib_sources = [
   'src/dtl-ast-find-imports.cpp',
   'src/dtl-ast-to-ir.cpp',
   'src/dtl-ast-visit-children.cpp',
+  'src/dtl-io-filesystem.cpp',
   'src/dtl-ir.cpp',
   'src/dtl-tokenizer.cpp',
   'src/dtl-tokens.cpp',
