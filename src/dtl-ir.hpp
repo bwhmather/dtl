@@ -24,6 +24,7 @@ enum class DType {
     DOUBLE,
     TEXT,
     BYTES,
+    INDEX,
 };
 
 /* === Expressions ========================================================== */
