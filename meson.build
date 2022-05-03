@@ -28,6 +28,7 @@ lib_sources = [
   'src/dtl-ast-find-imports.cpp',
   'src/dtl-ast-to-ir.cpp',
   'src/dtl-ast-visit-children.cpp',
+  'src/dtl-eval.cpp',
   'src/dtl-io-filesystem.cpp',
   'src/dtl-ir.cpp',
   'src/dtl-tokenizer.cpp',
