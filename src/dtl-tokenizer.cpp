@@ -151,11 +151,12 @@ dtl::tokens::TokenType Tokenizer::next_type() {
             if (curr == '\0') {
                 return dtl::tokens::Error;
             }
-            if (curr == '\\') {
-                bump();
-            }
             if (curr == '\'') {
-                return dtl::tokens::String;
+                if (peek() == '\'') {
+                    bump();
+                } else {
+                    return dtl::tokens::String;
+                }
             }
         }
     }

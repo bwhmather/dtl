@@ -336,8 +336,25 @@ literal
 string
     : STRING {
         $$ = std::make_unique<dtl::ast::String>();
-        // TODO unquote.
-        $$->value = std::string($1);
+        $$->value = std::string();
+        auto curr = $1.begin();
+        while (true) {
+            curr++;
+            if (curr == $1.end()) {
+                throw "unexpected end of string";
+            }
+            if (*curr == '\'') {
+                curr++;
+                if (curr == $1.end()) {
+                    break;
+                }
+
+                if (*curr != '\'') {
+                    throw "unexpected single quote";
+                }
+            }
+            $$->value += *curr;
+        }
     }
     ;
 
