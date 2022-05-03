@@ -46,7 +46,7 @@ lib = both_libraries(
 
 ### Executable ###
 
-test_exe = executable(
+exe = executable(
   'dtl',
   'src/main.cpp',
   include_directories : includes,
