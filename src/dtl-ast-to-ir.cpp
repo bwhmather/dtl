@@ -10,6 +10,8 @@
 #include <arrow/type.h>
 
 #include "dtl-ast.hpp"
+#include "dtl-ast-find-imports.hpp"
+#include "dtl-io.hpp"
 #include "dtl-ir.hpp"
 
 namespace dtl {
@@ -264,14 +266,13 @@ static void compile_input_table(
     context.add_input(table_name, table);
 }
 
-dtl::ir::Program to_ir(
-    dtl::ast::Script& script,
-    std::unordered_map<std::string, std::shared_ptr<arrow::Schema>> input_schemas
-) {
+dtl::ir::Program to_ir(dtl::ast::Script& script, dtl::io::Importer& importer) {
     Context context;
 
-    for (auto&& entry : input_schemas) {
-        compile_input_table(entry.first, entry.second, context);
+    std::vector<std::string> import_names = dtl::ast::find_imports(script);
+    for (auto&& name : import_names) {
+        auto schema = importer.import_schema(name);
+        compile_input_table(name, schema, context);
     }
 
     for (auto&& statement : script.statements) {
