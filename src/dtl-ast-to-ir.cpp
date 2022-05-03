@@ -259,6 +259,7 @@ static void compile_input_table(
         dtl::ir::Column column;
         column.name = field->name();
         column.expression = expr;
+        column.namespaces.emplace("");
 
         table->columns.push_back(std::move(column));
     }
