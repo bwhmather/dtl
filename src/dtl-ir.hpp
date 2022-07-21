@@ -98,8 +98,8 @@ class ImportExpression : public ArrayExpression {
 
 class WhereExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> source;
-    std::shared_ptr<const Expression> mask;
+    std::shared_ptr<const ArrayExpression> source;
+    std::shared_ptr<const ArrayExpression> mask;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -107,8 +107,8 @@ class WhereExpression : public ArrayExpression {
 
 class PickExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> source;
-    std::shared_ptr<const Expression> indexes;
+    std::shared_ptr<const ArrayExpression> source;
+    std::shared_ptr<const ArrayExpression> indexes;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -116,7 +116,7 @@ class PickExpression : public ArrayExpression {
 
 class IndexExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> source;
+    std::shared_ptr<const ArrayExpression> source;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -124,8 +124,8 @@ class IndexExpression : public ArrayExpression {
 
 class JoinLeftExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> left;
-    std::shared_ptr<const Expression> right;
+    std::shared_ptr<const ShapeExpression> left;
+    std::shared_ptr<const ShapeExpression> right;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -133,8 +133,8 @@ class JoinLeftExpression : public ArrayExpression {
 
 class JoinRightExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> left;
-    std::shared_ptr<const Expression> right;
+    std::shared_ptr<const ShapeExpression> left;
+    std::shared_ptr<const ShapeExpression> right;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -142,8 +142,8 @@ class JoinRightExpression : public ArrayExpression {
 
 class AddExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> left;
-    std::shared_ptr<const Expression> right;
+    std::shared_ptr<const ArrayExpression> left;
+    std::shared_ptr<const ArrayExpression> right;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -151,8 +151,8 @@ class AddExpression : public ArrayExpression {
 
 class SubtractExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> left;
-    std::shared_ptr<const Expression> right;
+    std::shared_ptr<const ArrayExpression> left;
+    std::shared_ptr<const ArrayExpression> right;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -160,8 +160,8 @@ class SubtractExpression : public ArrayExpression {
 
 class MultiplyExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> left;
-    std::shared_ptr<const Expression> right;
+    std::shared_ptr<const ArrayExpression> left;
+    std::shared_ptr<const ArrayExpression> right;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -169,8 +169,8 @@ class MultiplyExpression : public ArrayExpression {
 
 class DivideExpression : public ArrayExpression {
   public:
-    std::shared_ptr<const Expression> left;
-    std::shared_ptr<const Expression> right;
+    std::shared_ptr<const ArrayExpression> left;
+    std::shared_ptr<const ArrayExpression> right;
 
   private:
     void accept(ArrayExpressionVisitor& visitor) const override final;
@@ -205,7 +205,7 @@ class ArrayExpressionVisitor {
     virtual void visit_index_expression(const IndexExpression& expression) = 0;
     virtual void visit_join_left_expression(const JoinLeftExpression& expression) = 0;
     virtual void visit_join_right_expression(const JoinRightExpression& expression) = 0;
-    virtual void visit_add_expression(const Expression& expression) = 0;
+    virtual void visit_add_expression(const AddExpression& expression) = 0;
     virtual void visit_subtract_expression(const SubtractExpression& expression) = 0;
     virtual void visit_multiply_expression(const MultiplyExpression& expression) = 0;
     virtual void visit_divide_expression(const DivideExpression& expression) = 0;
