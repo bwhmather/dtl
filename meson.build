@@ -7,8 +7,9 @@ cc = meson.get_compiler('cpp')
 m_dep = cc.find_library('m', required : false)
 arrow_dep = dependency('arrow')
 parquet_dep = dependency('parquet')
+uuid_dep = dependency('uuid')
 
-dependencies = [m_dep, arrow_dep, parquet_dep]
+dependencies = [m_dep, arrow_dep, parquet_dep, uuid_dep]
 
 includes = include_directories('src')
 
@@ -33,6 +34,7 @@ lib_sources = [
   'src/dtl-ir.cpp',
   'src/dtl-tokenizer.cpp',
   'src/dtl-tokens.cpp',
+  'src/dtl-uuid.cpp',
   parser_source,
 ]
 
