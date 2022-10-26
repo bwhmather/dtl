@@ -7,7 +7,11 @@
 namespace dtl {
 namespace eval {
 
-void eval(dtl::ir::Program program, dtl::io::Importer& importer, dtl::io::Exporter& exporter) {
+void eval(
+    dtl::ir::Program program,
+    dtl::io::Importer& importer,
+    dtl::io::Exporter& exporter
+) {
     (void) program;
     (void) importer;
     (void) exporter;

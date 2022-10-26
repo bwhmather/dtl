@@ -29,7 +29,7 @@ class FindImportsVisitor :
 // in the same order as they are imported makes error reporting more predicable.
 std::vector<std::string> find_imports(dtl::ast::Script& script) {
     FindImportsVisitor visitor;
-    visitor.visit(script);
+    script.accept(visitor);
     return std::move(visitor.imports);
 }
 

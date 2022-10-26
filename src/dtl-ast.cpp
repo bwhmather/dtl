@@ -192,44 +192,6 @@ void Script::accept(NodeVisitor& visitor) {
     visitor.visit_script(*this);
 }
 
-/* === Visitors ============================================================= */
-
-void ColumnNameVisitor::visit(ColumnName& column_name) {
-    column_name.accept(*this);
-}
-
-void LiteralVisitor::visit(Literal& literal) {
-    literal.accept(*this);
-}
-
-void ExpressionVisitor::visit(Expression& expression) {
-    expression.accept(*this);
-}
-
-void ColumnBindingVisitor::visit(ColumnBinding& binding) {
-    binding.accept(*this);
-}
-
-void TableBindingVisitor::visit(TableBinding& binding) {
-    binding.accept(*this);
-}
-
-void JoinConstraintVisitor::visit(JoinConstraint& constraint) {
-    constraint.accept(*this);
-}
-
-void TableExpressionVisitor::visit(TableExpression& expression) {
-    expression.accept(*this);
-}
-
-void StatementVisitor::visit(Statement& statement) {
-    statement.accept(*this);
-}
-
-void NodeVisitor::visit(Node& node) {
-    node.accept(*this);
-}
-
 } /* namespace ast */
 } /* namespace dtl */
 

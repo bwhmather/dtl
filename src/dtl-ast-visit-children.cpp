@@ -28,87 +28,87 @@ class ChildNodeVisitor : public NodeVisitor {
     }
 
     void visit_column_reference_expression(ColumnReferenceExpression& expr) override {
-        m_visitor.visit(*expr.name);
+        expr.name->accept(m_visitor);
     }
     void visit_literal_expression(LiteralExpression& expr) override {
-        m_visitor.visit(*expr.value);
+        expr.value->accept(m_visitor);
     }
     void visit_function_call_expression(FunctionCallExpression& expr) override {
         for (auto&& argument : expr.arguments) {
-            m_visitor.visit(*argument);
+            argument->accept(m_visitor);
         }
     }
     void visit_add_expression(AddExpression& expr) override {
-        m_visitor.visit(*expr.left);
-        m_visitor.visit(*expr.right);
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
     }
     void visit_subtract_expression(SubtractExpression& expr) override {
-        m_visitor.visit(*expr.left);
-        m_visitor.visit(*expr.right);
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
     }
     void visit_multiply_expression(MultiplyExpression& expr) override {
-        m_visitor.visit(*expr.left);
-        m_visitor.visit(*expr.right);
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
     }
     void visit_divide_expression(DivideExpression& expr) override {
-        m_visitor.visit(*expr.left);
-        m_visitor.visit(*expr.right);
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
     }
 
     void visit_wildcard_column_binding(WildcardColumnBinding& binding) override {
         (void) binding;
     }
     void visit_implicit_column_binding(ImplicitColumnBinding& binding) override {
-        m_visitor.visit(*binding.expression);
+        binding.expression->accept(m_visitor);
     }
     void visit_aliased_column_binding(AliasedColumnBinding& binding) override {
-        m_visitor.visit(*binding.expression);
+        binding.expression->accept(m_visitor);
     }
 
     void visit_implicit_table_binding(ImplicitTableBinding& binding) override {
-        m_visitor.visit(*binding.expression);
+        binding.expression->accept(m_visitor);
     }
     void visit_aliased_table_binding(AliasedTableBinding& binding) override {
-        m_visitor.visit(*binding.expression);
+        binding.expression->accept(m_visitor);
     }
 
     void visit_join_on_constraint(JoinOnConstraint& constraint) override {
-        m_visitor.visit(*constraint.predicate);
+        constraint.predicate->accept(m_visitor);
     }
     void visit_join_using_constraint(JoinUsingConstraint& constraint) override {
         for (auto&& column : constraint.columns) {
-            m_visitor.visit(*column);
+            column->accept(m_visitor);
         }
     }
 
     void visit_select_expression(SelectExpression& expr) override {
         if (expr.distinct) {
-            m_visitor.visit(*expr.distinct);
+            expr.distinct->accept(m_visitor);
         }
         for (auto&& column : expr.columns) {
-            m_visitor.visit(*column);
+            column->accept(m_visitor);
         }
-        m_visitor.visit(*expr.source);
+        expr.source->accept(m_visitor);
         for (auto&& join : expr.joins) {
-            m_visitor.visit(*join);
+            join->accept(m_visitor);
         }
         if (expr.where) {
-            m_visitor.visit(*expr.where);
+            expr.where->accept(m_visitor);
         }
         if (expr.group_by) {
-            m_visitor.visit(*expr.group_by);
+            expr.group_by->accept(m_visitor);
         }
     }
     void visit_import_expression(ImportExpression& expr) override {
-        m_visitor.visit(*expr.location);
+        expr.location->accept(m_visitor);
     }
     void visit_table_reference_expression(TableReferenceExpression& expr) override {
         (void) expr;
     }
 
     void visit_assignment_statement(AssignmentStatement& statement) override {
-        m_visitor.visit(*statement.target);
-        m_visitor.visit(*statement.expression);
+        statement.target->accept(m_visitor);
+        statement.expression->accept(m_visitor);
     }
     void visit_update_statement(UpdateStatement& statement) override {
         (void) statement;
@@ -123,8 +123,8 @@ class ChildNodeVisitor : public NodeVisitor {
         throw "Not implemented";
     }
     void visit_export_statement(ExportStatement& statement) override {
-        m_visitor.visit(*statement.location);
-        m_visitor.visit(*statement.expression);
+        statement.location->accept(m_visitor);
+        statement.expression->accept(m_visitor);
     }
 
     void visit_table_name(TableName& table_name) override {
@@ -134,30 +134,30 @@ class ChildNodeVisitor : public NodeVisitor {
         (void) clause;
     }
     void visit_from_clause(FromClause& clause) override {
-        m_visitor.visit(*clause.binding);
+        clause.binding->accept(m_visitor);
     }
     void visit_join_clause(JoinClause& clause) override {
-        m_visitor.visit(*clause.binding);
-        m_visitor.visit(*clause.constraint);
+        clause.binding->accept(m_visitor);
+        clause.constraint->accept(m_visitor);
     }
     void visit_where_clause(WhereClause& clause) override {
-        m_visitor.visit(*clause.predicate);
+        clause.predicate->accept(m_visitor);
     }
     void visit_group_by_clause(GroupByClause& clause) override {
         for (auto&& expression : clause.pattern) {
-            m_visitor.visit(*expression);
+            expression->accept(m_visitor);
         }
     }
     void visit_script(Script& script) override {
         for (auto&& statement : script.statements) {
-            m_visitor.visit(*statement);
+            statement->accept(m_visitor);
         }
     }
 };
 
 void visit_children(Node& node, NodeVisitor& visitor) {
     ChildNodeVisitor root_visitor(visitor);
-    root_visitor.visit(node);
+    node.accept(root_visitor);
 }
 
 } /* namespace ast */

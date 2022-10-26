@@ -148,7 +148,7 @@ class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
     };
 
     std::shared_ptr<dtl::ir::Table> run(dtl::ast::TableExpression& expr) {
-        visit(expr);
+        expr.accept(*this);
 
         std::optional<std::shared_ptr<dtl::ir::Table>> result;
         std::swap(result, m_result);
@@ -238,7 +238,7 @@ class StatementCompiler : public dtl::ast::StatementVisitor {
 
 static void compile_statement(dtl::ast::Statement& statement, Context& context) {
     StatementCompiler compiler(context);
-    compiler.visit(statement);
+    statement.accept(compiler);
 }
 
 static void compile_input_table(
