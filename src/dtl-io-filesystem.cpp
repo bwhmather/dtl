@@ -10,6 +10,8 @@
 #include <parquet/exception.h>
 
 #include "dtl-io.hpp"
+#include "dtl-manifest.hpp"
+#include "dtl-uuid.hpp"
 
 namespace dtl {
 namespace io {
@@ -83,11 +85,30 @@ std::unique_ptr<Exporter> filesystem_exporter(std::filesystem::path& root) {
 
 /* === Tracer =============================================================== */
 
-// std::unique_ptr<Tracer> filesystem_tracer(std::filesystem::path& root) {
-// }
+class FilesystemTracer : public Tracer {
+    std::filesystem::path m_root;
+
+  public:
+    FilesystemTracer(std::filesystem::path& root) : m_root(root) {}
+
+    void write_manifest(dtl::manifest::Manifest &manifest) override final {
+        (void) manifest;
+        throw "Not implemented error";
+    }
+    void write_array(
+        dtl::UUID array_id, std::shared_ptr<arrow::Array> array
+    ) override final {
+        (void) array_id;
+        (void) array;
+        throw "Not implemented error";
+    }
+
+};
+
+std::unique_ptr<Tracer> filesystem_tracer(std::filesystem::path& root) {
+    return std::make_unique<FilesystemTracer>(root);
+}
 
 } /* namespace io */
 } /* namespace dtl */
-
-
 

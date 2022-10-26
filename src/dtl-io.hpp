@@ -6,6 +6,8 @@
 #include <arrow/api.h>
 
 #include "dtl-location.hpp"
+#include "dtl-manifest.hpp"
+#include "dtl-uuid.hpp"
 
 namespace dtl {
 namespace io {
@@ -22,23 +24,18 @@ class Exporter {
   public:
     virtual ~Exporter() {};
 
-    virtual void export_table(std::string& name, std::shared_ptr<arrow::Table>) = 0;
+    virtual void export_table(
+        std::string& name, std::shared_ptr<arrow::Table> table
+    ) = 0;
 };
 
 class Tracer {
   public:
     virtual ~Tracer() {};
 
-    virtual int write_array(std::shared_ptr<arrow::Array> array) = 0;
-    virtual int write_snapshot(
-        std::unordered_map<std::string, int> columns,
-        dtl::Location start,
-        dtl::Location end
-    ) = 0;
-    virtual int write_mapping(
-        int mapping_array,
-        int source,
-        int target
+    virtual void write_manifest(dtl::manifest::Manifest& manifest) = 0;
+    virtual void write_array(
+        dtl::UUID array_id, std::shared_ptr<arrow::Array> array
     ) = 0;
 };
 
