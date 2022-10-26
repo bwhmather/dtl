@@ -32,6 +32,7 @@ lib_sources = [
   'src/dtl-eval.cpp',
   'src/dtl-io-filesystem.cpp',
   'src/dtl-ir.cpp',
+  'src/dtl-manifest.cpp',
   'src/dtl-tokenizer.cpp',
   'src/dtl-tokens.cpp',
   'src/dtl-uuid.cpp',
