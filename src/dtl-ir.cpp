@@ -69,19 +69,5 @@ void DivideExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_divide_expression(*this);
 }
 
-/* === Visitors ============================================================= */
-
-void ShapeExpressionVisitor::visit(const ShapeExpression& expression) {
-    expression.accept(*this);
-}
-
-void ArrayExpressionVisitor::visit(const ArrayExpression& expression) {
-    expression.accept(*this);
-}
-
-void ExpressionVisitor::visit(const Expression& expression) {
-    expression.accept(*this);
-}
-
 }  /* namespace ir */
 }  /* namespace dtl */
