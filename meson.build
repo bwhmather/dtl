@@ -94,3 +94,31 @@ foreach suite, tests : test_suites
     test(suite + '-' + test_name, test_exe, timeout: 10)
   endforeach
 endforeach
+
+py_test_suites = {
+    'end-to-end': [
+        'rename-columns',
+    ]
+}
+
+pymod = import('python')
+python = pymod.find_installation('python3')
+
+foreach suite, tests : py_test_suites
+  foreach test_name : tests
+    test(
+        suite + '-' + test_name,
+        python,
+        args: [
+            meson.current_source_dir() +
+            '/tests/' + suite +
+            '/test_' + test_name.replace('-', '_') + '.py',
+        ],
+        env: {
+            'DTL': exe.full_path(),
+        },
+        timeout: 10,
+    )
+
+  endforeach
+endforeach
