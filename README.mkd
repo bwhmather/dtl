@@ -1,0 +1,14 @@
+DTL (Data Transformation Language)
+==================================
+
+Explainable language for cleaning tabular data.
+
+```sql
+WITH a AS IMPORT 'input_a';
+WITH b AS IMPORT 'input_b';
+WITH output AS
+    SELECT key, a.value AS a, b.value AS b
+    FROM a
+    JOIN b ON a.key + 1 = b.key;
+EXPORT output TO 'output';
+```
