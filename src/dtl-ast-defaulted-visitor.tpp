@@ -40,6 +40,21 @@ class DefaultedExpressionVisitorMixin : public T {
     virtual void visit_function_call_expression(FunctionCallExpression& expr) override {
         visit_expression(expr);
     }
+    virtual void visit_equal_to_expression(EqualToExpression& expr) override {
+        visit_expression(expr);
+    }
+    virtual void visit_less_than_expression(LessThanExpression& expr) override {
+        visit_expression(expr);
+    }
+    virtual void visit_less_than_equal_expression(LessThanEqualExpression& expr) override {
+        visit_expression(expr);
+    }
+    virtual void visit_greater_than_expression(GreaterThanExpression& expr) override {
+        visit_expression(expr);
+    }
+    virtual void visit_greater_than_equal_expression(GreaterThanEqualExpression& expr) override {
+        visit_expression(expr);
+    }
     virtual void visit_add_expression(AddExpression& expr) override {
         visit_expression(expr);
     }
@@ -130,6 +145,9 @@ class DefaultedStatementVisitorMixin : public T {
         visit_statement(statement);
     }
     virtual void visit_export_statement(ExportStatement& statement) override {
+        visit_statement(statement);
+    }
+    virtual void visit_begin_statement(BeginStatement& statement) override {
         visit_statement(statement);
     }
 

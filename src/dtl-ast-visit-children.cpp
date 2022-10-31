@@ -38,6 +38,26 @@ class ChildNodeVisitor : public NodeVisitor {
             argument->accept(m_visitor);
         }
     }
+    void visit_equal_to_expression(EqualToExpression& expr) override {
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
+    }
+    void visit_less_than_expression(LessThanExpression& expr) override {
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
+    }
+    void visit_less_than_equal_expression(LessThanEqualExpression& expr) override {
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
+    }
+    void visit_greater_than_expression(GreaterThanExpression& expr) override {
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
+    }
+    void visit_greater_than_equal_expression(GreaterThanEqualExpression& expr) override {
+        expr.left->accept(m_visitor);
+        expr.right->accept(m_visitor);
+    }
     void visit_add_expression(AddExpression& expr) override {
         expr.left->accept(m_visitor);
         expr.right->accept(m_visitor);
@@ -126,7 +146,9 @@ class ChildNodeVisitor : public NodeVisitor {
         statement.location->accept(m_visitor);
         statement.expression->accept(m_visitor);
     }
-
+    void visit_begin_statement(BeginStatement& statement) override {
+        (void) statement;
+    }
     void visit_table_name(TableName& table_name) override {
         (void) table_name;
     }

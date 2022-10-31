@@ -98,6 +98,46 @@ class FunctionCallExpression final : public Expression {
     void accept(ExpressionVisitor& visitor) override final;
 };
 
+class EqualToExpression final : public Expression {
+  public:
+    std::unique_ptr<Expression> left;
+    std::unique_ptr<Expression> right;
+
+    void accept(ExpressionVisitor& visitor) override final;
+};
+
+class LessThanExpression final : public Expression {
+  public:
+    std::unique_ptr<Expression> left;
+    std::unique_ptr<Expression> right;
+
+    void accept(ExpressionVisitor& visitor) override final;
+};
+
+class LessThanEqualExpression final : public Expression {
+  public:
+    std::unique_ptr<Expression> left;
+    std::unique_ptr<Expression> right;
+
+    void accept(ExpressionVisitor& visitor) override final;
+};
+
+class GreaterThanExpression final : public Expression {
+  public:
+    std::unique_ptr<Expression> left;
+    std::unique_ptr<Expression> right;
+
+    void accept(ExpressionVisitor& visitor) override final;
+};
+
+class GreaterThanEqualExpression final : public Expression {
+  public:
+    std::unique_ptr<Expression> left;
+    std::unique_ptr<Expression> right;
+
+    void accept(ExpressionVisitor& visitor) override final;
+};
+
 class AddExpression final : public Expression {
   public:
     std::unique_ptr<Expression> left;
@@ -331,6 +371,13 @@ class ExportStatement final : public Statement {
     void accept(StatementVisitor& visitor) override final;
 };
 
+class BeginStatement final : public Statement {
+  public:
+    std::string text;
+
+    void accept(StatementVisitor& visitor) override final;
+};
+
 /* === Scripts ============================================================== */
 
 class Script final : public Node {
@@ -366,6 +413,11 @@ class ExpressionVisitor {
     virtual void visit_column_reference_expression(ColumnReferenceExpression& expr) = 0;
     virtual void visit_literal_expression(LiteralExpression& expr) = 0;
     virtual void visit_function_call_expression(FunctionCallExpression& expr) = 0;
+    virtual void visit_equal_to_expression(EqualToExpression& expr) = 0;
+    virtual void visit_less_than_expression(LessThanExpression& expr) = 0;
+    virtual void visit_less_than_equal_expression(LessThanEqualExpression& expr) = 0;
+    virtual void visit_greater_than_expression(GreaterThanExpression& expr) = 0;
+    virtual void visit_greater_than_equal_expression(GreaterThanEqualExpression& expr) = 0;
     virtual void visit_add_expression(AddExpression& expr) = 0;
     virtual void visit_subtract_expression(SubtractExpression& expr) = 0;
     virtual void visit_multiply_expression(MultiplyExpression& expr) = 0;
@@ -415,6 +467,7 @@ class StatementVisitor {
     virtual void visit_delete_statement(DeleteStatement& statement) = 0;
     virtual void visit_insert_statement(InsertStatement& statement) = 0;
     virtual void visit_export_statement(ExportStatement& statement) = 0;
+    virtual void visit_begin_statement(BeginStatement& statement) = 0;
 };
 
 class NodeVisitor :

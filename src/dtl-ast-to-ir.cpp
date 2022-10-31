@@ -287,6 +287,11 @@ class StatementCompiler : public dtl::ast::StatementVisitor {
         m_context.trace_statement(result_table, statement.start, statement.end);
         m_context.export_table(statement.location->value, result_table);
     };
+
+    void visit_begin_statement(BeginStatement& statement) override final {
+        (void) statement;
+        assert(false);
+    }
 };
 
 static void compile_statement(dtl::ast::Statement& statement, Context& context) {

@@ -48,6 +48,26 @@ void FunctionCallExpression::accept(ExpressionVisitor& visitor) {
     visitor.visit_function_call_expression(*this);
 }
 
+void EqualToExpression::accept(ExpressionVisitor& visitor) {
+    visitor.visit_equal_to_expression(*this);
+}
+
+void LessThanExpression::accept(ExpressionVisitor& visitor) {
+    visitor.visit_less_than_expression(*this);
+}
+
+void LessThanEqualExpression::accept(ExpressionVisitor& visitor) {
+    visitor.visit_less_than_equal_expression(*this);
+}
+
+void GreaterThanExpression::accept(ExpressionVisitor& visitor) {
+    visitor.visit_greater_than_expression(*this);
+}
+
+void GreaterThanEqualExpression::accept(ExpressionVisitor& visitor) {
+    visitor.visit_greater_than_equal_expression(*this);
+}
+
 void AddExpression::accept(ExpressionVisitor& visitor) {
     visitor.visit_add_expression(*this);
 }
@@ -184,6 +204,10 @@ void InsertStatement::accept(StatementVisitor& visitor) {
 
 void ExportStatement::accept(StatementVisitor& visitor) {
     visitor.visit_export_statement(*this);
+}
+
+void BeginStatement::accept(StatementVisitor& visitor) {
+    visitor.visit_begin_statement(*this);
 }
 
 /* === Scripts ============================================================== */
