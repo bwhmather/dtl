@@ -1,13 +1,18 @@
 #pragma once
 
-#include "dtl-ast.hpp"
+#include <string>
+
 #include "dtl-io.hpp"
-#include "dtl-ir.hpp"
 
 namespace dtl {
 namespace eval {
 
-void eval(dtl::ir::Program program, dtl::io::Importer& importer, dtl::io::Exporter& exporter);
+void run(
+    std::string source,
+    dtl::io::Importer& importer,
+    dtl::io::Exporter& exporter,
+    dtl::io::Tracer& tracer
+);
 
 }  /* namespace eval */
 }  /* namespace dtl */

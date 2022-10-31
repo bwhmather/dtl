@@ -7,7 +7,8 @@
 namespace dtl {
 namespace ast {
 
-dtl::ir::Program to_ir(dtl::ast::Script& script, dtl::io::Importer& importer);
+std::vector<std::shared_ptr<const dtl::ir::Table> >
+to_ir(dtl::ast::Script& script, dtl::io::Importer& importer);
 
 }  /* namespace ast */
 }  /* namespace dtl */

@@ -69,5 +69,15 @@ void DivideExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_divide_expression(*this);
 }
 
+/* === Tables =============================================================== */
+
+void TraceTable::accept(TableVisitor& visitor) const {
+    visitor.visit_trace_table(*this);
+}
+
+void ExportTable::accept(TableVisitor& visitor) const {
+    visitor.visit_export_table(*this);
+}
+
 }  /* namespace ir */
 }  /* namespace dtl */

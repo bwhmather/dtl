@@ -23,14 +23,16 @@ class FilesystemImporter : public Importer {
     std::unordered_map<std::string, std::shared_ptr<arrow::Table>> m_cache;
 
   public:
-    FilesystemImporter(std::filesystem::path& root) : m_root(root) {}
+    FilesystemImporter(const std::filesystem::path& root) : m_root(root) {}
 
-    std::shared_ptr<arrow::Schema> import_schema(std::string& name) override final {
+    std::shared_ptr<arrow::Schema>
+    import_schema(const std::string& name) override final {
         auto table = import_table(name);
         return table->schema();
     }
 
-    std::shared_ptr<arrow::Table> import_table(std::string& name) override final {
+    std::shared_ptr<arrow::Table>
+    import_table(const std::string& name) override final {
         std::shared_ptr<arrow::Table> table;
         auto cursor = m_cache.find(name);
         if (cursor == m_cache.end()) {
@@ -60,7 +62,8 @@ class FilesystemImporter : public Importer {
     }
 };
 
-std::unique_ptr<Importer> filesystem_importer(std::filesystem::path& root) {
+std::unique_ptr<Importer>
+filesystem_importer(const std::filesystem::path& root) {
     return std::make_unique<FilesystemImporter>(root);
 }
 
@@ -70,16 +73,20 @@ class FilesystemExporter : public Exporter {
     std::filesystem::path m_root;
 
   public:
-    FilesystemExporter(std::filesystem::path& root) : m_root(root) {}
+    FilesystemExporter(const std::filesystem::path& root) : m_root(root) {}
 
-    void export_table(std::string& name, std::shared_ptr<arrow::Table> table) override final {
+    void export_table(
+        const std::string& name,
+        std::shared_ptr<const arrow::Table> table
+    ) override final {
         (void) name;
         (void) table;
         throw "Not implemented error";
     }
 };
 
-std::unique_ptr<Exporter> filesystem_exporter(std::filesystem::path& root) {
+std::unique_ptr<Exporter>
+filesystem_exporter(const std::filesystem::path& root) {
     return std::make_unique<FilesystemExporter>(root);
 }
 
@@ -89,14 +96,16 @@ class FilesystemTracer : public Tracer {
     std::filesystem::path m_root;
 
   public:
-    FilesystemTracer(std::filesystem::path& root) : m_root(root) {}
+    FilesystemTracer(const std::filesystem::path& root) : m_root(root) {}
 
-    void write_manifest(dtl::manifest::Manifest &manifest) override final {
+    void write_manifest(
+        const dtl::manifest::Manifest &manifest
+    ) override final {
         (void) manifest;
         throw "Not implemented error";
     }
     void write_array(
-        dtl::UUID array_id, std::shared_ptr<arrow::Array> array
+        dtl::UUID array_id, std::shared_ptr<const arrow::Array> array
     ) override final {
         (void) array_id;
         (void) array;
@@ -105,7 +114,7 @@ class FilesystemTracer : public Tracer {
 
 };
 
-std::unique_ptr<Tracer> filesystem_tracer(std::filesystem::path& root) {
+std::unique_ptr<Tracer> filesystem_tracer(const std::filesystem::path& root) {
     return std::make_unique<FilesystemTracer>(root);
 }
 

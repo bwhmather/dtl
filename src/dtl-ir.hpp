@@ -196,17 +196,20 @@ class ExpressionVisitor : public ShapeExpressionVisitor, public ArrayExpressionV
 
 /* === Tables =============================================================== */
 
-class Column {
-  public:
-    std::string name;
-    std::unordered_set<std::string> namespaces;
+class TableVisitor;
 
+struct Column {
+    std::string name;
     std::shared_ptr<const Expression> expression;
 };
 
-class Table {
+class Table : public std::enable_shared_from_this<Table> {
   public:
+    virtual ~Table() {};
+
     std::vector<Column> columns;
+
+    virtual void accept(TableVisitor& visitor) const = 0;
 };
 
 enum class TraceLevel {
@@ -216,23 +219,28 @@ enum class TraceLevel {
     COLUMN_EXPRESSION,
 };
 
-struct Trace {
+class TraceTable : public Table {
+  public:
     TraceLevel level;
     dtl::Location start;
     dtl::Location end;
-    std::shared_ptr<Table> table;
+
+    void accept(TableVisitor& visitor) const override final;
 };
 
-struct Export {
-    std::string name;
-    std::shared_ptr<Table> table;
-};
-
-
-class Program {
+class ExportTable : public Table {
   public:
-    std::vector<Trace> traces;
-    std::vector<Export> exports;
+    std::string name;
+
+    void accept(TableVisitor& visitor) const override final;
+};
+
+class TableVisitor {
+  public:
+    virtual ~TableVisitor() {};
+
+    virtual void visit_trace_table(const TraceTable& table) = 0;
+    virtual void visit_export_table(const ExportTable& table) = 0;
 };
 
 }  /* namespace ir */

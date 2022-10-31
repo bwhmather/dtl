@@ -16,8 +16,11 @@ class Importer {
   public:
     virtual ~Importer() {};
 
-    virtual std::shared_ptr<arrow::Schema> import_schema(std::string& name) = 0;
-    virtual std::shared_ptr<arrow::Table> import_table(std::string& name) = 0;
+    virtual std::shared_ptr<arrow::Schema>
+    import_schema(const std::string& name) = 0;
+
+    virtual std::shared_ptr<arrow::Table>
+    import_table(const std::string& name) = 0;
 };
 
 class Exporter {
@@ -25,7 +28,7 @@ class Exporter {
     virtual ~Exporter() {};
 
     virtual void export_table(
-        std::string& name, std::shared_ptr<arrow::Table> table
+        const std::string& name, std::shared_ptr<const arrow::Table> table
     ) = 0;
 };
 
@@ -33,9 +36,9 @@ class Tracer {
   public:
     virtual ~Tracer() {};
 
-    virtual void write_manifest(dtl::manifest::Manifest& manifest) = 0;
+    virtual void write_manifest(const dtl::manifest::Manifest& manifest) = 0;
     virtual void write_array(
-        dtl::UUID array_id, std::shared_ptr<arrow::Array> array
+        dtl::UUID array_id, std::shared_ptr<const arrow::Array> array
     ) = 0;
 };
 

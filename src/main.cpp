@@ -13,21 +13,19 @@
 #include "dtl-tokenizer.hpp"
 
 int main(int argc, char *argv[]) {
-    assert(argc == 4);
+    assert(argc == 5);
 
     std::filesystem::path script_path(argv[1]);
     std::filesystem::path input_dir(argv[2]);
     std::filesystem::path output_dir(argv[3]);
+    std::filesystem::path trace_dir(argv[4]);
 
     std::ifstream script_file(script_path);
     std::string source(std::istreambuf_iterator<char>(script_file), {});
 
     auto importer = dtl::io::filesystem_importer(input_dir);
     auto exporter = dtl::io::filesystem_exporter(output_dir);
+    auto tracer = dtl::io::filesystem_tracer(trace_dir);
 
-    dtl::tokenizer::Tokenizer tokenizer(source.begin(), source.end());
-    auto ast = dtl::parser::parse(tokenizer);
-    auto program = dtl::ast::to_ir(*ast, *importer);
-
-    dtl::eval::eval(program, *importer, *exporter);
+    dtl::eval::run(source, *importer, *exporter, *tracer);
 }

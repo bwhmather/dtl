@@ -17,108 +17,161 @@
 namespace dtl {
 namespace ast {
 
-class Context {
-    std::unordered_map<std::string, std::shared_ptr<dtl::ir::Table> > m_inputs;
-    std::unordered_map<std::string, std::shared_ptr<dtl::ir::Table> > m_globals;
+struct ScopeColumn {
+    std::string name;
+    std::unordered_set<std::string> namespaces;
 
-    std::vector<dtl::ir::Trace> m_traces;
-    std::vector<dtl::ir::Export> m_exports;
+    std::shared_ptr<const dtl::ir::Expression> expression;
+};
+
+class Scope{
+  public:
+    std::vector<ScopeColumn> columns;
+};
+
+class Context {
+    std::unordered_map<std::string, std::shared_ptr<Scope> > m_inputs;
+    std::unordered_map<std::string, std::shared_ptr<Scope> > m_globals;
+
+    std::vector<std::shared_ptr<const dtl::ir::Table>> m_tables;
 
   public:
     Context() {};
     Context(Context& context) = delete;
 
     void trace_column_expression(
-        std::shared_ptr<dtl::ir::Table> table,
+        std::shared_ptr<Scope> scope,
         dtl::Location start,
         dtl::Location end
     ) {
-        dtl::ir::Trace trace;
-        trace.level = dtl::ir::TraceLevel::COLUMN_EXPRESSION;
-        trace.table = table;
-        trace.start = start;
-        trace.end = end;
+        auto table = std::make_shared<dtl::ir::TraceTable>();
 
-        m_traces.push_back(std::move(trace));
+        table->level = dtl::ir::TraceLevel::COLUMN_EXPRESSION;
+        table->start = start;
+        table->end = end;
+
+        for (auto&& column : scope->columns) {
+            table->columns.push_back(
+                std::move(dtl::ir::Column{
+                    .name=column.name,
+                    .expression=column.expression
+                })
+            );
+        }
+
+        m_tables.push_back(std::move(table));
     }
 
     void trace_table_expression(
-        std::shared_ptr<dtl::ir::Table> table,
+        std::shared_ptr<Scope> scope,
         dtl::Location start,
         dtl::Location end
     ) {
-        dtl::ir::Trace trace;
-        trace.level = dtl::ir::TraceLevel::TABLE_EXPRESSION;
-        trace.table = table;
-        trace.start = start;
-        trace.end = end;
+        auto table = std::make_shared<dtl::ir::TraceTable>();
 
-        m_traces.push_back(std::move(trace));
+        table->level = dtl::ir::TraceLevel::TABLE_EXPRESSION;
+        table->start = start;
+        table->end = end;
+
+        for (auto&& column : scope->columns) {
+            table->columns.push_back(
+                std::move(dtl::ir::Column{
+                    .name=column.name,
+                    .expression=column.expression
+                })
+            );
+        }
+
+        m_tables.push_back(std::move(table));
     }
 
     void trace_statement(
-        std::shared_ptr<dtl::ir::Table> table,
+        std::shared_ptr<Scope> scope,
         dtl::Location start,
         dtl::Location end
     ) {
-        dtl::ir::Trace trace;
-        trace.level = dtl::ir::TraceLevel::STATEMENT;
-        trace.table = table;
-        trace.start = start;
-        trace.end = end;
+        auto table = std::make_shared<dtl::ir::TraceTable>();
 
-        m_traces.push_back(std::move(trace));
+        table->level = dtl::ir::TraceLevel::STATEMENT;
+        table->start = start;
+        table->end = end;
+
+        for (auto&& column : scope->columns) {
+            table->columns.push_back(
+                std::move(dtl::ir::Column{
+                    .name=column.name,
+                    .expression=column.expression
+                })
+            );
+        }
+
+        m_tables.push_back(std::move(table));
     }
 
     void trace_assertion(
-        std::shared_ptr<dtl::ir::Table> table,
+        std::shared_ptr<Scope> scope,
         dtl::Location start,
         dtl::Location end
     ) {
-        dtl::ir::Trace trace;
-        trace.level = dtl::ir::TraceLevel::ASSERTION;
-        trace.table = table;
-        trace.start = start;
-        trace.end = end;
+        auto table = std::make_shared<dtl::ir::TraceTable>();
 
-        m_traces.push_back(std::move(trace));
+        table->level = dtl::ir::TraceLevel::ASSERTION;
+        table->start = start;
+        table->end = end;
+
+        for (auto&& column : scope->columns) {
+            table->columns.push_back(
+                std::move(dtl::ir::Column{
+                    .name=column.name,
+                    .expression=column.expression
+                })
+            );
+        }
+
+        m_tables.push_back(std::move(table));
     }
 
-    void add_input(std::string name, std::shared_ptr<dtl::ir::Table> table) {
-        m_inputs.insert_or_assign(name, table);
+    void add_input(std::string name, std::shared_ptr<Scope> scope) {
+        m_inputs.insert_or_assign(name, scope);
     }
 
-    std::shared_ptr<dtl::ir::Table> import_table(std::string name) const {
+    std::shared_ptr<Scope> import_table(std::string name) const {
         return m_inputs.at(name);
     }
 
-    void export_table(std::string name, std::shared_ptr<dtl::ir::Table> table) {
-        dtl::ir::Export entry;
-        entry.name = name;
-        entry.table = table;
+    void export_table(std::string name, std::shared_ptr<Scope> scope) {
+        auto table = std::make_shared<dtl::ir::ExportTable>();
 
-        m_exports.push_back(std::move(entry));
+        table->name = name;
+
+        for (auto&& column : scope->columns) {
+            table->columns.push_back(
+                std::move(dtl::ir::Column{
+                    .name=column.name,
+                    .expression=column.expression
+                })
+            );
+        }
+
+        m_tables.push_back(std::move(table));
     }
 
-    void set_global(std::string name, std::shared_ptr<dtl::ir::Table> table) {
-        m_globals.insert_or_assign(name, table);
+    void set_global(std::string name, std::shared_ptr<Scope> scope) {
+        m_globals.insert_or_assign(name, scope);
     }
 
-    std::shared_ptr<dtl::ir::Table> get_global(std::string name) const {
+    std::shared_ptr<Scope> get_global(std::string name) const {
         return m_globals.at(name);
     }
 
-    dtl::ir::Program freeze() const {
-        dtl::ir::Program program;
-        program.traces = m_traces;
-        program.exports = m_exports;
-        return program;
+    std::vector<std::shared_ptr<const dtl::ir::Table> > freeze() {
+        return std::move(m_tables);
     }
 };
 
 class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
     Context& m_context;
-    std::optional<std::shared_ptr<dtl::ir::Table>> m_result;
+    std::optional<std::shared_ptr<Scope>> m_result;
 
   public:
     TableExpressionCompiler(Context& context) : m_context(context) {}
@@ -126,37 +179,37 @@ class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
     void visit_select_expression(
         dtl::ast::SelectExpression& expr
     ) override final {
-        auto table = std::make_shared<dtl::ir::Table>();
-        m_context.trace_table_expression(table, expr.start, expr.end);
-        m_result = std::move(table);
+        auto scope = std::make_shared<Scope>();
+        m_context.trace_table_expression(scope, expr.start, expr.end);
+        m_result = std::move(scope);
     };
 
     void visit_import_expression(
         dtl::ast::ImportExpression& expr
     ) override final {
-        auto table = m_context.import_table(expr.location->value);
-        m_context.trace_table_expression(table, expr.start, expr.end);
-        m_result = std::move(table);
+        auto scope = m_context.import_table(expr.location->value);
+        m_context.trace_table_expression(scope, expr.start, expr.end);
+        m_result = std::move(scope);
     };
 
     void visit_table_reference_expression(
         dtl::ast::TableReferenceExpression& expr
     ) override final {
-        auto table = m_context.get_global(expr.name);
-        m_context.trace_table_expression(table, expr.start, expr.end);
-        m_result = std::move(table);
+        auto scope = m_context.get_global(expr.name);
+        m_context.trace_table_expression(scope, expr.start, expr.end);
+        m_result = std::move(scope);
     };
 
-    std::shared_ptr<dtl::ir::Table> run(dtl::ast::TableExpression& expr) {
+    std::shared_ptr<Scope> run(dtl::ast::TableExpression& expr) {
         expr.accept(*this);
 
-        std::optional<std::shared_ptr<dtl::ir::Table>> result;
+        std::optional<std::shared_ptr<Scope> > result;
         std::swap(result, m_result);
         return result.value();
     };
 };
 
-static std::shared_ptr<dtl::ir::Table>
+static std::shared_ptr<Scope>
 compile_table_expression(
     dtl::ast::TableExpression& expression, Context& context
 ) {
@@ -164,15 +217,15 @@ compile_table_expression(
     return compiler.run(expression);
 }
 
-static std::shared_ptr<dtl::ir::Table> strip_namespaces(
-    std::shared_ptr<dtl::ir::Table> input
+static std::shared_ptr<Scope> strip_namespaces(
+    std::shared_ptr<Scope> input
 ) {
-    auto output = std::make_shared<dtl::ir::Table>();
+    auto output = std::make_shared<Scope>();
 
     for (auto&& input_column : input->columns) {
         assert(input_column.namespaces.contains(""));
 
-        dtl::ir::Column output_column;
+        ScopeColumn output_column;
         output_column.name = input_column.name;
         output_column.namespaces = {""};
         output_column.expression = input_column.expression;
@@ -246,7 +299,7 @@ static void compile_input_table(
     std::shared_ptr<arrow::Schema> schema,
     Context& context
 ) {
-    auto table = std::make_shared<dtl::ir::Table>();
+    auto scope = std::make_shared<Scope>();
 
     for (int i = 0; i < schema->num_fields(); i++) {
         auto field = schema->field(i);
@@ -256,18 +309,19 @@ static void compile_input_table(
         expr->location = table_name;
         expr->name = field->name();
 
-        dtl::ir::Column column;
+        ScopeColumn column;
         column.name = field->name();
         column.expression = expr;
         column.namespaces.emplace("");
 
-        table->columns.push_back(std::move(column));
+        scope->columns.push_back(std::move(column));
     }
 
-    context.add_input(table_name, table);
+    context.add_input(table_name, scope);
 }
 
-dtl::ir::Program to_ir(dtl::ast::Script& script, dtl::io::Importer& importer) {
+std::vector<std::shared_ptr<const dtl::ir::Table> >
+to_ir(dtl::ast::Script& script, dtl::io::Importer& importer) {
     Context context;
 
     std::vector<std::string> import_names = dtl::ast::find_imports(script);
