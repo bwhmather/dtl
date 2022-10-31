@@ -709,7 +709,7 @@ statement
     ;
 
 assignment_statement
-    : table_name EQ table_expression SEMICOLON {
+    : WITH table_name AS table_expression SEMICOLON {
         $$ = std::make_unique<dtl::ast::AssignmentStatement>();
         $$->target = std::move($table_name);
         $$->expression = std::move($table_expression);

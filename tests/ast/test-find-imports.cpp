@@ -7,8 +7,8 @@
 
 int main(void) {
     std::string source = (
-        "input = IMPORT 'input';\n"
-        "output = SELECT old_column AS new_column FROM input;\n"
+        "WITH input AS IMPORT 'input';\n"
+        "WITH output AS SELECT old_column AS new_column FROM input;\n"
         "EXPORT output TO 'output';\n"
     );
 
