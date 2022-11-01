@@ -177,7 +177,7 @@ class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
     TableExpressionCompiler(Context& context) : m_context(context) {}
 
     void visit_select_expression(
-        dtl::ast::SelectExpression& expr
+        const dtl::ast::SelectExpression& expr
     ) override final {
         auto scope = std::make_shared<Scope>();
         m_context.trace_table_expression(scope, expr.start, expr.end);
@@ -185,7 +185,7 @@ class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
     };
 
     void visit_import_expression(
-        dtl::ast::ImportExpression& expr
+        const dtl::ast::ImportExpression& expr
     ) override final {
         auto scope = m_context.import_table(expr.location->value);
         m_context.trace_table_expression(scope, expr.start, expr.end);
@@ -193,14 +193,14 @@ class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
     };
 
     void visit_table_reference_expression(
-        dtl::ast::TableReferenceExpression& expr
+        const dtl::ast::TableReferenceExpression& expr
     ) override final {
         auto scope = m_context.get_global(expr.name);
         m_context.trace_table_expression(scope, expr.start, expr.end);
         m_result = std::move(scope);
     };
 
-    std::shared_ptr<Scope> run(dtl::ast::TableExpression& expr) {
+    std::shared_ptr<Scope> run(const dtl::ast::TableExpression& expr) {
         expr.accept(*this);
 
         std::optional<std::shared_ptr<Scope> > result;
@@ -211,7 +211,7 @@ class TableExpressionCompiler : public dtl::ast::TableExpressionVisitor {
 
 static std::shared_ptr<Scope>
 compile_table_expression(
-    dtl::ast::TableExpression& expression, Context& context
+    const dtl::ast::TableExpression& expression, Context& context
 ) {
     TableExpressionCompiler compiler(context);
     return compiler.run(expression);
@@ -242,7 +242,7 @@ class StatementCompiler : public dtl::ast::StatementVisitor {
     StatementCompiler(Context& context) : m_context(context) {};
 
     void visit_assignment_statement(
-        dtl::ast::AssignmentStatement& statement
+        const dtl::ast::AssignmentStatement& statement
     ) override final {
         auto expr_table = compile_table_expression(
             *statement.expression, m_context
@@ -255,28 +255,28 @@ class StatementCompiler : public dtl::ast::StatementVisitor {
     };
 
     void visit_update_statement(
-        dtl::ast::UpdateStatement& statement
+        const dtl::ast::UpdateStatement& statement
     ) override final {
         (void) statement;
         assert(false);
     };
 
     void visit_delete_statement(
-        dtl::ast::DeleteStatement& statement
+        const dtl::ast::DeleteStatement& statement
     ) override final {
         (void) statement;
         assert(false);
     };
 
     void visit_insert_statement(
-        dtl::ast::InsertStatement& statement
+        const dtl::ast::InsertStatement& statement
     ) override final {
         (void) statement;
         assert(false);
     };
 
     void visit_export_statement(
-        dtl::ast::ExportStatement& statement
+        const dtl::ast::ExportStatement& statement
     ) override final {
         auto expr_table = compile_table_expression(
             *statement.expression, m_context
@@ -288,13 +288,15 @@ class StatementCompiler : public dtl::ast::StatementVisitor {
         m_context.export_table(statement.location->value, result_table);
     };
 
-    void visit_begin_statement(BeginStatement& statement) override final {
+    void visit_begin_statement(const BeginStatement& statement) override final {
         (void) statement;
         assert(false);
     }
 };
 
-static void compile_statement(dtl::ast::Statement& statement, Context& context) {
+static void compile_statement(
+    const dtl::ast::Statement& statement, Context& context
+) {
     StatementCompiler compiler(context);
     statement.accept(compiler);
 }

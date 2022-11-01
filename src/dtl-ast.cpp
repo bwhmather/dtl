@@ -10,209 +10,209 @@ namespace ast {
 
 /* === Literals ============================================================= */
 
-void Literal::accept(NodeVisitor& visitor) {
+void Literal::accept(NodeVisitor& visitor) const {
     this->accept(static_cast<LiteralVisitor&>(visitor));
 }
 
-void String::accept(LiteralVisitor& visitor) {
+void String::accept(LiteralVisitor& visitor) const {
     visitor.visit_string(*this);
 }
 
 /* === Columns ============================================================== */
 
-void ColumnName::accept(NodeVisitor& visitor) {
+void ColumnName::accept(NodeVisitor& visitor) const {
     this->accept(static_cast<ColumnNameVisitor&>(visitor));
 }
 
-void UnqualifiedColumnName::accept(ColumnNameVisitor& visitor) {
+void UnqualifiedColumnName::accept(ColumnNameVisitor& visitor) const {
     visitor.visit_unqualified_column_name(*this);
 }
 
-void QualifiedColumnName::accept(ColumnNameVisitor& visitor) {
+void QualifiedColumnName::accept(ColumnNameVisitor& visitor) const {
     visitor.visit_qualified_column_name(*this);
 }
 
-void Expression::accept(NodeVisitor& visitor) {
+void Expression::accept(NodeVisitor& visitor) const {
     this->accept(static_cast<ExpressionVisitor&>(visitor));
 }
 
-void ColumnReferenceExpression::accept(ExpressionVisitor& visitor) {
+void ColumnReferenceExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_column_reference_expression(*this);
 }
 
-void LiteralExpression::accept(ExpressionVisitor& visitor) {
+void LiteralExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_literal_expression(*this);
 }
 
-void FunctionCallExpression::accept(ExpressionVisitor& visitor) {
+void FunctionCallExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_function_call_expression(*this);
 }
 
-void EqualToExpression::accept(ExpressionVisitor& visitor) {
+void EqualToExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_equal_to_expression(*this);
 }
 
-void LessThanExpression::accept(ExpressionVisitor& visitor) {
+void LessThanExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_less_than_expression(*this);
 }
 
-void LessThanEqualExpression::accept(ExpressionVisitor& visitor) {
+void LessThanEqualExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_less_than_equal_expression(*this);
 }
 
-void GreaterThanExpression::accept(ExpressionVisitor& visitor) {
+void GreaterThanExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_greater_than_expression(*this);
 }
 
-void GreaterThanEqualExpression::accept(ExpressionVisitor& visitor) {
+void GreaterThanEqualExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_greater_than_equal_expression(*this);
 }
 
-void AddExpression::accept(ExpressionVisitor& visitor) {
+void AddExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_add_expression(*this);
 }
 
-void SubtractExpression::accept(ExpressionVisitor& visitor) {
+void SubtractExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_subtract_expression(*this);
 }
 
-void MultiplyExpression::accept(ExpressionVisitor& visitor) {
+void MultiplyExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_multiply_expression(*this);
 }
 
-void DivideExpression::accept(ExpressionVisitor& visitor) {
+void DivideExpression::accept(ExpressionVisitor& visitor) const {
     visitor.visit_divide_expression(*this);
 }
 
 /* === Tables =============================================================== */
 
-void TableName::accept(NodeVisitor& visitor) {
+void TableName::accept(NodeVisitor& visitor) const {
     visitor.visit_table_name(*this);
 }
 
 /* === Distinct ============================================================= */
 
-void DistinctClause::accept(NodeVisitor& visitor) {
+void DistinctClause::accept(NodeVisitor& visitor) const {
     visitor.visit_distinct_clause(*this);
 }
 
 /* === Column Bindings ====================================================== */
 
-void ColumnBinding::accept(NodeVisitor& visitor) {
+void ColumnBinding::accept(NodeVisitor& visitor) const {
     this->accept(static_cast<ColumnBindingVisitor&>(visitor));
 }
 
-void WildcardColumnBinding::accept(ColumnBindingVisitor& visitor) {
+void WildcardColumnBinding::accept(ColumnBindingVisitor& visitor) const {
     visitor.visit_wildcard_column_binding(*this);
 }
 
-void ImplicitColumnBinding::accept(ColumnBindingVisitor& visitor) {
+void ImplicitColumnBinding::accept(ColumnBindingVisitor& visitor) const {
     visitor.visit_implicit_column_binding(*this);
 }
 
-void AliasedColumnBinding::accept(ColumnBindingVisitor& visitor) {
+void AliasedColumnBinding::accept(ColumnBindingVisitor& visitor) const {
     visitor.visit_aliased_column_binding(*this);
 }
 
 /* === From ================================================================= */
 
-void TableBinding::accept(NodeVisitor& visitor) {
+void TableBinding::accept(NodeVisitor& visitor) const {
     this->accept(static_cast<TableBindingVisitor&>(visitor));
 }
 
-void ImplicitTableBinding::accept(TableBindingVisitor& visitor) {
+void ImplicitTableBinding::accept(TableBindingVisitor& visitor) const {
     visitor.visit_implicit_table_binding(*this);
 }
 
-void AliasedTableBinding::accept(TableBindingVisitor& visitor) {
+void AliasedTableBinding::accept(TableBindingVisitor& visitor) const {
     visitor.visit_aliased_table_binding(*this);
 }
 
-void FromClause::accept(NodeVisitor& visitor) {
+void FromClause::accept(NodeVisitor& visitor) const {
     visitor.visit_from_clause(*this);
 }
 
 /* === Joins ================================================================ */
 
-void JoinConstraint::accept(NodeVisitor& visitor) {
+void JoinConstraint::accept(NodeVisitor& visitor) const {
     this->accept(static_cast<JoinConstraintVisitor&>(visitor));
 }
 
-void JoinOnConstraint::accept(JoinConstraintVisitor& visitor) {
+void JoinOnConstraint::accept(JoinConstraintVisitor& visitor) const {
     visitor.visit_join_on_constraint(*this);
 }
 
-void JoinUsingConstraint::accept(JoinConstraintVisitor& visitor) {
+void JoinUsingConstraint::accept(JoinConstraintVisitor& visitor) const {
     visitor.visit_join_using_constraint(*this);
 }
 
-void JoinClause::accept(NodeVisitor& visitor) {
+void JoinClause::accept(NodeVisitor& visitor) const {
     visitor.visit_join_clause(*this);
 }
 
 /* === Filtering ============================================================ */
 
-void WhereClause::accept(NodeVisitor& visitor) {
+void WhereClause::accept(NodeVisitor& visitor) const {
     visitor.visit_where_clause(*this);
 }
 
 /* === Grouping ============================================================= */
 
-void GroupByClause::accept(NodeVisitor& visitor) {
+void GroupByClause::accept(NodeVisitor& visitor) const {
     visitor.visit_group_by_clause(*this);
 }
 
 /* === Table Expressions ==================================================== */
 
-void TableExpression::accept(NodeVisitor& visitor) {
+void TableExpression::accept(NodeVisitor& visitor) const {
     this->accept(static_cast<TableExpressionVisitor&>(visitor));
 }
 
-void SelectExpression::accept(TableExpressionVisitor& visitor) {
+void SelectExpression::accept(TableExpressionVisitor& visitor) const {
     visitor.visit_select_expression(*this);
 }
 
-void ImportExpression::accept(TableExpressionVisitor& visitor) {
+void ImportExpression::accept(TableExpressionVisitor& visitor) const {
     visitor.visit_import_expression(*this);
 }
 
-void TableReferenceExpression::accept(TableExpressionVisitor& visitor) {
+void TableReferenceExpression::accept(TableExpressionVisitor& visitor) const {
     visitor.visit_table_reference_expression(*this);
 }
 
 /* === Statements =========================================================== */
 
-void Statement::accept(NodeVisitor& visitor) {
+void Statement::accept(NodeVisitor& visitor) const {
     this->accept(static_cast<StatementVisitor&>(visitor));
 }
 
-void AssignmentStatement::accept(StatementVisitor& visitor) {
+void AssignmentStatement::accept(StatementVisitor& visitor) const {
     visitor.visit_assignment_statement(*this);
 }
 
-void UpdateStatement::accept(StatementVisitor& visitor) {
+void UpdateStatement::accept(StatementVisitor& visitor) const {
     visitor.visit_update_statement(*this);
 }
 
-void DeleteStatement::accept(StatementVisitor& visitor) {
+void DeleteStatement::accept(StatementVisitor& visitor) const {
     visitor.visit_delete_statement(*this);
 }
 
-void InsertStatement::accept(StatementVisitor& visitor) {
+void InsertStatement::accept(StatementVisitor& visitor) const {
     visitor.visit_insert_statement(*this);
 }
 
-void ExportStatement::accept(StatementVisitor& visitor) {
+void ExportStatement::accept(StatementVisitor& visitor) const {
     visitor.visit_export_statement(*this);
 }
 
-void BeginStatement::accept(StatementVisitor& visitor) {
+void BeginStatement::accept(StatementVisitor& visitor) const {
     visitor.visit_begin_statement(*this);
 }
 
 /* === Scripts ============================================================== */
 
-void Script::accept(NodeVisitor& visitor) {
+void Script::accept(NodeVisitor& visitor) const {
     visitor.visit_script(*this);
 }
 

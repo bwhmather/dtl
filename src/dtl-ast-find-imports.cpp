@@ -16,11 +16,11 @@ class FindImportsVisitor :
   public:
     std::vector<std::string> imports;
 
-    void visit_import_expression(ImportExpression& expr) override final {
+    void visit_import_expression(const ImportExpression& expr) override final {
         imports.push_back(expr.location->value);
     };
 
-    void visit_node(Node& node) override final {
+    void visit_node(const Node& node) override final {
         visit_children(node, *this);
     }
 };

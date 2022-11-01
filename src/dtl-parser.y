@@ -91,7 +91,7 @@
 %token <std::string_view> WHITESPACE
 
 %param {dtl::tokenizer::Tokenizer& tokenizer}
-%parse-param {std::unique_ptr<dtl::ast::Script>& result}
+%parse-param {std::unique_ptr<const dtl::ast::Script>& result}
 
 %code {
     static dtl::parser::StateMachine::symbol_type
@@ -257,63 +257,63 @@
 
 %type <std::string> name;
 
-%type <std::unique_ptr<dtl::ast::Literal>> literal;
-%type <std::unique_ptr<dtl::ast::String>> string;
+%type <std::unique_ptr<const dtl::ast::Literal>> literal;
+%type <std::unique_ptr<const dtl::ast::String>> string;
 
-%type <std::unique_ptr<dtl::ast::ColumnName>> column_name;
-%type <std::vector<std::unique_ptr<dtl::ast::UnqualifiedColumnName>>> unqualified_column_name_list;
-%type <std::unique_ptr<dtl::ast::UnqualifiedColumnName>> unqualified_column_name;
-%type <std::unique_ptr<dtl::ast::QualifiedColumnName>> qualified_column_name;
+%type <std::unique_ptr<const dtl::ast::ColumnName>> column_name;
+%type <std::vector<std::unique_ptr<const dtl::ast::UnqualifiedColumnName>>> unqualified_column_name_list;
+%type <std::unique_ptr<const dtl::ast::UnqualifiedColumnName>> unqualified_column_name;
+%type <std::unique_ptr<const dtl::ast::QualifiedColumnName>> qualified_column_name;
 
-%type <std::unique_ptr<dtl::ast::Expression>> expression;
-%type <std::unique_ptr<dtl::ast::ColumnReferenceExpression>> column_reference_expression;
-%type <std::unique_ptr<dtl::ast::LiteralExpression>> literal_expression;
-%type <std::vector<std::unique_ptr<dtl::ast::Expression>>> expression_list;
-%type <std::unique_ptr<dtl::ast::FunctionCallExpression>> function_call_expression;
-%type <std::unique_ptr<dtl::ast::AddExpression>> add_expression;
-%type <std::unique_ptr<dtl::ast::SubtractExpression>> subtract_expression;
-%type <std::unique_ptr<dtl::ast::MultiplyExpression>> multiply_expression;
-%type <std::unique_ptr<dtl::ast::DivideExpression>> divide_expression;
+%type <std::unique_ptr<const dtl::ast::Expression>> expression;
+%type <std::unique_ptr<const dtl::ast::ColumnReferenceExpression>> column_reference_expression;
+%type <std::unique_ptr<const dtl::ast::LiteralExpression>> literal_expression;
+%type <std::vector<std::unique_ptr<const dtl::ast::Expression>>> expression_list;
+%type <std::unique_ptr<const dtl::ast::FunctionCallExpression>> function_call_expression;
+%type <std::unique_ptr<const dtl::ast::AddExpression>> add_expression;
+%type <std::unique_ptr<const dtl::ast::SubtractExpression>> subtract_expression;
+%type <std::unique_ptr<const dtl::ast::MultiplyExpression>> multiply_expression;
+%type <std::unique_ptr<const dtl::ast::DivideExpression>> divide_expression;
 
-%type <std::unique_ptr<dtl::ast::TableName>> table_name;
-%type <std::unique_ptr<dtl::ast::DistinctClause>> distinct_clause;
+%type <std::unique_ptr<const dtl::ast::TableName>> table_name;
+%type <std::unique_ptr<const dtl::ast::DistinctClause>> distinct_clause;
 
-%type <std::unique_ptr<dtl::ast::ColumnBinding>> column_binding;
-%type <std::vector<std::unique_ptr<dtl::ast::ColumnBinding>>> column_binding_list;
-%type <std::unique_ptr<dtl::ast::WildcardColumnBinding>> wildcard_column_binding;
-%type <std::unique_ptr<dtl::ast::ImplicitColumnBinding>> implicit_column_binding;
-%type <std::unique_ptr<dtl::ast::AliasedColumnBinding>> aliased_column_binding;
+%type <std::unique_ptr<const dtl::ast::ColumnBinding>> column_binding;
+%type <std::vector<std::unique_ptr<const dtl::ast::ColumnBinding>>> column_binding_list;
+%type <std::unique_ptr<const dtl::ast::WildcardColumnBinding>> wildcard_column_binding;
+%type <std::unique_ptr<const dtl::ast::ImplicitColumnBinding>> implicit_column_binding;
+%type <std::unique_ptr<const dtl::ast::AliasedColumnBinding>> aliased_column_binding;
 
-%type <std::unique_ptr<dtl::ast::TableBinding>> table_binding;
-%type <std::unique_ptr<dtl::ast::ImplicitTableBinding>> implicit_table_binding;
-%type <std::unique_ptr<dtl::ast::AliasedTableBinding>> aliased_table_binding;
+%type <std::unique_ptr<const dtl::ast::TableBinding>> table_binding;
+%type <std::unique_ptr<const dtl::ast::ImplicitTableBinding>> implicit_table_binding;
+%type <std::unique_ptr<const dtl::ast::AliasedTableBinding>> aliased_table_binding;
 
-%type <std::unique_ptr<dtl::ast::FromClause>> from_clause;
+%type <std::unique_ptr<const dtl::ast::FromClause>> from_clause;
 
-%type <std::unique_ptr<dtl::ast::JoinConstraint>> join_constraint;
-%type <std::unique_ptr<dtl::ast::JoinOnConstraint>> join_on_constraint;
-%type <std::unique_ptr<dtl::ast::JoinUsingConstraint>> join_using_constraint;
+%type <std::unique_ptr<const dtl::ast::JoinConstraint>> join_constraint;
+%type <std::unique_ptr<const dtl::ast::JoinOnConstraint>> join_on_constraint;
+%type <std::unique_ptr<const dtl::ast::JoinUsingConstraint>> join_using_constraint;
 
-%type <std::unique_ptr<dtl::ast::JoinClause>> join_clause;
-%type <std::vector<std::unique_ptr<dtl::ast::JoinClause>>> join_clause_list;
+%type <std::unique_ptr<const dtl::ast::JoinClause>> join_clause;
+%type <std::vector<std::unique_ptr<const dtl::ast::JoinClause>>> join_clause_list;
 
-%type <std::unique_ptr<dtl::ast::WhereClause>> where_clause;
-%type <std::unique_ptr<dtl::ast::GroupByClause>> group_by_clause;
+%type <std::unique_ptr<const dtl::ast::WhereClause>> where_clause;
+%type <std::unique_ptr<const dtl::ast::GroupByClause>> group_by_clause;
 
-%type <std::unique_ptr<dtl::ast::TableExpression>> table_expression;
-%type <std::unique_ptr<dtl::ast::SelectExpression>> select_expression;
-%type <std::unique_ptr<dtl::ast::ImportExpression>> import_expression;
-%type <std::unique_ptr<dtl::ast::TableReferenceExpression>> table_reference_expression;
+%type <std::unique_ptr<const dtl::ast::TableExpression>> table_expression;
+%type <std::unique_ptr<const dtl::ast::SelectExpression>> select_expression;
+%type <std::unique_ptr<const dtl::ast::ImportExpression>> import_expression;
+%type <std::unique_ptr<const dtl::ast::TableReferenceExpression>> table_reference_expression;
 
-%type <std::unique_ptr<dtl::ast::Statement>> statement;
-%type <std::vector<std::unique_ptr<dtl::ast::Statement>>> statement_list;
-%type <std::unique_ptr<dtl::ast::AssignmentStatement>> assignment_statement;
-//%type <std::unique_ptr<dtl::ast::UpdateStatement>> update_statement;
-//%type <std::unique_ptr<dtl::ast::DeleteStatement>> delete_statement;
-//%type <std::unique_ptr<dtl::ast::InsertStatement>> insert_statement;
-%type <std::unique_ptr<dtl::ast::ExportStatement>> export_statement;
+%type <std::unique_ptr<const dtl::ast::Statement>> statement;
+%type <std::vector<std::unique_ptr<const dtl::ast::Statement>>> statement_list;
+%type <std::unique_ptr<const dtl::ast::AssignmentStatement>> assignment_statement;
+//%type <std::unique_ptr<const dtl::ast::UpdateStatement>> update_statement;
+//%type <std::unique_ptr<const dtl::ast::DeleteStatement>> delete_statement;
+//%type <std::unique_ptr<const dtl::ast::InsertStatement>> insert_statement;
+%type <std::unique_ptr<const dtl::ast::ExportStatement>> export_statement;
 
-%type <std::unique_ptr<dtl::ast::Script>> script;
+%type <std::unique_ptr<const dtl::ast::Script>> script;
 %type result;
 
 %%
@@ -335,8 +335,8 @@ literal
 
 string
     : STRING {
-        $$ = std::make_unique<dtl::ast::String>();
-        $$->value = std::string();
+        auto expr = std::make_unique<dtl::ast::String>();
+        expr->value = std::string();
         auto curr = $1.begin();
         while (true) {
             curr++;
@@ -353,8 +353,9 @@ string
                     throw "unexpected single quote";
                 }
             }
-            $$->value += *curr;
+            expr->value += *curr;
         }
+        $$ = std::move(expr);
     }
     ;
 
@@ -369,16 +370,18 @@ column_name
 
 unqualified_column_name
     : name[column_name] {
-        $$ = std::make_unique<dtl::ast::UnqualifiedColumnName>();
-        $$->column_name = std::move($column_name);
+        auto expr = std::make_unique<dtl::ast::UnqualifiedColumnName>();
+        expr->column_name = std::move($column_name);
+        $$ = std::move(expr);
     }
     ;
 
 qualified_column_name
     : name[table_name] DOT name[column_name] {
-        $$ = std::make_unique<dtl::ast::QualifiedColumnName>();
-        $$->table_name = std::move($table_name);
-        $$->column_name = std::move($column_name);
+        auto expr = std::make_unique<dtl::ast::QualifiedColumnName>();
+        expr->table_name = std::move($table_name);
+        expr->column_name = std::move($column_name);
+        $$ = std::move(expr);
     }
     ;
 
@@ -408,15 +411,17 @@ expression
 
 column_reference_expression
     : column_name[name] {
-        $$ = std::make_unique<dtl::ast::ColumnReferenceExpression>();
-        $$->name = std::move($name);
+        auto expr = std::make_unique<dtl::ast::ColumnReferenceExpression>();
+        expr->name = std::move($name);
+        $$ = std::move(expr);
     }
     ;
 
 literal_expression
     : literal[value] {
-        $$ = std::make_unique<dtl::ast::LiteralExpression>();
-        $$->value = std::move($value);
+        auto expr = std::make_unique<dtl::ast::LiteralExpression>();
+        expr->value = std::move($value);
+        $$ = std::move(expr);
     }
     ;
 
@@ -432,59 +437,67 @@ expression_list
 
 function_call_expression
     : name OPEN_PAREN expression_list[arguments] CLOSE_PAREN {
-        $$ = std::make_unique<dtl::ast::FunctionCallExpression>();
-        $$->name = std::move($name);
-        $$->arguments = std::move($arguments);
+        auto expr = std::make_unique<dtl::ast::FunctionCallExpression>();
+        expr->name = std::move($name);
+        expr->arguments = std::move($arguments);
+        $$ = std::move(expr);
     }
     ;
 
 add_expression
     : expression[left] PLUS expression[right] {
-        $$ = std::make_unique<dtl::ast::AddExpression>();
-        $$->left = std::move($left);
-        $$->right = std::move($right);
+        auto expr = std::make_unique<dtl::ast::AddExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
     }
     ;
 
 subtract_expression
     : expression[left] MINUS expression[right] {
-        $$ = std::make_unique<dtl::ast::SubtractExpression>();
-        $$->left = std::move($left);
-        $$->right = std::move($right);
+        auto expr = std::make_unique<dtl::ast::SubtractExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
     }
     ;
 
 multiply_expression
     : expression[left] STAR expression[right] {
-        $$ = std::make_unique<dtl::ast::MultiplyExpression>();
-        $$->left = std::move($left);
-        $$->right = std::move($right);
+        auto expr = std::make_unique<dtl::ast::MultiplyExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
     }
     ;
 
 divide_expression
     : expression[left] SLASH expression[right] {
-        $$ = std::make_unique<dtl::ast::DivideExpression>();
-        $$->left = std::move($left);
-        $$->right = std::move($right);
+        auto expr = std::make_unique<dtl::ast::DivideExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
     }
     ;
 
 table_name
     : name {
-        $$ = std::make_unique<dtl::ast::TableName>();
-        $$->table_name = std::move($name);
+        auto expr = std::make_unique<dtl::ast::TableName>();
+        expr->table_name = std::move($name);
+        $$ = std::move(expr);
     }
     ;
 
 distinct_clause
     : DISTINCT {
-        $$ = std::make_unique<dtl::ast::DistinctClause>();
-        $$->consecutive = false;
+        auto expr = std::make_unique<dtl::ast::DistinctClause>();
+        expr->consecutive = false;
+        $$ = std::move(expr);
     }
     | DISTINCT CONSECUTIVE {
-        $$ = std::make_unique<dtl::ast::DistinctClause>();
-        $$->consecutive = true;
+        auto expr = std::make_unique<dtl::ast::DistinctClause>();
+        expr->consecutive = true;
+        $$ = std::move(expr);
     }
     | %empty {}
     ;
@@ -503,22 +516,25 @@ column_binding
 
 wildcard_column_binding
     : STAR {
-        $$ = std::make_unique<dtl::ast::WildcardColumnBinding>();
+        auto expr = std::make_unique<dtl::ast::WildcardColumnBinding>();
+        $$ = std::move(expr);
     }
     ;
 
 implicit_column_binding
     : expression {
-        $$ = std::make_unique<dtl::ast::ImplicitColumnBinding>();
-        $$->expression = std::move($expression);
+        auto expr = std::make_unique<dtl::ast::ImplicitColumnBinding>();
+        expr->expression = std::move($expression);
+        $$ = std::move(expr);
     }
     ;
 
 aliased_column_binding
     : expression AS name[alias] {
-        $$ = std::make_unique<dtl::ast::AliasedColumnBinding>();
-        $$->expression = std::move($expression);
-        $$->alias = std::move($alias);
+        auto expr = std::make_unique<dtl::ast::AliasedColumnBinding>();
+        expr->expression = std::move($expression);
+        expr->alias = std::move($alias);
+        $$ = std::move(expr);
     }
     ;
 
@@ -543,32 +559,37 @@ table_binding
 
 implicit_table_binding
     : OPEN_PAREN table_expression CLOSE_PAREN {
-        $$ = std::make_unique<dtl::ast::ImplicitTableBinding>();
-        $$->expression = std::move($table_expression);
+        auto expr = std::make_unique<dtl::ast::ImplicitTableBinding>();
+        expr->expression = std::move($table_expression);
+        $$ = std::move(expr);
     }
     | table_reference_expression {
-        $$ = std::make_unique<dtl::ast::ImplicitTableBinding>();
-        $$->expression = std::move($table_reference_expression);
+        auto expr = std::make_unique<dtl::ast::ImplicitTableBinding>();
+        expr->expression = std::move($table_reference_expression);
+        $$ = std::move(expr);
     }
     ;
 
 aliased_table_binding
     : OPEN_PAREN table_expression CLOSE_PAREN AS name {
-        $$ = std::make_unique<dtl::ast::AliasedTableBinding>();
-        $$->expression = std::move($table_expression);
-        $$->alias = std::move($name);
+        auto expr = std::make_unique<dtl::ast::AliasedTableBinding>();
+        expr->expression = std::move($table_expression);
+        expr->alias = std::move($name);
+        $$ = std::move(expr);
     }
     | table_reference_expression AS name {
-        $$ = std::make_unique<dtl::ast::AliasedTableBinding>();
-        $$->expression = std::move($table_reference_expression);
-        $$->alias = std::move($name);
+        auto expr = std::make_unique<dtl::ast::AliasedTableBinding>();
+        expr->expression = std::move($table_reference_expression);
+        expr->alias = std::move($name);
+        $$ = std::move(expr);
     }
     ;
 
 from_clause
     : FROM table_binding {
-        $$ = std::make_unique<dtl::ast::FromClause>();
-        $$->binding = std::move($table_binding);
+        auto expr = std::make_unique<dtl::ast::FromClause>();
+        expr->binding = std::move($table_binding);
+        $$ = std::move(expr);
     }
     ;
 
@@ -583,8 +604,9 @@ join_constraint
 
 join_on_constraint
     : ON expression[predicate] {
-        $$ = std::make_unique<dtl::ast::JoinOnConstraint>();
-        $$->predicate = std::move($predicate);
+        auto expr = std::make_unique<dtl::ast::JoinOnConstraint>();
+        expr->predicate = std::move($predicate);
+        $$ = std::move(expr);
     }
     ;
 
@@ -600,16 +622,18 @@ unqualified_column_name_list
 
 join_using_constraint
     : USING OPEN_PAREN unqualified_column_name_list CLOSE_PAREN {
-        $$ = std::make_unique<dtl::ast::JoinUsingConstraint>();
-        $$->columns = std::move($unqualified_column_name_list);
+        auto expr = std::make_unique<dtl::ast::JoinUsingConstraint>();
+        expr->columns = std::move($unqualified_column_name_list);
+        $$ = std::move(expr);
     }
     ;
 
 join_clause
     : JOIN table_binding join_constraint {
-        $$ = std::make_unique<dtl::ast::JoinClause>();
-        $$->binding = std::move($table_binding);
-        $$->constraint = std::move($join_constraint);
+        auto expr = std::make_unique<dtl::ast::JoinClause>();
+        expr->binding = std::move($table_binding);
+        expr->constraint = std::move($join_constraint);
+        $$ = std::move(expr);
     }
     ;
 
@@ -623,24 +647,27 @@ join_clause_list
 
 where_clause
     : WHERE expression {
-        $$ = std::make_unique<dtl::ast::WhereClause>();
-        $$->predicate = std::move($expression);
+        auto expr = std::make_unique<dtl::ast::WhereClause>();
+        expr->predicate = std::move($expression);
+        $$ = std::move(expr);
     }
     | %empty {}
     ;
 
 group_by_clause
     : GROUP BY expression_list[pattern] {
-        $$ = std::make_unique<dtl::ast::GroupByClause>();
+        auto expr = std::make_unique<dtl::ast::GroupByClause>();
 
-        $$->pattern = std::move($pattern);
-        $$->consecutive = false;
+        expr->pattern = std::move($pattern);
+        expr->consecutive = false;
+        $$ = std::move(expr);
     }
     | GROUP CONSECUTIVE BY expression_list[pattern] {
-        $$ = std::make_unique<dtl::ast::GroupByClause>();
+        auto expr = std::make_unique<dtl::ast::GroupByClause>();
 
-        $$->pattern = std::move($pattern);
-        $$->consecutive = true;
+        expr->pattern = std::move($pattern);
+        expr->consecutive = true;
+        $$ = std::move(expr);
     }
     | %empty {}
     ;
@@ -665,28 +692,32 @@ select_expression
         join_clause_list[joins]
         where_clause[where]
         group_by_clause[group_by] {
-            $$ = std::make_unique<dtl::ast::SelectExpression>();
+            auto expr = std::make_unique<dtl::ast::SelectExpression>();
 
-            $$->distinct = std::move($distinct);
-            $$->columns = std::move($columns);
-            $$->source = std::move($source);
-            $$->joins = std::move($joins);
-            $$->where = std::move($where);
-            $$->group_by = std::move($group_by);
+            expr->distinct = std::move($distinct);
+            expr->columns = std::move($columns);
+            expr->source = std::move($source);
+            expr->joins = std::move($joins);
+            expr->where = std::move($where);
+            expr->group_by = std::move($group_by);
+
+            $$ = std::move(expr);
         }
     ;
 
 import_expression
     : IMPORT string {
-        $$ = std::make_unique<dtl::ast::ImportExpression>();
-        $$->location = std::move($string);
+        auto expr = std::make_unique<dtl::ast::ImportExpression>();
+        expr->location = std::move($string);
+        $$ = std::move(expr);
     }
     ;
 
 table_reference_expression
     : name {
-        $$ = std::make_unique<dtl::ast::TableReferenceExpression>();
-        $$->name = std::move($name);
+        auto expr = std::make_unique<dtl::ast::TableReferenceExpression>();
+        expr->name = std::move($name);
+        $$ = std::move(expr);
     }
     ;
 
@@ -710,17 +741,19 @@ statement
 
 assignment_statement
     : WITH table_name AS table_expression SEMICOLON {
-        $$ = std::make_unique<dtl::ast::AssignmentStatement>();
-        $$->target = std::move($table_name);
-        $$->expression = std::move($table_expression);
+        auto expr = std::make_unique<dtl::ast::AssignmentStatement>();
+        expr->target = std::move($table_name);
+        expr->expression = std::move($table_expression);
+        $$ = std::move(expr);
     }
     ;
 
 export_statement
     : EXPORT table_expression TO string SEMICOLON {
-        $$ = std::make_unique<dtl::ast::ExportStatement>();
-        $$->location = std::move($string);
-        $$->expression = std::move($table_expression);
+        auto expr = std::make_unique<dtl::ast::ExportStatement>();
+        expr->location = std::move($string);
+        expr->expression = std::move($table_expression);
+        $$ = std::move(expr);
     }
     ;
 
@@ -734,8 +767,9 @@ statement_list
 
 script
     : statement_list {
-        $$ = std::make_unique<dtl::ast::Script>();
-        $$->statements = std::move($statement_list);
+        auto expr = std::make_unique<dtl::ast::Script>();
+        expr->statements = std::move($statement_list);
+        $$ = std::move(expr);
     }
     ;
 
@@ -756,8 +790,8 @@ void dtl::parser::StateMachine::error(
 namespace dtl {
 namespace parser {
 
-std::unique_ptr<dtl::ast::Script> parse(dtl::tokenizer::Tokenizer& tokenizer) {
-    std::unique_ptr<dtl::ast::Script> result;
+std::unique_ptr<const dtl::ast::Script> parse(dtl::tokenizer::Tokenizer& tokenizer) {
+    std::unique_ptr<const dtl::ast::Script> result;
     dtl::parser::StateMachine state_machine(tokenizer, result);
     assert(!state_machine.parse());
     return result;

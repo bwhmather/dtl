@@ -5,7 +5,7 @@
 namespace dtl {
 namespace ast {
 
-void visit_children(Node& node, NodeVisitor& visitor);
+void visit_children(const Node& node, NodeVisitor& visitor);
 
 } /* namespace ast */
 } /* namespace dtl */
