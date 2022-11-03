@@ -34,6 +34,8 @@ class Expression : public std::enable_shared_from_this<Expression> {
     virtual ~Expression() {};
 
     virtual void accept(ExpressionVisitor& visitor) const = 0;
+
+    std::shared_ptr<const Expression> get_ptr() const;
 };
 
 /* --- Shape Expressions ---------------------------------------------------- */
@@ -42,6 +44,8 @@ class ShapeExpression : public Expression {
   public:
     void accept(ExpressionVisitor& visitor) const override final;
     virtual void accept(ShapeExpressionVisitor& visitor) const = 0;
+
+    std::shared_ptr<const ShapeExpression> get_ptr() const;
 };
 
 class ImportShapeExpression : public ShapeExpression {
@@ -49,6 +53,8 @@ class ImportShapeExpression : public ShapeExpression {
     std::string location;
 
     void accept(ShapeExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const ImportShapeExpression> get_ptr() const;
 };
 
 class WhereShapeExpression : public ShapeExpression {
@@ -56,6 +62,8 @@ class WhereShapeExpression : public ShapeExpression {
     std::shared_ptr<const ArrayExpression> mask;
 
     void accept(ShapeExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const WhereShapeExpression> get_ptr() const;
 };
 
 class JoinShapeExpression : public ShapeExpression {
@@ -64,6 +72,8 @@ class JoinShapeExpression : public ShapeExpression {
     std::shared_ptr<const ShapeExpression> shape_b;
 
     void accept(ShapeExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const JoinShapeExpression> get_ptr() const;
 };
 
 /* --- Array Expressions ---------------------------------------------------- */
@@ -75,6 +85,8 @@ class ArrayExpression : public Expression {
 
     void accept(ExpressionVisitor& visitor) const override final;
     virtual void accept(ArrayExpressionVisitor& visitor) const = 0;
+
+    std::shared_ptr<const ArrayExpression> get_ptr() const;
 };
 
 class ImportExpression : public ArrayExpression {
@@ -83,6 +95,8 @@ class ImportExpression : public ArrayExpression {
     std::string name;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const ImportExpression> get_ptr() const;
 };
 
 class WhereExpression : public ArrayExpression {
@@ -91,6 +105,8 @@ class WhereExpression : public ArrayExpression {
     std::shared_ptr<const ArrayExpression> mask;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const WhereExpression> get_ptr() const;
 };
 
 class PickExpression : public ArrayExpression {
@@ -99,6 +115,8 @@ class PickExpression : public ArrayExpression {
     std::shared_ptr<const ArrayExpression> indexes;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const PickExpression> get_ptr() const;
 };
 
 class IndexExpression : public ArrayExpression {
@@ -106,6 +124,8 @@ class IndexExpression : public ArrayExpression {
     std::shared_ptr<const ArrayExpression> source;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const IndexExpression> get_ptr() const;
 };
 
 class JoinLeftExpression : public ArrayExpression {
@@ -114,6 +134,8 @@ class JoinLeftExpression : public ArrayExpression {
     std::shared_ptr<const ShapeExpression> right;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const JoinLeftExpression> get_ptr() const;
 };
 
 class JoinRightExpression : public ArrayExpression {
@@ -122,6 +144,8 @@ class JoinRightExpression : public ArrayExpression {
     std::shared_ptr<const ShapeExpression> right;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const JoinRightExpression> get_ptr() const;
 };
 
 class AddExpression : public ArrayExpression {
@@ -130,6 +154,8 @@ class AddExpression : public ArrayExpression {
     std::shared_ptr<const ArrayExpression> right;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const AddExpression> get_ptr() const;
 };
 
 class SubtractExpression : public ArrayExpression {
@@ -138,6 +164,8 @@ class SubtractExpression : public ArrayExpression {
     std::shared_ptr<const ArrayExpression> right;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const SubtractExpression> get_ptr() const;
 };
 
 class MultiplyExpression : public ArrayExpression {
@@ -146,6 +174,8 @@ class MultiplyExpression : public ArrayExpression {
     std::shared_ptr<const ArrayExpression> right;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const MultiplyExpression> get_ptr() const;
 };
 
 class DivideExpression : public ArrayExpression {
@@ -154,6 +184,8 @@ class DivideExpression : public ArrayExpression {
     std::shared_ptr<const ArrayExpression> right;
 
     void accept(ArrayExpressionVisitor& visitor) const override final;
+
+    std::shared_ptr<const DivideExpression> get_ptr() const;
 };
 
 /* --- Visitors ------------------------------------------------------------- */
@@ -210,6 +242,8 @@ class Table : public std::enable_shared_from_this<Table> {
     std::vector<Column> columns;
 
     virtual void accept(TableVisitor& visitor) const = 0;
+
+    std::shared_ptr<const Table> get_ptr() const;
 };
 
 enum class TraceLevel {
@@ -226,6 +260,8 @@ class TraceTable : public Table {
     dtl::Location end;
 
     void accept(TableVisitor& visitor) const override final;
+
+    std::shared_ptr<const TraceTable> get_ptr() const;
 };
 
 class ExportTable : public Table {
@@ -233,6 +269,8 @@ class ExportTable : public Table {
     std::string name;
 
     void accept(TableVisitor& visitor) const override final;
+
+    std::shared_ptr<const ExportTable> get_ptr() const;
 };
 
 class TableVisitor {
