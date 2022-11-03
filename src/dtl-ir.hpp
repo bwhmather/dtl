@@ -232,7 +232,7 @@ class TableVisitor;
 
 struct Column {
     std::string name;
-    std::shared_ptr<const Expression> expression;
+    std::shared_ptr<const ArrayExpression> expression;
 };
 
 class Table : public std::enable_shared_from_this<Table> {

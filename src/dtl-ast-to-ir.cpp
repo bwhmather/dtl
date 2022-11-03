@@ -21,7 +21,7 @@ struct ScopeColumn {
     std::string name;
     std::unordered_set<std::string> namespaces;
 
-    std::shared_ptr<const dtl::ir::Expression> expression;
+    std::shared_ptr<const dtl::ir::ArrayExpression> expression;
 };
 
 class Scope{
