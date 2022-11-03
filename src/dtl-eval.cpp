@@ -51,8 +51,8 @@ extract_export_tables(
 }
 
 struct EvalContext {
-    std::unordered_map<std::shared_ptr<dtl::ir::ShapeExpression>, int> shapes;
-    std::unordered_map<std::shared_ptr<dtl::ir::ArrayExpression>, arrow::Array> arrays;
+    std::unordered_map<std::shared_ptr<const dtl::ir::ShapeExpression>, int> shapes;
+    std::unordered_map<std::shared_ptr<const dtl::ir::ArrayExpression>, std::shared_ptr<arrow::ChunkedArray>> arrays;
     dtl::io::Importer& importer;
     dtl::io::Exporter& exporter;
     dtl::io::Tracer& tracer;
@@ -68,18 +68,21 @@ class EvalShapeExpressionVisitor : public dtl::ir::ShapeExpressionVisitor {
         const dtl::ir::ImportShapeExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_join_shape_expression(
         const dtl::ir::JoinShapeExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_where_shape_expression(
         const dtl::ir::WhereShapeExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 };
 
@@ -101,61 +104,71 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::ImportExpression& expression
     ) override final {
         auto table = m_context.importer.import_table(expression.location);
-        auto column = table->GetColumnByName(expression.name);
+        auto array = table->GetColumnByName(expression.name);
+        m_context.arrays[expression.get_ptr()] = array;
     }
 
     void visit_where_expression(
         const dtl::ir::WhereExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_pick_expression(
         const dtl::ir::PickExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_index_expression(
         const dtl::ir::IndexExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_join_left_expression(
         const dtl::ir::JoinLeftExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_join_right_expression(
         const dtl::ir::JoinRightExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_add_expression(
         const dtl::ir::AddExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_subtract_expression(
         const dtl::ir::SubtractExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_multiply_expression(
         const dtl::ir::MultiplyExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_divide_expression(
         const dtl::ir::DivideExpression& expression
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 };
 
@@ -176,31 +189,48 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
     void visit_evaluate_array_command(
         const dtl::cmd::EvaluateArrayCommand& cmd
     ) override final {
-        // TODO
+        eval_array_expression(m_context, *cmd.expression);
     }
 
     void visit_evaluate_shape_command(
         const dtl::cmd::EvaluateShapeCommand& cmd
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_collect_array_command(
         const dtl::cmd::CollectArrayCommand& cmd
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_trace_array_command(
         const dtl::cmd::TraceArrayCommand& cmd
     ) override final {
         // TODO
+        throw "Not implemented";
     }
 
     void visit_export_table_command(
         const dtl::cmd::ExportTableCommand& cmd
     ) override final {
-        // TODO
+        const dtl::ir::ExportTable& description = *cmd.table;
+
+        std::vector<std::shared_ptr<arrow::Field> > fields;
+        std::vector<std::shared_ptr<arrow::ChunkedArray> > arrays;
+        for (auto&& column : description.columns) {
+            auto array = m_context.arrays.at(column.expression);
+            auto field = arrow::field(column.name, array->type());
+
+            fields.push_back(field);
+            arrays.push_back(array);
+        }
+        auto schema = arrow::schema(fields);
+        auto table = arrow::Table::Make(schema, arrays);
+
+        m_context.exporter.export_table(description.name, table);
     }
 };
 
@@ -260,7 +290,7 @@ void run(
         for (auto&& column : table->columns) {
             if (std::find(
                 std::begin(roots), std::end(roots), column.expression
-            ) != std::end(roots)) {
+            ) == std::end(roots)) {
                 roots.push_back(column.expression);
             }
         }
