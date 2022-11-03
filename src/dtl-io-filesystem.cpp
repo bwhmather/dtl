@@ -77,11 +77,20 @@ class FilesystemExporter : public Exporter {
 
     void export_table(
         const std::string& name,
-        std::shared_ptr<const arrow::Table> table
+        std::shared_ptr<arrow::Table> table
     ) override final {
-        (void) name;
-        (void) table;
-        throw "Not implemented error";
+        auto output_path = m_root / (name + ".parquet");
+
+        std::shared_ptr<arrow::io::FileOutputStream> outfile;
+        PARQUET_ASSIGN_OR_THROW(
+            outfile, arrow::io::FileOutputStream::Open(output_path)
+        );
+
+        PARQUET_THROW_NOT_OK(
+            parquet::arrow::WriteTable(
+                *table, arrow::default_memory_pool(), outfile, 65535
+            )
+        );
     }
 };
 

@@ -28,7 +28,7 @@ class Exporter {
     virtual ~Exporter() {};
 
     virtual void export_table(
-        const std::string& name, std::shared_ptr<const arrow::Table> table
+        const std::string& name, std::shared_ptr<arrow::Table> table
     ) = 0;
 };
 
