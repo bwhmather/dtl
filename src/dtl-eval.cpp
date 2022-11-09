@@ -20,7 +20,8 @@ public:
     void visit_trace_table(
         const dtl::ir::TraceTable& table
     ) override final {
-        // Pass.
+        // TODO
+        (void) table;
     };
 
     void visit_export_table(
@@ -68,6 +69,7 @@ class EvalShapeExpressionVisitor : public dtl::ir::ShapeExpressionVisitor {
         const dtl::ir::ImportShapeExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -75,6 +77,7 @@ class EvalShapeExpressionVisitor : public dtl::ir::ShapeExpressionVisitor {
         const dtl::ir::JoinShapeExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -82,6 +85,7 @@ class EvalShapeExpressionVisitor : public dtl::ir::ShapeExpressionVisitor {
         const dtl::ir::WhereShapeExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 };
@@ -112,6 +116,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::WhereExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -119,6 +124,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::PickExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -126,6 +132,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::IndexExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -133,6 +140,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::JoinLeftExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -140,6 +148,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::JoinRightExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -147,6 +156,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::AddExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -154,6 +164,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::SubtractExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -161,6 +172,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::MultiplyExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 
@@ -168,6 +180,7 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
         const dtl::ir::DivideExpression& expression
     ) override final {
         // TODO
+        (void) expression;
         throw "Not implemented";
     }
 };
@@ -196,6 +209,7 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
         const dtl::cmd::EvaluateShapeCommand& cmd
     ) override final {
         // TODO
+        (void) cmd;
         throw "Not implemented";
     }
 
@@ -203,6 +217,7 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
         const dtl::cmd::CollectArrayCommand& cmd
     ) override final {
         // TODO
+        (void) cmd;
         throw "Not implemented";
     }
 
@@ -210,6 +225,7 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
         const dtl::cmd::TraceArrayCommand& cmd
     ) override final {
         // TODO
+        (void) cmd;
         throw "Not implemented";
     }
 
