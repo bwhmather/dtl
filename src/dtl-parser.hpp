@@ -8,9 +8,8 @@
 namespace dtl {
 namespace parser {
 
-std::unique_ptr<dtl::ast::Script> parse(dtl::tokenizer::Tokenizer& tokenizer);
+std::unique_ptr<dtl::ast::Script>
+parse(dtl::tokenizer::Tokenizer& tokenizer);
 
-
-}  /* namespace parser */
-}  /* namespace dtl */
-
+} /* namespace parser */
+} /* namespace dtl */

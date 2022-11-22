@@ -1,27 +1,27 @@
-#include "dtl-tokens.hpp"
 #include "dtl-tokenizer.hpp"
+#include "dtl-tokens.hpp"
 
 #include "dtl-test.hpp"
 
-int main(void) {
-    std::string source = (
-        "AS\n"
-        "BY\n"
-        "CONSECUTIVE\n"
-        "DISTINCT\n"
-        "EXPORT\n"
-        "FROM\n"
-        "GROUP\n"
-        "IMPORT\n"
-        "JOIN\n"
-        "ON\n"
-        "SELECT\n"
-        "TO\n"
-        "UPDATE\n"
-        "USING\n"
-        "WHERE\n"
-        "WITH"
-    );
+int
+main(void) {
+    std::string source =
+        ("AS\n"
+         "BY\n"
+         "CONSECUTIVE\n"
+         "DISTINCT\n"
+         "EXPORT\n"
+         "FROM\n"
+         "GROUP\n"
+         "IMPORT\n"
+         "JOIN\n"
+         "ON\n"
+         "SELECT\n"
+         "TO\n"
+         "UPDATE\n"
+         "USING\n"
+         "WHERE\n"
+         "WITH");
 
     dtl::tokenizer::Tokenizer tokenizer(source);
 

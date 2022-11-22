@@ -6,33 +6,28 @@ namespace dtl {
 namespace ir {
 
 template <typename T>
-class DefaultedShapeExpressionVisitorMixin : public T{
+class DefaultedShapeExpressionVisitorMixin : public T {
   public:
     virtual void
     visit_import_shape_expression(
-        const ImportShapeExpression& expression
-    ) override {
+        const ImportShapeExpression& expression) override {
         return visit_shape_expression(expression);
     }
 
     virtual void
     visit_join_shape_expression(
-        const JoinShapeExpression& expression
-    ) override {
+        const JoinShapeExpression& expression) override {
         return visit_shape_expression(expression);
     }
 
     virtual void
     visit_where_shape_expression(
-        const WhereShapeExpression& expression
-    ) override {
+        const WhereShapeExpression& expression) override {
         return visit_shape_expression(expression);
     }
 
     virtual void
-    visit_shape_expression(
-        const ShapeExpression& expression
-    ) = 0;
+    visit_shape_expression(const ShapeExpression& expression) = 0;
 };
 
 template <typename T>
@@ -64,7 +59,8 @@ class DefaultedArrayExpressionVisitorMixin : public T {
     }
 
     virtual void
-    visit_join_right_expression(const JoinRightExpression& expression) override {
+    visit_join_right_expression(
+        const JoinRightExpression& expression) override {
         return visit_array_expression(expression);
     }
 
@@ -95,29 +91,20 @@ class DefaultedArrayExpressionVisitorMixin : public T {
 template <typename T>
 class DefaultedExpressionVisitorMixin :
     public DefaultedShapeExpressionVisitorMixin<
-        DefaultedArrayExpressionVisitorMixin<
-            T
-        >
-    > {
+        DefaultedArrayExpressionVisitorMixin<T>> {
   public:
     virtual void
-    visit_shape_expression(
-        const ShapeExpression& expression
-    ) override {
+    visit_shape_expression(const ShapeExpression& expression) override {
         visit_expression(expression);
     }
 
     virtual void
-    visit_array_expression(
-        const ArrayExpression& expression
-    ) override {
+    visit_array_expression(const ArrayExpression& expression) override {
         visit_expression(expression);
     }
 
     virtual void
-    visit_expression(
-        const Expression& expression
-    ) = 0;
+    visit_expression(const Expression& expression) = 0;
 };
 
 } /* namespace ir */

@@ -1,9 +1,10 @@
-#include "dtl-tokens.hpp"
 #include "dtl-tokenizer.hpp"
+#include "dtl-tokens.hpp"
 
 #include "dtl-test.hpp"
 
-int main(void) {
+int
+main(void) {
     std::string source = "";
     dtl::tokenizer::Tokenizer tokenizer(source);
 

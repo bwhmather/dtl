@@ -12,7 +12,8 @@ Expression::get_ptr() const {
 
 /* --- Shape Expressions ---------------------------------------------------- */
 
-void ShapeExpression::accept(ExpressionVisitor& visitor) const {
+void
+ShapeExpression::accept(ExpressionVisitor& visitor) const {
     this->accept(static_cast<ShapeExpressionVisitor&>(visitor));
 }
 
@@ -22,7 +23,8 @@ ShapeExpression::get_ptr() const {
     return std::static_pointer_cast<const ShapeExpression>(expr_ptr);
 }
 
-void ImportShapeExpression::accept(ShapeExpressionVisitor& visitor) const {
+void
+ImportShapeExpression::accept(ShapeExpressionVisitor& visitor) const {
     visitor.visit_import_shape_expression(*this);
 }
 
@@ -32,7 +34,8 @@ ImportShapeExpression::get_ptr() const {
     return std::static_pointer_cast<const ImportShapeExpression>(expr_ptr);
 }
 
-void WhereShapeExpression::accept(ShapeExpressionVisitor& visitor) const {
+void
+WhereShapeExpression::accept(ShapeExpressionVisitor& visitor) const {
     visitor.visit_where_shape_expression(*this);
 }
 
@@ -42,7 +45,8 @@ WhereShapeExpression::get_ptr() const {
     return std::static_pointer_cast<const WhereShapeExpression>(expr_ptr);
 }
 
-void JoinShapeExpression::accept(ShapeExpressionVisitor& visitor) const {
+void
+JoinShapeExpression::accept(ShapeExpressionVisitor& visitor) const {
     visitor.visit_join_shape_expression(*this);
 }
 
@@ -54,7 +58,8 @@ JoinShapeExpression::get_ptr() const {
 
 /* --- Array Expressions ---------------------------------------------------- */
 
-void ArrayExpression::accept(ExpressionVisitor& visitor) const {
+void
+ArrayExpression::accept(ExpressionVisitor& visitor) const {
     this->accept(static_cast<ArrayExpressionVisitor&>(visitor));
 }
 
@@ -64,7 +69,8 @@ ArrayExpression::get_ptr() const {
     return std::static_pointer_cast<const ArrayExpression>(expr_ptr);
 }
 
-void ImportExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+ImportExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_import_expression(*this);
 }
 
@@ -74,7 +80,8 @@ ImportExpression::get_ptr() const {
     return std::static_pointer_cast<const ImportExpression>(expr_ptr);
 }
 
-void WhereExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+WhereExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_where_expression(*this);
 }
 
@@ -84,7 +91,8 @@ WhereExpression::get_ptr() const {
     return std::static_pointer_cast<const WhereExpression>(expr_ptr);
 }
 
-void PickExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+PickExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_pick_expression(*this);
 }
 
@@ -94,7 +102,8 @@ PickExpression::get_ptr() const {
     return std::static_pointer_cast<const PickExpression>(expr_ptr);
 }
 
-void IndexExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+IndexExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_index_expression(*this);
 }
 
@@ -104,7 +113,8 @@ IndexExpression::get_ptr() const {
     return std::static_pointer_cast<const IndexExpression>(expr_ptr);
 }
 
-void JoinLeftExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+JoinLeftExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_join_left_expression(*this);
 }
 
@@ -114,7 +124,8 @@ JoinLeftExpression::get_ptr() const {
     return std::static_pointer_cast<const JoinLeftExpression>(expr_ptr);
 }
 
-void JoinRightExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+JoinRightExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_join_right_expression(*this);
 }
 
@@ -124,7 +135,8 @@ JoinRightExpression::get_ptr() const {
     return std::static_pointer_cast<const JoinRightExpression>(expr_ptr);
 }
 
-void AddExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+AddExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_add_expression(*this);
 }
 
@@ -134,7 +146,8 @@ AddExpression::get_ptr() const {
     return std::static_pointer_cast<const AddExpression>(expr_ptr);
 }
 
-void SubtractExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+SubtractExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_subtract_expression(*this);
 }
 
@@ -144,7 +157,8 @@ SubtractExpression::get_ptr() const {
     return std::static_pointer_cast<const SubtractExpression>(expr_ptr);
 }
 
-void MultiplyExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+MultiplyExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_multiply_expression(*this);
 }
 
@@ -154,7 +168,8 @@ MultiplyExpression::get_ptr() const {
     return std::static_pointer_cast<const MultiplyExpression>(expr_ptr);
 }
 
-void DivideExpression::accept(ArrayExpressionVisitor& visitor) const {
+void
+DivideExpression::accept(ArrayExpressionVisitor& visitor) const {
     visitor.visit_divide_expression(*this);
 }
 
@@ -171,7 +186,8 @@ Table::get_ptr() const {
     return shared_from_this();
 }
 
-void TraceTable::accept(TableVisitor& visitor) const {
+void
+TraceTable::accept(TableVisitor& visitor) const {
     visitor.visit_trace_table(*this);
 }
 
@@ -181,7 +197,8 @@ TraceTable::get_ptr() const {
     return std::static_pointer_cast<const TraceTable>(expr_ptr);
 }
 
-void ExportTable::accept(TableVisitor& visitor) const {
+void
+ExportTable::accept(TableVisitor& visitor) const {
     visitor.visit_export_table(*this);
 }
 
@@ -191,5 +208,5 @@ ExportTable::get_ptr() const {
     return std::static_pointer_cast<const ExportTable>(expr_ptr);
 }
 
-}  /* namespace ir */
-}  /* namespace dtl */
+} /* namespace ir */
+} /* namespace dtl */

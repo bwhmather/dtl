@@ -7,13 +7,9 @@
 namespace dtl {
 namespace eval {
 
-void run(
-    std::string source,
-    dtl::io::Importer& importer,
-    dtl::io::Exporter& exporter,
-    dtl::io::Tracer& tracer
-);
+void
+run(std::string source, dtl::io::Importer& importer,
+    dtl::io::Exporter& exporter, dtl::io::Tracer& tracer);
 
-}  /* namespace eval */
-}  /* namespace dtl */
-
+} /* namespace eval */
+} /* namespace dtl */

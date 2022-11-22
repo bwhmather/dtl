@@ -16,4 +16,4 @@ struct Location {
     size_t column;
 };
 
-}  /* namespace dtl */
+} /* namespace dtl */

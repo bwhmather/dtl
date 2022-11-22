@@ -1,13 +1,13 @@
-#include "dtl-tokens.hpp"
 #include "dtl-tokenizer.hpp"
+#include "dtl-tokens.hpp"
 
 #include "dtl-test.hpp"
 
-int main(void) {
-    std::string source = (
-        "+\n"
-        "-\n"
-    );
+int
+main(void) {
+    std::string source =
+        ("+\n"
+         "-\n");
 
     dtl::tokenizer::Tokenizer tokenizer(source);
 

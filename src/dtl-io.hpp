@@ -14,7 +14,7 @@ namespace io {
 
 class Importer {
   public:
-    virtual ~Importer() {};
+    virtual ~Importer(){};
 
     virtual std::shared_ptr<arrow::Schema>
     import_schema(const std::string& name) = 0;
@@ -25,21 +25,23 @@ class Importer {
 
 class Exporter {
   public:
-    virtual ~Exporter() {};
+    virtual ~Exporter(){};
 
-    virtual void export_table(
-        const std::string& name, std::shared_ptr<arrow::Table> table
-    ) = 0;
+    virtual void
+    export_table(
+        const std::string& name, std::shared_ptr<arrow::Table> table) = 0;
 };
 
 class Tracer {
   public:
-    virtual ~Tracer() {};
+    virtual ~Tracer(){};
 
-    virtual void write_manifest(const dtl::manifest::Manifest& manifest) = 0;
-    virtual void write_array(
-        dtl::UUID array_id, std::shared_ptr<const arrow::Array> array
-    ) = 0;
+    virtual void
+    write_manifest(const dtl::manifest::Manifest& manifest) = 0;
+
+    virtual void
+    write_array(
+        dtl::UUID array_id, std::shared_ptr<const arrow::Array> array) = 0;
 };
 
 } /* namespace io */

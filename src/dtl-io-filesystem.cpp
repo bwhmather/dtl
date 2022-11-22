@@ -40,16 +40,12 @@ class FilesystemImporter : public Importer {
 
             std::shared_ptr<arrow::io::ReadableFile> input_file;
             PARQUET_ASSIGN_OR_THROW(
-                input_file,
-                arrow::io::ReadableFile::Open(input_path, arrow::default_memory_pool())
-            );
+                input_file, arrow::io::ReadableFile::Open(
+                                input_path, arrow::default_memory_pool()));
 
             std::unique_ptr<parquet::arrow::FileReader> reader;
-            PARQUET_THROW_NOT_OK(
-                parquet::arrow::OpenFile(
-                    input_file, arrow::default_memory_pool(), &reader
-                )
-            );
+            PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(
+                input_file, arrow::default_memory_pool(), &reader));
 
             PARQUET_THROW_NOT_OK(reader->ReadTable(&table));
 
@@ -75,22 +71,17 @@ class FilesystemExporter : public Exporter {
   public:
     FilesystemExporter(const std::filesystem::path& root) : m_root(root) {}
 
-    void export_table(
-        const std::string& name,
-        std::shared_ptr<arrow::Table> table
-    ) override final {
+    void
+    export_table(const std::string& name, std::shared_ptr<arrow::Table> table)
+        override final {
         auto output_path = m_root / (name + ".parquet");
 
         std::shared_ptr<arrow::io::FileOutputStream> outfile;
         PARQUET_ASSIGN_OR_THROW(
-            outfile, arrow::io::FileOutputStream::Open(output_path)
-        );
+            outfile, arrow::io::FileOutputStream::Open(output_path));
 
-        PARQUET_THROW_NOT_OK(
-            parquet::arrow::WriteTable(
-                *table, arrow::default_memory_pool(), outfile, 65535
-            )
-        );
+        PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(
+            *table, arrow::default_memory_pool(), outfile, 65535));
     }
 };
 
@@ -107,26 +98,25 @@ class FilesystemTracer : public Tracer {
   public:
     FilesystemTracer(const std::filesystem::path& root) : m_root(root) {}
 
-    void write_manifest(
-        const dtl::manifest::Manifest &manifest
-    ) override final {
-        (void) manifest;
-        throw "Not implemented error";
-    }
-    void write_array(
-        dtl::UUID array_id, std::shared_ptr<const arrow::Array> array
-    ) override final {
-        (void) array_id;
-        (void) array;
+    void
+    write_manifest(const dtl::manifest::Manifest& manifest) override final {
+        (void)manifest;
         throw "Not implemented error";
     }
 
+    void
+    write_array(dtl::UUID array_id, std::shared_ptr<const arrow::Array> array)
+        override final {
+        (void)array_id;
+        (void)array;
+        throw "Not implemented error";
+    }
 };
 
-std::unique_ptr<Tracer> filesystem_tracer(const std::filesystem::path& root) {
+std::unique_ptr<Tracer>
+filesystem_tracer(const std::filesystem::path& root) {
     return std::make_unique<FilesystemTracer>(root);
 }
 
 } /* namespace io */
 } /* namespace dtl */
-

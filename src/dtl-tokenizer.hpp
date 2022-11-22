@@ -15,21 +15,30 @@ class Tokenizer {
     std::string::iterator m_next;
     std::string::iterator m_end;
 
-    char bump();
-    char peek();
-    dtl::tokens::TokenType next_type();
-public:
-    Tokenizer(
-        std::string::iterator begin,
-        std::string::iterator end
-    ) : m_lineno(1), m_column(1), m_next(begin), m_end(end) {}
-    explicit Tokenizer(std::string& source) : Tokenizer(source.begin(), source.end()) {}
-    Tokenizer(const Tokenizer&) = delete;
-    Tokenizer& operator=(const Tokenizer&) = delete;
+    char
+    bump();
 
-    dtl::tokens::Token next_token();
+    char
+    peek();
+
+    dtl::tokens::TokenType
+    next_type();
+
+  public:
+    Tokenizer(std::string::iterator begin, std::string::iterator end) :
+        m_lineno(1), m_column(1), m_next(begin), m_end(end) {}
+
+    explicit Tokenizer(std::string& source) :
+        Tokenizer(source.begin(), source.end()) {}
+
+    Tokenizer(const Tokenizer&) = delete;
+
+    Tokenizer&
+    operator=(const Tokenizer&) = delete;
+
+    dtl::tokens::Token
+    next_token();
 };
 
-}  /* namespace tokenizer */
-}  /* namespace dtl */
-
+} /* namespace tokenizer */
+} /* namespace dtl */

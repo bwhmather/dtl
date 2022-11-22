@@ -4,15 +4,16 @@
 #include <iterator>
 #include <string>
 
-#include "dtl-ast.hpp"
 #include "dtl-ast-to-ir.hpp"
+#include "dtl-ast.hpp"
 #include "dtl-eval.hpp"
 #include "dtl-io-filesystem.hpp"
 #include "dtl-ir.hpp"
 #include "dtl-parser.hpp"
 #include "dtl-tokenizer.hpp"
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char* argv[]) {
     assert(argc == 5);
 
     std::filesystem::path script_path(argv[1]);

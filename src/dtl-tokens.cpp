@@ -1,15 +1,15 @@
 #include "dtl-tokens.hpp"
 
-#include <map>
-#include <iostream>
 #include <cassert>
+#include <iostream>
+#include <map>
 
 namespace dtl {
 namespace tokens {
 
-const char* type_to_string(TokenType type) {
-    switch(type) {
-
+const char*
+type_to_string(TokenType type) {
+    switch (type) {
     case TokenType::EndOfFile:
         return "<EndOfFile>";
     case TokenType::Error:
@@ -136,14 +136,15 @@ const char* type_to_string(TokenType type) {
         return "<Whitespace>";
 
     default:
-        assert(false);  // ("unknown token type");
+        assert(false); // ("unknown token type");
     }
 }
 
-std::ostream& operator<<(std::ostream& os, const TokenType& type) {
+std::ostream&
+operator<<(std::ostream& os, const TokenType& type) {
     os << type_to_string(type);
     return os;
 }
 
-}  /* namespace tokens */
-}  /* namespace dtl */
+} /* namespace tokens */
+} /* namespace dtl */

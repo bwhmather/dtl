@@ -79,9 +79,11 @@ enum TokenType {
     Whitespace
 };
 
-const char* type_to_string(TokenType type);
+const char*
+type_to_string(TokenType type);
 
-std::ostream& operator<<(std::ostream& os, const TokenType& type);
+std::ostream&
+operator<<(std::ostream& os, const TokenType& type);
 
 struct Token {
     TokenType type;
@@ -89,5 +91,5 @@ struct Token {
     Location end;
 };
 
-}  /* namespace tokens */
-}  /* namespace dtl */
+} /* namespace tokens */
+} /* namespace dtl */

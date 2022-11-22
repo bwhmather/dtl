@@ -1,0 +1,18 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+---
+Language: Cpp
+ColumnLimit: 80
+DerivePointerAlignment: false
+PointerAlignment: Left
+# AlignAfterOpenBracket: BlockIndent
+AlignAfterOpenBracket: AlwaysBreak
+AlwaysBreakTemplateDeclarations: Yes
+AlwaysBreakAfterReturnType: All
+AlwaysBreakBeforeMultilineStrings: true
+BreakInheritanceList: AfterColon
+BreakConstructorInitializers: AfterColon
+KeepEmptyLinesAtTheStartOfBlocks: false
+SortIncludes: CaseSensitive
+SeparateDefinitionBlocks: Always
