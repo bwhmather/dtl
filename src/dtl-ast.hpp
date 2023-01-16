@@ -63,12 +63,6 @@ class ColumnName : public Node {
     accept(ColumnNameVisitor& visitor) const = 0;
 };
 
-struct UnqualifiedColumnNameArgs {
-    Location start;
-    Location end;
-    std::string column_name;
-};
-
 class UnqualifiedColumnName final : public ColumnName {
   public:
     std::string column_name;
