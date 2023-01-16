@@ -26,9 +26,7 @@ class ExtractExportTablesVisitor : public dtl::ir::TableVisitor {
 
     void
     visit_export_table(const dtl::ir::ExportTable& table) override final {
-        m_export_tables.push_back(
-            std::static_pointer_cast<const dtl::ir::ExportTable>(
-                table.shared_from_this()));
+        m_export_tables.push_back(table.get_ptr());
     };
 
     std::vector<std::shared_ptr<const dtl::ir::ExportTable>>
