@@ -265,7 +265,7 @@ class ExpressionCompiler : public ExpressionVisitor {
     std::shared_ptr<const dtl::ir::ArrayExpression>
     run(const Expression& expression) {
         expression.accept(*this);
-        return *std::move(m_result);
+        return std::move(m_result.value());
     }
 };
 
@@ -296,7 +296,7 @@ class ColumnNameNameVisitor : public ColumnNameVisitor {
     std::string
     run(const ColumnName& column_name) {
         column_name.accept(*this);
-        return *std::move(m_result);
+        return std::move(m_result.value());
     }
 };
 
@@ -312,19 +312,19 @@ class ColumnNameNamespaceVisitor : public ColumnNameVisitor {
   public:
     void
     visit_unqualified_column_name(const UnqualifiedColumnName&) override {
-        *m_result = {};
+        m_result.emplace();
     }
 
     void
     visit_qualified_column_name(
         const QualifiedColumnName& column_name) override {
-        *m_result = column_name.table_name;
+        m_result = column_name.table_name;
     }
 
     std::optional<std::string>
     run(const ColumnName& column_name) {
         column_name.accept(*this);
-        return *std::move(m_result);
+        return std::move(m_result.value());
     }
 };
 
@@ -354,7 +354,7 @@ class ExpressionNameVisitor :
     std::string
     run(const Expression& expression) {
         expression.accept(*this);
-        return *std::move(m_result);
+        return std::move(m_result.value());
     };
 };
 
@@ -403,7 +403,7 @@ class ColumnBindingCompiler : public ColumnBindingVisitor {
     ScopeColumn
     run(const ColumnBinding& binding) {
         binding.accept(*this);
-        return *std::move(m_result);
+        return std::move(m_result.value());
     }
 };
 
@@ -432,7 +432,7 @@ class TableBindingExpressionVisitor : public TableBindingVisitor {
     const TableExpression&
     run(const TableBinding& binding) {
         binding.accept(*this);
-        return *m_result.value();
+        return *std::move(m_result.value());
     };
 };
 
@@ -461,7 +461,7 @@ class TableExpressionNameVisitor :
     std::string
     run(const TableExpression& expression) {
         expression.accept(*this);
-        return *std::move(m_result);
+        return std::move(m_result.value());
     };
 };
 
