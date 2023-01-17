@@ -99,7 +99,9 @@ endforeach
 py_test_suites = {
     'end-to-end': [
         'basic',
+        'duplicate-columns',
         'rename-columns',
+        'subset-columns',
     ]
 }
 
