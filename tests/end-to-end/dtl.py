@@ -5,7 +5,7 @@ import tempfile
 
 import pyarrow.parquet as pq
 
-_DTL = os.environ['DTL']
+_DTL = os.environ["DTL"]
 
 
 def run(source, /, *, inputs):
@@ -31,7 +31,7 @@ def run(source, /, *, inputs):
         ).check_returncode()
 
         outputs = {}
-        for output_table_path in output_path.glob('*.parquet'):
+        for output_table_path in output_path.glob("*.parquet"):
             outputs[output_table_path.stem] = pq.read_table(output_table_path)
 
         return outputs, None

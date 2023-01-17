@@ -1,5 +1,7 @@
-import dtl
 import pyarrow as pa
+
+import dtl
+
 
 def main():
     src = """
@@ -10,5 +12,6 @@ def main():
     outputs, trace = dtl.run(src, inputs=inputs)
     assert outputs["output"] == pa.table({"column": [1, 2, 3, 4]})
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
