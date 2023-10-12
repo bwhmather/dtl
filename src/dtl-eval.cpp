@@ -43,7 +43,7 @@ extract_export_tables(
         table->accept(visitor);
     }
 
-    return std::move(visitor.result());
+    return visitor.result();
 }
 
 struct EvalContext {
