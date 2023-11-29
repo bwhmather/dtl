@@ -22,10 +22,85 @@ class NodeVisitor;
 
 class TableExpression;
 
+enum class Type {
+    // Literals.
+    LITERAL = 0x0100,
+    STRING = 1,
+
+    // Columns.
+    COLUMN_NAME = 0x0200,
+    UNQUALIFIED_COLUMN_NAME,
+    QUALIFIED_COLUMN_NAME,
+
+    // Expressions.
+    EXPRESSION = 0x0300,
+    COLUMN_REFERENCE_EXPRESSION,
+    LITERAL_EXPRESSION,
+    FUNCTION_CALL_EXPRESSION,
+    EQUAL_TO_EXPRESSION,
+    LESS_THAN_EXPRESSION,
+    LESS_THAN_EQUAL_EXPRESSION,
+    GREATER_THAN_EXPRESSION,
+    GREATER_THAN_EQUAL_EXPRESSION,
+    ADD_EXPRESSION,
+    SUBTRACT_EXPRESSION,
+    MULTIPLY_EXPRESSION,
+    DIVIDE_EXPRESSION,
+
+    // Tables.
+    TABLE_NAME = 0x0400,
+
+    // Distinct.
+    DISTINCT_CLAUSE = 0x0500,
+
+    // Column Bindings.
+    COLUMN_BINDING = 0x0600,
+    WILDCARD_COLUMN_BINDING,
+    IMPLICIT_COLUMN_BINDING,
+    ALIASED_COLUMN_BINDING,
+
+    // From.
+    TABLE_BINDING = 0x0700,
+    IMPLICIT_TABLE_BINDING,
+    ALIASED_TABLE_BINDING,
+    FROM_CLAUSE,
+
+    // Joins.
+    JOIN_CONSTRAINT = 0x0800,
+    JOIN_ON_CONSTRAINT,
+    JOIN_USING_CONSTRAINT,
+    JOIN_CLAUSE = 0x0900,
+
+    // Filtering.
+    WHERE_CLAUSE = 0x0A00,
+
+    // Grouping.
+    GROUP_BY_CLAUSE = 0x0B00,
+    // Table Expressions.
+    TABLE_EXPRESSION = 0x0C00,
+    SELECT_EXPRESSION,
+    IMPORT_EXPRESSION,
+    TABLE_REFERENCE_EXPRESSION,
+
+    // Statements.
+    STATEMENT = 0x0D00,
+    ASSIGNMENT_STATEMENT,
+    UPDATE_STATEMENT,
+    DELETE_STATEMENT,
+    INSERT_STATEMENT,
+    EXPORT_STATEMENT,
+    BEGIN_STATEMENT,
+
+    // Scripts.
+    SCRIPT = 0x0E000,
+};
+
 class Node {
   public:
     Location start;
     Location end;
+
+    virtual Type type() const = 0;
 
     virtual ~Node() {}
 
@@ -46,6 +121,8 @@ class Literal : public Node {
 
 class String final : public Literal {
   public:
+    Type type() const override final;
+
     std::string value;
 
     void
@@ -65,6 +142,8 @@ class ColumnName : public Node {
 
 class UnqualifiedColumnName final : public ColumnName {
   public:
+    Type type() const override final;
+
     std::string column_name;
 
     void
@@ -73,12 +152,16 @@ class UnqualifiedColumnName final : public ColumnName {
 
 class QualifiedColumnName final : public ColumnName {
   public:
+    Type type() const override final;
+
     std::string table_name;
     std::string column_name;
 
     void
     accept(ColumnNameVisitor& visitor) const override final;
 };
+
+/* === Expressions ========================================================== */
 
 class Expression : public Node {
   public:
@@ -90,6 +173,8 @@ class Expression : public Node {
 
 class ColumnReferenceExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const ColumnName> name;
 
     void
@@ -98,6 +183,8 @@ class ColumnReferenceExpression final : public Expression {
 
 class LiteralExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Literal> value;
 
     void
@@ -106,6 +193,8 @@ class LiteralExpression final : public Expression {
 
 class FunctionCallExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::string name;
     std::vector<std::unique_ptr<const Expression>> arguments;
 
@@ -115,6 +204,8 @@ class FunctionCallExpression final : public Expression {
 
 class EqualToExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -124,6 +215,8 @@ class EqualToExpression final : public Expression {
 
 class LessThanExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -133,6 +226,8 @@ class LessThanExpression final : public Expression {
 
 class LessThanEqualExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -142,6 +237,8 @@ class LessThanEqualExpression final : public Expression {
 
 class GreaterThanExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -151,6 +248,8 @@ class GreaterThanExpression final : public Expression {
 
 class GreaterThanEqualExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -160,6 +259,8 @@ class GreaterThanEqualExpression final : public Expression {
 
 class AddExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -169,6 +270,8 @@ class AddExpression final : public Expression {
 
 class SubtractExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -178,6 +281,8 @@ class SubtractExpression final : public Expression {
 
 class MultiplyExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -187,6 +292,8 @@ class MultiplyExpression final : public Expression {
 
 class DivideExpression final : public Expression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> left;
     std::unique_ptr<const Expression> right;
 
@@ -198,6 +305,8 @@ class DivideExpression final : public Expression {
 
 class TableName final : public Node {
   public:
+    Type type() const override final;
+
     std::string table_name;
 
     void
@@ -208,6 +317,8 @@ class TableName final : public Node {
 
 class DistinctClause final : public Node {
   public:
+    Type type() const override final;
+
     bool consecutive;
 
     void
@@ -226,12 +337,16 @@ class ColumnBinding : public Node {
 
 class WildcardColumnBinding final : public ColumnBinding {
   public:
+    Type type() const override final;
+
     void
     accept(ColumnBindingVisitor& visitor) const override final;
 };
 
 class ImplicitColumnBinding final : public ColumnBinding {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> expression;
 
     void
@@ -240,6 +355,8 @@ class ImplicitColumnBinding final : public ColumnBinding {
 
 class AliasedColumnBinding final : public ColumnBinding {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> expression;
     std::string alias;
 
@@ -260,6 +377,8 @@ class TableBinding : public Node {
 
 class ImplicitTableBinding final : public TableBinding {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const TableExpression> expression;
 
     void
@@ -268,6 +387,8 @@ class ImplicitTableBinding final : public TableBinding {
 
 class AliasedTableBinding final : public TableBinding {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const TableExpression> expression;
     std::string alias;
 
@@ -277,6 +398,8 @@ class AliasedTableBinding final : public TableBinding {
 
 class FromClause final : public Node {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const TableBinding> binding;
 
     void
@@ -296,6 +419,8 @@ class JoinConstraint : public Node {
 
 class JoinOnConstraint final : public JoinConstraint {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> predicate;
 
     void
@@ -304,6 +429,8 @@ class JoinOnConstraint final : public JoinConstraint {
 
 class JoinUsingConstraint final : public JoinConstraint {
   public:
+    Type type() const override final;
+
     std::vector<std::unique_ptr<const UnqualifiedColumnName>> columns;
 
     void
@@ -312,6 +439,8 @@ class JoinUsingConstraint final : public JoinConstraint {
 
 class JoinClause final : public Node {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const TableBinding> binding;
     std::unique_ptr<const JoinConstraint> constraint;
 
@@ -323,6 +452,8 @@ class JoinClause final : public Node {
 
 class WhereClause final : public Node {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const Expression> predicate;
 
     void
@@ -333,6 +464,8 @@ class WhereClause final : public Node {
 
 class GroupByClause final : public Node {
   public:
+    Type type() const override final;
+
     bool consecutive;
     std::vector<std::unique_ptr<const Expression>> pattern;
 
@@ -353,6 +486,8 @@ class TableExpression : public Node {
 
 class SelectExpression final : public TableExpression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const DistinctClause> distinct; /* nullable */
     std::vector<std::unique_ptr<const ColumnBinding>> columns;
     std::unique_ptr<const FromClause> source;
@@ -366,6 +501,8 @@ class SelectExpression final : public TableExpression {
 
 class ImportExpression final : public TableExpression {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const String> location;
 
     void
@@ -374,6 +511,8 @@ class ImportExpression final : public TableExpression {
 
 class TableReferenceExpression final : public TableExpression {
   public:
+    Type type() const override final;
+
     std::string name;
 
     void
@@ -393,6 +532,8 @@ class Statement : public Node {
 
 class AssignmentStatement final : public Statement {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const TableName> target;
     std::unique_ptr<const TableExpression> expression;
 
@@ -402,6 +543,8 @@ class AssignmentStatement final : public Statement {
 
 class UpdateStatement final : public Statement {
   public:
+    Type type() const override final;
+
     /* TODO */
     void
     accept(StatementVisitor& visitor) const override final;
@@ -409,6 +552,8 @@ class UpdateStatement final : public Statement {
 
 class DeleteStatement final : public Statement {
   public:
+    Type type() const override final;
+
     /* TODO */
     void
     accept(StatementVisitor& visitor) const override final;
@@ -416,6 +561,8 @@ class DeleteStatement final : public Statement {
 
 class InsertStatement final : public Statement {
   public:
+    Type type() const override final;
+
     /* TODO */
     void
     accept(StatementVisitor& visitor) const override final;
@@ -423,6 +570,8 @@ class InsertStatement final : public Statement {
 
 class ExportStatement final : public Statement {
   public:
+    Type type() const override final;
+
     std::unique_ptr<const String> location;
     std::unique_ptr<const TableExpression> expression;
 
@@ -432,6 +581,8 @@ class ExportStatement final : public Statement {
 
 class BeginStatement final : public Statement {
   public:
+    Type type() const override final;
+
     std::string text;
 
     void
@@ -442,6 +593,8 @@ class BeginStatement final : public Statement {
 
 class Script final : public Node {
   public:
+    Type type() const override final;
+
     std::vector<std::unique_ptr<const Statement>> statements;
 
     void
