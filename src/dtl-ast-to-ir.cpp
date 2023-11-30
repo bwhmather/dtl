@@ -1,16 +1,15 @@
 #include "dtl-ast-to-ir.hpp"
 
-#include <utility>
 #include <cassert>
 #include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <arrow/type.h>
 
-#include "dtl-ast-defaulted-visitor.tpp"
 #include "dtl-ast-find-imports.hpp"
 #include "dtl-ast.hpp"
 #include "dtl-io.hpp"
@@ -162,17 +161,16 @@ class Context {
     }
 };
 
-
 static std::shared_ptr<const dtl::ir::ArrayExpression>
 compile_expression(
     const Expression& base_expression, std::shared_ptr<Scope> scope,
     Context& context) {
-    (void) context;
+    (void)context;
 
     switch (base_expression.type()) {
     case Type::COLUMN_REFERENCE_EXPRESSION: {
-        const auto& expression = static_cast<const ColumnReferenceExpression&>(base_expression);
-
+        const auto& expression =
+            static_cast<const ColumnReferenceExpression&>(base_expression);
 
         std::optional<std::string> ns = column_name_namespace(*expression.name);
         std::string name = column_name_name(*expression.name);
@@ -221,10 +219,12 @@ static std::string
 column_name_name(const ColumnName& base_column_name) {
     switch (base_column_name.type()) {
     case dtl::ast::Type::UNQUALIFIED_COLUMN_NAME:
-        return static_cast<const UnqualifiedColumnName&>(base_column_name).column_name;
+        return static_cast<const UnqualifiedColumnName&>(base_column_name)
+            .column_name;
 
     case dtl::ast::Type::QUALIFIED_COLUMN_NAME:
-        return static_cast<const QualifiedColumnName&>(base_column_name).column_name;
+        return static_cast<const QualifiedColumnName&>(base_column_name)
+            .column_name;
 
     default:
         throw "Unreachable";
@@ -238,7 +238,8 @@ column_name_namespace(const ColumnName& base_column_name) {
         return std::optional<std::string>();
 
     case dtl::ast::Type::QUALIFIED_COLUMN_NAME:
-        return static_cast<const QualifiedColumnName&>(base_column_name).table_name;
+        return static_cast<const QualifiedColumnName&>(base_column_name)
+            .table_name;
 
     default:
         throw "Unreachable";
@@ -248,7 +249,9 @@ column_name_namespace(const ColumnName& base_column_name) {
 static std::string
 expression_name(const Expression& expression) {
     if (expression.type() == dtl::ast::Type::COLUMN_REFERENCE_EXPRESSION) {
-        return column_name_name(*static_cast<const dtl::ast::ColumnReferenceExpression&>(expression).name);
+        return column_name_name(
+            *static_cast<const dtl::ast::ColumnReferenceExpression&>(expression)
+                 .name);
     }
 
     throw "No name could be derived for expression";
@@ -258,26 +261,29 @@ static ScopeColumn
 compile_column_binding(
     const ColumnBinding& base_binding, std::shared_ptr<Scope> scope,
     Context& context) {
-
     switch (base_binding.type()) {
     case Type::WILDCARD_COLUMN_BINDING:
         throw "Not implemented";
 
     case Type::IMPLICIT_COLUMN_BINDING: {
-        const auto& binding = static_cast<const ImplicitColumnBinding&>(base_binding);
+        const auto& binding =
+            static_cast<const ImplicitColumnBinding&>(base_binding);
         return {
             .name = expression_name(*binding.expression),
             .namespaces = {{}},
-            .expression = compile_expression(*binding.expression, scope, context),
+            .expression =
+                compile_expression(*binding.expression, scope, context),
         };
     }
 
     case Type::ALIASED_COLUMN_BINDING: {
-        const auto& binding = static_cast<const AliasedColumnBinding&>(base_binding);
+        const auto& binding =
+            static_cast<const AliasedColumnBinding&>(base_binding);
         return {
             .name = binding.alias,
             .namespaces = {{}},
-            .expression = compile_expression(*binding.expression, scope, context),
+            .expression =
+                compile_expression(*binding.expression, scope, context),
         };
     }
 
@@ -290,10 +296,12 @@ static const TableExpression&
 table_binding_expression(const TableBinding& base_binding) {
     switch (base_binding.type()) {
     case Type::IMPLICIT_TABLE_BINDING:
-        return *static_cast<const ImplicitTableBinding&>(base_binding).expression;
+        return *static_cast<const ImplicitTableBinding&>(base_binding)
+                    .expression;
 
     case Type::ALIASED_TABLE_BINDING:
-        return *static_cast<const AliasedTableBinding&>(base_binding).expression;
+        return *static_cast<const AliasedTableBinding&>(base_binding)
+                    .expression;
 
     default:
         throw "Unreachable";
@@ -303,7 +311,8 @@ table_binding_expression(const TableBinding& base_binding) {
 static std::string
 table_expression_name(const TableExpression& base_expression) {
     if (base_expression.type() == Type::TABLE_REFERENCE_EXPRESSION) {
-        return static_cast<const TableReferenceExpression&>(base_expression).name;
+        return static_cast<const TableReferenceExpression&>(base_expression)
+            .name;
     }
 
     return "";
@@ -314,8 +323,7 @@ table_binding_name(const TableBinding& base_binding) {
     switch (base_binding.type()) {
     case Type::IMPLICIT_TABLE_BINDING:
         return table_expression_name(
-            *static_cast<const ImplicitTableBinding&>(base_binding).expression
-        );
+            *static_cast<const ImplicitTableBinding&>(base_binding).expression);
 
     case Type::ALIASED_TABLE_BINDING:
         return static_cast<const AliasedTableBinding&>(base_binding).alias;
@@ -326,11 +334,13 @@ table_binding_name(const TableBinding& base_binding) {
 }
 
 static std::shared_ptr<Scope>
-compile_table_expression(const TableExpression& base_expression, Context& context) {
+compile_table_expression(
+    const TableExpression& base_expression, Context& context) {
     switch (base_expression.type()) {
     case Type::SELECT_EXPRESSION: {
         // TODO
-        auto& expression = static_cast<const SelectExpression&>(base_expression);
+        auto& expression =
+            static_cast<const SelectExpression&>(base_expression);
         auto& src_expression =
             table_binding_expression(*expression.source->binding);
         auto src_name = table_binding_name(*expression.source->binding);
@@ -371,24 +381,23 @@ compile_table_expression(const TableExpression& base_expression, Context& contex
             scope->columns.push_back(
                 compile_column_binding(column_binding, src_scope, context));
         }
-        context.trace_table_expression(
-            scope, expression.start, expression.end);
+        context.trace_table_expression(scope, expression.start, expression.end);
 
         return scope;
-
     }
     case Type::IMPORT_EXPRESSION: {
-        auto& expression = static_cast<const ImportExpression&>(base_expression);
+        auto& expression =
+            static_cast<const ImportExpression&>(base_expression);
         auto scope = context.import_table(expression.location->value);
         context.trace_table_expression(scope, expression.start, expression.end);
         return scope;
     }
 
     case Type::TABLE_REFERENCE_EXPRESSION: {
-        auto& expression = static_cast<const TableReferenceExpression&>(base_expression);
+        auto& expression =
+            static_cast<const TableReferenceExpression&>(base_expression);
         auto scope = context.get_global(expression.name);
-        context.trace_table_expression(
-            scope, expression.start, expression.end);
+        context.trace_table_expression(scope, expression.start, expression.end);
         return scope;
     }
     default:
@@ -403,7 +412,7 @@ strip_namespaces(std::shared_ptr<Scope> input) {
     for (auto&& input_column : input->columns) {
         assert(input_column.namespaces.contains({}));
 
-        ScopeColumn output_column {
+        ScopeColumn output_column{
             .name = input_column.name,
             .namespaces = {{}},
             .expression = input_column.expression};
@@ -418,7 +427,8 @@ static void
 compile_statement(const Statement& base_statement, Context& context) {
     switch (base_statement.type()) {
     case Type::ASSIGNMENT_STATEMENT: {
-        auto& statement = static_cast<const AssignmentStatement&>(base_statement);
+        auto& statement =
+            static_cast<const AssignmentStatement&>(base_statement);
         auto expression_table =
             compile_table_expression(*statement.expression, context);
 
@@ -454,8 +464,6 @@ compile_statement(const Statement& base_statement, Context& context) {
     default:
         throw "Unreachable";
     }
-
-
 }
 
 static void
