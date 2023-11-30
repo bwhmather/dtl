@@ -1,5 +1,6 @@
 #include "dtl-ast-to-ir.hpp"
 
+#include <utility>
 #include <cassert>
 #include <memory>
 #include <optional>
@@ -161,23 +162,22 @@ class Context {
     }
 };
 
-class ExpressionCompiler : public ExpressionVisitor {
-    std::shared_ptr<Scope> m_scope;
-    Context& m_context;
 
-    std::optional<std::shared_ptr<const dtl::ir::ArrayExpression>> m_result;
+static std::shared_ptr<const dtl::ir::ArrayExpression>
+compile_expression(
+    const Expression& base_expression, std::shared_ptr<Scope> scope,
+    Context& context) {
+    (void) context;
 
-  public:
-    ExpressionCompiler(std::shared_ptr<Scope> scope, Context& context) :
-        m_scope(scope), m_context(context) {}
+    switch (base_expression.type()) {
+    case Type::COLUMN_REFERENCE_EXPRESSION: {
+        const auto& expression = static_cast<const ColumnReferenceExpression&>(base_expression);
 
-    void
-    visit_column_reference_expression(
-        const ColumnReferenceExpression& expression) override {
+
         std::optional<std::string> ns = column_name_namespace(*expression.name);
         std::string name = column_name_name(*expression.name);
 
-        for (auto&& column : m_scope->columns) {
+        for (auto&& column : scope->columns) {
             if (!column.namespaces.contains(ns)) {
                 continue;
             }
@@ -186,332 +186,155 @@ class ExpressionCompiler : public ExpressionVisitor {
                 continue;
             }
 
-            m_result = column.expression;
-            return;
+            return column.expression;
         }
         throw "Could not resolve reference";
     }
-
-    void
-    visit_literal_expression(const LiteralExpression& expression) override {
-        (void)expression;
+    case Type::LITERAL_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_function_call_expression(
-        const FunctionCallExpression& expression) override {
-        (void)expression;
+    case Type::FUNCTION_CALL_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_equal_to_expression(const EqualToExpression& expression) override {
-        (void)expression;
+    case Type::EQUAL_TO_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_less_than_expression(const LessThanExpression& expression) override {
-        (void)expression;
+    case Type::LESS_THAN_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_less_than_equal_expression(
-        const LessThanEqualExpression& expression) override {
-        (void)expression;
+    case Type::LESS_THAN_EQUAL_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_greater_than_expression(
-        const GreaterThanExpression& expression) override {
-        (void)expression;
+    case Type::GREATER_THAN_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_greater_than_equal_expression(
-        const GreaterThanEqualExpression& expression) override {
-        (void)expression;
+    case Type::GREATER_THAN_EQUAL_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_add_expression(const AddExpression& expression) override {
-        (void)expression;
+    case Type::ADD_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_subtract_expression(const SubtractExpression& expression) override {
-        (void)expression;
+    case Type::SUBTRACT_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_multiply_expression(const MultiplyExpression& expression) override {
-        (void)expression;
+    case Type::MULTIPLY_EXPRESSION:
         throw "Not implemented";
-    }
-
-    void
-    visit_divide_expression(const DivideExpression& expression) override {
-        (void)expression;
+    case Type::DIVIDE_EXPRESSION:
         throw "Not implemented";
+    default:
+        throw "Unreachable";
     }
-
-    std::shared_ptr<const dtl::ir::ArrayExpression>
-    run(const Expression& expression) {
-        expression.accept(*this);
-        return std::move(m_result.value());
-    }
-};
-
-static std::shared_ptr<const dtl::ir::ArrayExpression>
-compile_expression(
-    const Expression& expression, std::shared_ptr<Scope> scope,
-    Context& context) {
-    ExpressionCompiler compiler(scope, context);
-    return compiler.run(expression);
 }
-
-class ColumnNameNameVisitor : public ColumnNameVisitor {
-    std::optional<std::string> m_result;
-
-  public:
-    void
-    visit_unqualified_column_name(
-        const UnqualifiedColumnName& column_name) override {
-        m_result = column_name.column_name;
-    }
-
-    void
-    visit_qualified_column_name(
-        const QualifiedColumnName& column_name) override {
-        m_result = column_name.column_name;
-    }
-
-    std::string
-    run(const ColumnName& column_name) {
-        column_name.accept(*this);
-        return std::move(m_result.value());
-    }
-};
 
 static std::string
-column_name_name(const ColumnName& column_name) {
-    ColumnNameNameVisitor visitor;
-    return visitor.run(column_name);
+column_name_name(const ColumnName& base_column_name) {
+    switch (base_column_name.type()) {
+    case dtl::ast::Type::UNQUALIFIED_COLUMN_NAME:
+        return static_cast<const UnqualifiedColumnName&>(base_column_name).column_name;
+
+    case dtl::ast::Type::QUALIFIED_COLUMN_NAME:
+        return static_cast<const QualifiedColumnName&>(base_column_name).column_name;
+
+    default:
+        throw "Unreachable";
+    }
 }
-
-class ColumnNameNamespaceVisitor : public ColumnNameVisitor {
-    std::optional<std::optional<std::string>> m_result;
-
-  public:
-    void
-    visit_unqualified_column_name(const UnqualifiedColumnName&) override {
-        m_result.emplace();
-    }
-
-    void
-    visit_qualified_column_name(
-        const QualifiedColumnName& column_name) override {
-        m_result = column_name.table_name;
-    }
-
-    std::optional<std::string>
-    run(const ColumnName& column_name) {
-        column_name.accept(*this);
-        return std::move(m_result.value());
-    }
-};
 
 static std::optional<std::string>
-column_name_namespace(const ColumnName& column_name) {
-    ColumnNameNamespaceVisitor visitor;
-    return visitor.run(column_name);
+column_name_namespace(const ColumnName& base_column_name) {
+    switch (base_column_name.type()) {
+    case dtl::ast::Type::UNQUALIFIED_COLUMN_NAME:
+        return std::optional<std::string>();
+
+    case dtl::ast::Type::QUALIFIED_COLUMN_NAME:
+        return static_cast<const QualifiedColumnName&>(base_column_name).table_name;
+
+    default:
+        throw "Unreachable";
+    }
 }
-
-class ExpressionNameVisitor :
-    public DefaultedExpressionVisitorMixin<ExpressionVisitor> {
-    std::optional<std::string> m_result;
-
-  public:
-    void
-    visit_column_reference_expression(
-        const ColumnReferenceExpression& expression) override {
-        m_result = column_name_name(*expression.name);
-    }
-
-    void
-    visit_expression(const Expression& expression) override {
-        (void)expression;
-        throw "No name could be derived for expression";
-    }
-
-    std::string
-    run(const Expression& expression) {
-        expression.accept(*this);
-        return std::move(m_result.value());
-    };
-};
 
 static std::string
 expression_name(const Expression& expression) {
-    ExpressionNameVisitor visitor;
-    return visitor.run(expression);
+    if (expression.type() == dtl::ast::Type::COLUMN_REFERENCE_EXPRESSION) {
+        return column_name_name(*static_cast<const dtl::ast::ColumnReferenceExpression&>(expression).name);
+    }
+
+    throw "No name could be derived for expression";
 }
-
-class ColumnBindingCompiler : public ColumnBindingVisitor {
-    std::shared_ptr<Scope> m_scope;
-    Context& m_context;
-
-    std::optional<ScopeColumn> m_result;
-
-  public:
-    ColumnBindingCompiler(std::shared_ptr<Scope> scope, Context& context) :
-        m_scope(scope), m_context(context) {}
-
-    void
-    visit_wildcard_column_binding(
-        const WildcardColumnBinding& binding) override {
-        (void)binding;
-        throw "Not implemented";
-    };
-
-    void
-    visit_implicit_column_binding(
-        const ImplicitColumnBinding& binding) override {
-        m_result = {
-            .name = expression_name(*binding.expression),
-            .namespaces = {{}},
-            .expression =
-                compile_expression(*binding.expression, m_scope, m_context)};
-    }
-
-    void
-    visit_aliased_column_binding(const AliasedColumnBinding& binding) override {
-        m_result = {
-            .name = binding.alias,
-            .namespaces = {{}},
-            .expression =
-                compile_expression(*binding.expression, m_scope, m_context)};
-    }
-
-    ScopeColumn
-    run(const ColumnBinding& binding) {
-        binding.accept(*this);
-        return std::move(m_result.value());
-    }
-};
 
 static ScopeColumn
 compile_column_binding(
-    const ColumnBinding& binding, std::shared_ptr<Scope> scope,
+    const ColumnBinding& base_binding, std::shared_ptr<Scope> scope,
     Context& context) {
-    ColumnBindingCompiler compiler(scope, context);
-    return compiler.run(binding);
+
+    switch (base_binding.type()) {
+    case Type::WILDCARD_COLUMN_BINDING:
+        throw "Not implemented";
+
+    case Type::IMPLICIT_COLUMN_BINDING: {
+        const auto& binding = static_cast<const ImplicitColumnBinding&>(base_binding);
+        return {
+            .name = expression_name(*binding.expression),
+            .namespaces = {{}},
+            .expression = compile_expression(*binding.expression, scope, context),
+        };
+    }
+
+    case Type::ALIASED_COLUMN_BINDING: {
+        const auto& binding = static_cast<const AliasedColumnBinding&>(base_binding);
+        return {
+            .name = binding.alias,
+            .namespaces = {{}},
+            .expression = compile_expression(*binding.expression, scope, context),
+        };
+    }
+
+    default:
+        throw "Unreachable";
+    }
 }
-
-class TableBindingExpressionVisitor : public TableBindingVisitor {
-    std::optional<const TableExpression*> m_result;
-
-  public:
-    void
-    visit_implicit_table_binding(const ImplicitTableBinding& binding) override {
-        m_result = binding.expression.get();
-    }
-
-    void
-    visit_aliased_table_binding(const AliasedTableBinding& binding) override {
-        m_result = binding.expression.get();
-    }
-
-    const TableExpression&
-    run(const TableBinding& binding) {
-        binding.accept(*this);
-        return *std::move(m_result.value());
-    };
-};
 
 static const TableExpression&
-table_binding_expression(const TableBinding& binding) {
-    TableBindingExpressionVisitor visitor;
-    return visitor.run(binding);
+table_binding_expression(const TableBinding& base_binding) {
+    switch (base_binding.type()) {
+    case Type::IMPLICIT_TABLE_BINDING:
+        return *static_cast<const ImplicitTableBinding&>(base_binding).expression;
+
+    case Type::ALIASED_TABLE_BINDING:
+        return *static_cast<const AliasedTableBinding&>(base_binding).expression;
+
+    default:
+        throw "Unreachable";
+    }
 }
-
-class TableExpressionNameVisitor :
-    public DefaultedTableExpressionVisitorMixin<TableExpressionVisitor> {
-    std::optional<std::string> m_result;
-
-  public:
-    void
-    visit_table_expression(const TableExpression&) override {
-        m_result = std::string();
-    }
-
-    void
-    visit_table_reference_expression(
-        const TableReferenceExpression& expression) override {
-        m_result = expression.name;
-    }
-
-    std::string
-    run(const TableExpression& expression) {
-        expression.accept(*this);
-        return std::move(m_result.value());
-    };
-};
 
 static std::string
-table_expression_name(const TableExpression& expression) {
-    TableExpressionNameVisitor visitor;
-    return visitor.run(expression);
+table_expression_name(const TableExpression& base_expression) {
+    if (base_expression.type() == Type::TABLE_REFERENCE_EXPRESSION) {
+        return static_cast<const TableReferenceExpression&>(base_expression).name;
+    }
+
+    return "";
 }
-
-class TableBindingNameVisitor : public TableBindingVisitor {
-    std::optional<std::optional<std::string>> m_result;
-
-  public:
-    void
-    visit_implicit_table_binding(const ImplicitTableBinding& binding) override {
-        m_result = table_expression_name(*binding.expression);
-    }
-
-    void
-    visit_aliased_table_binding(const AliasedTableBinding& binding) override {
-        m_result = binding.alias;
-    }
-
-    std::optional<std::string>
-    run(const TableBinding& binding) {
-        binding.accept(*this);
-        return std::move(m_result.value());
-    };
-};
 
 static std::optional<std::string>
-table_binding_name(const TableBinding& binding) {
-    TableBindingNameVisitor visitor;
-    return visitor.run(binding);
+table_binding_name(const TableBinding& base_binding) {
+    switch (base_binding.type()) {
+    case Type::IMPLICIT_TABLE_BINDING:
+        return table_expression_name(
+            *static_cast<const ImplicitTableBinding&>(base_binding).expression
+        );
+
+    case Type::ALIASED_TABLE_BINDING:
+        return static_cast<const AliasedTableBinding&>(base_binding).alias;
+
+    default:
+        throw "Unreachable";
+    }
 }
 
-class TableExpressionCompiler : public TableExpressionVisitor {
-    Context& m_context;
-    std::optional<std::shared_ptr<Scope>> m_result;
-
-  public:
-    TableExpressionCompiler(Context& context) : m_context(context) {}
-
-    void
-    visit_select_expression(const SelectExpression& expression) override final {
+static std::shared_ptr<Scope>
+compile_table_expression(const TableExpression& base_expression, Context& context) {
+    switch (base_expression.type()) {
+    case Type::SELECT_EXPRESSION: {
         // TODO
+        auto& expression = static_cast<const SelectExpression&>(base_expression);
         auto& src_expression =
             table_binding_expression(*expression.source->binding);
         auto src_name = table_binding_name(*expression.source->binding);
-        auto src_scope = compile_table_expression(src_expression, m_context);
+        auto src_scope = compile_table_expression(src_expression, context);
 
         std::vector<ScopeColumn> src_columns;
         for (auto& src_column : src_scope->columns) {
@@ -546,45 +369,31 @@ class TableExpressionCompiler : public TableExpressionVisitor {
             auto& column_binding = *column_binding_ptr;
 
             scope->columns.push_back(
-                compile_column_binding(column_binding, src_scope, m_context));
+                compile_column_binding(column_binding, src_scope, context));
         }
-        m_context.trace_table_expression(
+        context.trace_table_expression(
             scope, expression.start, expression.end);
 
-        m_result = std::move(scope);
-    };
+        return scope;
 
-    void
-    visit_import_expression(const ImportExpression& expression) override final {
-        auto scope = m_context.import_table(expression.location->value);
-        m_context.trace_table_expression(
+    }
+    case Type::IMPORT_EXPRESSION: {
+        auto& expression = static_cast<const ImportExpression&>(base_expression);
+        auto scope = context.import_table(expression.location->value);
+        context.trace_table_expression(scope, expression.start, expression.end);
+        return scope;
+    }
+
+    case Type::TABLE_REFERENCE_EXPRESSION: {
+        auto& expression = static_cast<const TableReferenceExpression&>(base_expression);
+        auto scope = context.get_global(expression.name);
+        context.trace_table_expression(
             scope, expression.start, expression.end);
-        m_result = std::move(scope);
-    };
-
-    void
-    visit_table_reference_expression(
-        const TableReferenceExpression& expression) override final {
-        auto scope = m_context.get_global(expression.name);
-        m_context.trace_table_expression(
-            scope, expression.start, expression.end);
-        m_result = std::move(scope);
-    };
-
-    std::shared_ptr<Scope>
-    run(const TableExpression& expression) {
-        expression.accept(*this);
-
-        std::optional<std::shared_ptr<Scope>> result;
-        std::swap(result, m_result);
-        return result.value();
-    };
-};
-
-static std::shared_ptr<Scope>
-compile_table_expression(const TableExpression& expression, Context& context) {
-    TableExpressionCompiler compiler(context);
-    return compiler.run(expression);
+        return scope;
+    }
+    default:
+        throw "Unreachable";
+    }
 }
 
 static std::shared_ptr<Scope>
@@ -605,64 +414,48 @@ strip_namespaces(std::shared_ptr<Scope> input) {
     return output;
 }
 
-class StatementCompiler : public StatementVisitor {
-    Context& m_context;
-
-  public:
-    StatementCompiler(Context& context) : m_context(context){};
-
-    void
-    visit_assignment_statement(
-        const AssignmentStatement& statement) override final {
-        auto expression_table =
-            compile_table_expression(*statement.expression, m_context);
-
-        auto result_table = strip_namespaces(expression_table);
-
-        m_context.trace_statement(result_table, statement.start, statement.end);
-        m_context.set_global(statement.target->table_name, result_table);
-    };
-
-    void
-    visit_update_statement(const UpdateStatement& statement) override final {
-        (void)statement;
-        assert(false);
-    };
-
-    void
-    visit_delete_statement(const DeleteStatement& statement) override final {
-        (void)statement;
-        assert(false);
-    };
-
-    void
-    visit_insert_statement(const InsertStatement& statement) override final {
-        (void)statement;
-        assert(false);
-    };
-
-    void
-    visit_export_statement(const ExportStatement& statement) override final {
-        auto expression_table =
-            compile_table_expression(*statement.expression, m_context);
-
-        auto result_table = strip_namespaces(expression_table);
-
-        m_context.trace_statement(result_table, statement.start, statement.end);
-        m_context.export_table(statement.location->value, result_table);
-    };
-
-    void
-    visit_begin_statement(const BeginStatement& statement) override final {
-        (void)statement;
-        assert(false);
-    }
-};
-
 static void
-compile_statement(const Statement& statement, Context& context) {
-    StatementCompiler compiler(context);
-    statement.accept(compiler);
+compile_statement(const Statement& base_statement, Context& context) {
+    switch (base_statement.type()) {
+    case Type::ASSIGNMENT_STATEMENT: {
+        auto& statement = static_cast<const AssignmentStatement&>(base_statement);
+        auto expression_table =
+            compile_table_expression(*statement.expression, context);
+
+        auto result_table = strip_namespaces(expression_table);
+
+        context.trace_statement(result_table, statement.start, statement.end);
+        context.set_global(statement.target->table_name, result_table);
+        return;
+    }
+    case Type::UPDATE_STATEMENT:
+        throw "Not implemented";
+
+    case Type::DELETE_STATEMENT:
+        throw "Not implemented";
+
+    case Type::INSERT_STATEMENT:
+        throw "Not implemented";
+
+    case Type::EXPORT_STATEMENT: {
+        auto& statement = static_cast<const ExportStatement&>(base_statement);
+        auto expression_table =
+            compile_table_expression(*statement.expression, context);
+
+        auto result_table = strip_namespaces(expression_table);
+
+        context.trace_statement(result_table, statement.start, statement.end);
+        context.export_table(statement.location->value, result_table);
+        return;
+    }
+    case Type::BEGIN_STATEMENT:
+        throw "Not implemented";
+
+    default:
+        throw "Unreachable";
+    }
+
+
 }
 
 static void
