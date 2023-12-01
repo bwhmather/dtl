@@ -217,33 +217,28 @@ compile_expression(
 
 static std::string
 column_name_name(const ColumnName& base_column_name) {
-    switch (base_column_name.type()) {
-    case dtl::ast::Type::UNQUALIFIED_COLUMN_NAME:
-        return static_cast<const UnqualifiedColumnName&>(base_column_name)
-            .column_name;
-
-    case dtl::ast::Type::QUALIFIED_COLUMN_NAME:
-        return static_cast<const QualifiedColumnName&>(base_column_name)
-            .column_name;
-
-    default:
-        throw "Unreachable";
+    if (std::holds_alternative<UnqualifiedColumnName>(base_column_name)) {
+        return std::get<UnqualifiedColumnName>(base_column_name).column_name;
     }
+
+    if (std::holds_alternative<QualifiedColumnName>(base_column_name)) {
+        return std::get<QualifiedColumnName>(base_column_name).column_name;
+    }
+
+    throw "Unreachable";
 }
 
 static std::optional<std::string>
 column_name_namespace(const ColumnName& base_column_name) {
-    switch (base_column_name.type()) {
-    case dtl::ast::Type::UNQUALIFIED_COLUMN_NAME:
+    if (std::holds_alternative<UnqualifiedColumnName>(base_column_name)) {
         return std::optional<std::string>();
-
-    case dtl::ast::Type::QUALIFIED_COLUMN_NAME:
-        return static_cast<const QualifiedColumnName&>(base_column_name)
-            .table_name;
-
-    default:
-        throw "Unreachable";
     }
+
+    if (std::holds_alternative<QualifiedColumnName>(base_column_name)) {
+        return std::get<QualifiedColumnName>(base_column_name).table_name;
+    }
+
+    throw "Unreachable";
 }
 
 static std::string

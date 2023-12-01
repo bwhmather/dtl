@@ -12,9 +12,47 @@ namespace dtl {
 namespace ast {
 
 static void
+visit_string(const String& string, std::function<void(const Node&)> callback) {
+    callback(string);
+}
+
+static void
 visit_literal(
-    const Literal& literal, std::function<void(const Node&)> callback) {
-    std::visit([&](const String& string) { callback(string); }, literal);
+    const Literal& literal, std::function<void(const Node&)> callback
+) {
+    std::visit([&](const String& string) { visit_string(string, callback); }, literal);
+}
+
+static void
+visit_unqualified_column_name(
+    const UnqualifiedColumnName& column_name,
+    std::function<void(const Node&)> callback
+) {
+    callback(column_name);
+}
+
+static void
+visit_qualified_column_name(
+    const QualifiedColumnName& column_name,
+    std::function<void(const Node&)> callback
+) {
+    callback(column_name);
+}
+
+static void
+visit_column_name(
+    const ColumnName& base_column_name,
+    std::function<void(const Node&)> callback
+) {
+    if (std::holds_alternative<UnqualifiedColumnName>(base_column_name)) {
+        auto& column_name = std::get<UnqualifiedColumnName>(base_column_name);
+        visit_unqualified_column_name(column_name, callback);
+    }
+
+    if (std::holds_alternative<QualifiedColumnName>(base_column_name)) {
+        auto& column_name = std::get<QualifiedColumnName>(base_column_name);
+        visit_qualified_column_name(column_name, callback);
+    }
 }
 
 void
@@ -41,7 +79,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     case Type::COLUMN_REFERENCE_EXPRESSION: {
         const auto& expression =
             static_cast<const ColumnReferenceExpression&>(node);
-        visit_children(*expression.name, callback);
+        visit_column_name(*expression.name, callback);
         return;
     }
     case Type::LITERAL_EXPRESSION: {

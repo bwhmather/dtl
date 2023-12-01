@@ -111,9 +111,7 @@ typedef std::variant<String> Literal;
 
 /* === Columns ============================================================== */
 
-class ColumnName : public Node {};
-
-class UnqualifiedColumnName final : public ColumnName {
+class UnqualifiedColumnName final : public Node {
   public:
     Type
     type() const override final;
@@ -121,7 +119,7 @@ class UnqualifiedColumnName final : public ColumnName {
     std::string column_name;
 };
 
-class QualifiedColumnName final : public ColumnName {
+class QualifiedColumnName final : public Node {
   public:
     Type
     type() const override final;
@@ -129,6 +127,11 @@ class QualifiedColumnName final : public ColumnName {
     std::string table_name;
     std::string column_name;
 };
+
+typedef std::variant<
+    UnqualifiedColumnName,
+    QualifiedColumnName
+> ColumnName;
 
 /* === Expressions ========================================================== */
 

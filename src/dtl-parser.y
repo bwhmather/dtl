@@ -361,10 +361,10 @@ string
 
 column_name
     : unqualified_column_name {
-        $$ = std::move($1);
+        $$ = std::make_unique<dtl::ast::ColumnName>(std::move(*$1));
     }
     | qualified_column_name {
-        $$ = std::move($1);
+        $$ = std::make_unique<dtl::ast::ColumnName>(std::move(*$1));
     }
     ;
 
