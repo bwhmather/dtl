@@ -330,7 +330,7 @@ name
     ;
 
 literal
-    : string { $$ = std::move($1); }
+    : string { $$ = std::make_unique<dtl::ast::Literal>(std::move(*$1)); }
     ;
 
 string

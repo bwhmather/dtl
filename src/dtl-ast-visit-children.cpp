@@ -11,6 +11,12 @@
 namespace dtl {
 namespace ast {
 
+static void
+visit_literal(
+    const Literal& literal, std::function<void(const Node&)> callback) {
+    std::visit([&](const String& string) { callback(string); }, literal);
+}
+
 void
 visit_children(const Node& node, std::function<void(const Node&)> callback) {
     callback(node);
@@ -40,7 +46,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     }
     case Type::LITERAL_EXPRESSION: {
         const auto& expression = static_cast<const LiteralExpression&>(node);
-        visit_children(*expression.value, callback);
+        visit_literal(*expression.value, callback);
         return;
     }
     case Type::FUNCTION_CALL_EXPRESSION: {

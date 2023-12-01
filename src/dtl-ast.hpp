@@ -3,6 +3,7 @@
 #include <memory>
 #include <stddef.h>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "dtl-location.hpp"
@@ -98,15 +99,15 @@ class Node {
 
 /* === Literals ============================================================= */
 
-class Literal : public Node {};
-
-class String final : public Literal {
+class String final : public Node {
   public:
     Type
     type() const override final;
 
     std::string value;
 };
+
+typedef std::variant<String> Literal;
 
 /* === Columns ============================================================== */
 
