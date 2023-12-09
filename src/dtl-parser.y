@@ -257,10 +257,10 @@
 
 %type <std::string> name;
 
-%type <std::unique_ptr<const dtl::ast::Literal>> literal;
+%type <dtl::unique_variant_ptr_t<const dtl::ast::Literal>> literal;
 %type <std::unique_ptr<const dtl::ast::String>> string;
 
-%type <std::unique_ptr<const dtl::ast::ColumnName>> column_name;
+%type <dtl::unique_variant_ptr_t<const dtl::ast::ColumnName>> column_name;
 %type <std::vector<std::unique_ptr<const dtl::ast::UnqualifiedColumnName>>> unqualified_column_name_list;
 %type <std::unique_ptr<const dtl::ast::UnqualifiedColumnName>> unqualified_column_name;
 %type <std::unique_ptr<const dtl::ast::QualifiedColumnName>> qualified_column_name;
@@ -330,7 +330,10 @@ name
     ;
 
 literal
-    : string { $$ = std::make_unique<dtl::ast::Literal>(std::move(*$1)); }
+    : string {
+        $$.emplace<std::unique_ptr<const dtl::ast::String>>();
+        std::get<std::unique_ptr<const dtl::ast::String>>($$).swap($1);
+    }
     ;
 
 string
@@ -361,10 +364,12 @@ string
 
 column_name
     : unqualified_column_name {
-        $$ = std::make_unique<dtl::ast::ColumnName>(std::move(*$1));
+        $$.emplace<std::unique_ptr<const dtl::ast::UnqualifiedColumnName>>();
+        std::get<std::unique_ptr<const dtl::ast::UnqualifiedColumnName>>($$).swap($1);
     }
     | qualified_column_name {
-        $$ = std::make_unique<dtl::ast::ColumnName>(std::move(*$1));
+        $$.emplace<std::unique_ptr<const dtl::ast::QualifiedColumnName>>();
+        std::get<std::unique_ptr<const dtl::ast::QualifiedColumnName>>($$).swap($1);
     }
     ;
 

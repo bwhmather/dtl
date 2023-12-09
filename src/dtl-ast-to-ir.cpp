@@ -25,9 +25,9 @@ struct Context;
 static std::shared_ptr<Scope>
 compile_table_expression(const TableExpression& expression, Context& context);
 static std::string
-column_name_name(const ColumnName& column_name);
+column_name_name(dtl::variant_ptr_t<const ColumnName> column_name);
 static std::optional<std::string>
-column_name_namespace(const ColumnName& column_name);
+column_name_namespace(dtl::variant_ptr_t<const ColumnName> column_name);
 
 struct ScopeColumn {
     std::string name;
@@ -172,8 +172,8 @@ compile_expression(
         const auto& expression =
             static_cast<const ColumnReferenceExpression&>(base_expression);
 
-        std::optional<std::string> ns = column_name_namespace(*expression.name);
-        std::string name = column_name_name(*expression.name);
+        std::optional<std::string> ns = column_name_namespace(borrow(expression.name));
+        std::string name = column_name_name(borrow(expression.name));
 
         for (auto&& column : scope->columns) {
             if (!column.namespaces.contains(ns)) {
@@ -216,26 +216,26 @@ compile_expression(
 }
 
 static std::string
-column_name_name(const ColumnName& base_column_name) {
-    if (std::holds_alternative<UnqualifiedColumnName>(base_column_name)) {
-        return std::get<UnqualifiedColumnName>(base_column_name).column_name;
+column_name_name(dtl::variant_ptr_t<const ColumnName> base_column_name) {
+    if (std::holds_alternative<const UnqualifiedColumnName*>(base_column_name)) {
+        return std::get<const UnqualifiedColumnName*>(base_column_name)->column_name;
     }
 
-    if (std::holds_alternative<QualifiedColumnName>(base_column_name)) {
-        return std::get<QualifiedColumnName>(base_column_name).column_name;
+    if (std::holds_alternative<const QualifiedColumnName*>(base_column_name)) {
+        return std::get<const QualifiedColumnName*>(base_column_name)->column_name;
     }
 
     throw "Unreachable";
 }
 
 static std::optional<std::string>
-column_name_namespace(const ColumnName& base_column_name) {
-    if (std::holds_alternative<UnqualifiedColumnName>(base_column_name)) {
+column_name_namespace(variant_ptr_t<const ColumnName> base_column_name) {
+    if (std::holds_alternative<const UnqualifiedColumnName*>(base_column_name)) {
         return std::optional<std::string>();
     }
 
-    if (std::holds_alternative<QualifiedColumnName>(base_column_name)) {
-        return std::get<QualifiedColumnName>(base_column_name).table_name;
+    if (std::holds_alternative<const QualifiedColumnName*>(base_column_name)) {
+        return std::get<const QualifiedColumnName*>(base_column_name)->table_name;
     }
 
     throw "Unreachable";
@@ -245,8 +245,8 @@ static std::string
 expression_name(const Expression& expression) {
     if (expression.type() == dtl::ast::Type::COLUMN_REFERENCE_EXPRESSION) {
         return column_name_name(
-            *static_cast<const dtl::ast::ColumnReferenceExpression&>(expression)
-                 .name);
+            borrow(static_cast<const dtl::ast::ColumnReferenceExpression&>(expression)
+                 .name));
     }
 
     throw "No name could be derived for expression";

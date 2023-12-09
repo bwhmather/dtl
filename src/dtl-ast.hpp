@@ -5,7 +5,9 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <type_traits>
 
+#include "dtl-variant.tpp"
 #include "dtl-location.hpp"
 
 namespace dtl {
@@ -142,7 +144,7 @@ class ColumnReferenceExpression final : public Expression {
     Type
     type() const override final;
 
-    std::unique_ptr<const ColumnName> name;
+    dtl::unique_variant_ptr_t<const ColumnName> name;
 };
 
 class LiteralExpression final : public Expression {
@@ -150,7 +152,7 @@ class LiteralExpression final : public Expression {
     Type
     type() const override final;
 
-    std::unique_ptr<const Literal> value;
+    dtl::unique_variant_ptr_t<const Literal> value;
 };
 
 class FunctionCallExpression final : public Expression {

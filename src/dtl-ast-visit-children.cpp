@@ -18,9 +18,9 @@ visit_string(const String& string, std::function<void(const Node&)> callback) {
 
 static void
 visit_literal(
-    const Literal& literal, std::function<void(const Node&)> callback
+    variant_ptr_t<const Literal> literal, std::function<void(const Node&)> callback
 ) {
-    std::visit([&](const String& string) { visit_string(string, callback); }, literal);
+    std::visit([&](const String* string) { visit_string(*string, callback); }, literal);
 }
 
 static void
@@ -41,17 +41,17 @@ visit_qualified_column_name(
 
 static void
 visit_column_name(
-    const ColumnName& base_column_name,
+    variant_ptr_t<const ColumnName> base_column_name,
     std::function<void(const Node&)> callback
 ) {
-    if (std::holds_alternative<UnqualifiedColumnName>(base_column_name)) {
-        auto& column_name = std::get<UnqualifiedColumnName>(base_column_name);
-        visit_unqualified_column_name(column_name, callback);
+    if (std::holds_alternative<const UnqualifiedColumnName*>(base_column_name)) {
+        auto& column_name = std::get<const UnqualifiedColumnName*>(base_column_name);
+        visit_unqualified_column_name(*column_name, callback);
     }
 
-    if (std::holds_alternative<QualifiedColumnName>(base_column_name)) {
-        auto& column_name = std::get<QualifiedColumnName>(base_column_name);
-        visit_qualified_column_name(column_name, callback);
+    if (std::holds_alternative<const QualifiedColumnName*>(base_column_name)) {
+        auto& column_name = std::get<const QualifiedColumnName*>(base_column_name);
+        visit_qualified_column_name(*column_name, callback);
     }
 }
 
@@ -79,12 +79,12 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     case Type::COLUMN_REFERENCE_EXPRESSION: {
         const auto& expression =
             static_cast<const ColumnReferenceExpression&>(node);
-        visit_column_name(*expression.name, callback);
+        visit_column_name(borrow(expression.name), callback);
         return;
     }
     case Type::LITERAL_EXPRESSION: {
         const auto& expression = static_cast<const LiteralExpression&>(node);
-        visit_literal(*expression.value, callback);
+        visit_literal(borrow(expression.value), callback);
         return;
     }
     case Type::FUNCTION_CALL_EXPRESSION: {
