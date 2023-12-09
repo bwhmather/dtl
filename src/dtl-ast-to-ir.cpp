@@ -246,7 +246,7 @@ expression_name(const Expression& expression) {
     if (expression.type() == dtl::ast::Type::COLUMN_REFERENCE_EXPRESSION) {
         return column_name_name(
             borrow(static_cast<const dtl::ast::ColumnReferenceExpression&>(expression)
-                 .name));
+                       .name));
     }
 
     throw "No name could be derived for expression";

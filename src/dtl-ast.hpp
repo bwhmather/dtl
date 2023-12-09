@@ -3,12 +3,12 @@
 #include <memory>
 #include <stddef.h>
 #include <string>
+#include <type_traits>
 #include <variant>
 #include <vector>
-#include <type_traits>
 
-#include "dtl-variant.tpp"
 #include "dtl-location.hpp"
+#include "dtl-variant.tpp"
 
 namespace dtl {
 namespace ast {
@@ -132,8 +132,8 @@ class QualifiedColumnName final : public Node {
 
 typedef std::variant<
     UnqualifiedColumnName,
-    QualifiedColumnName
-> ColumnName;
+    QualifiedColumnName>
+    ColumnName;
 
 /* === Expressions ========================================================== */
 

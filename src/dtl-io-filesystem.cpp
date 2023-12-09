@@ -23,7 +23,8 @@ class FilesystemImporter : public Importer {
     std::unordered_map<std::string, std::shared_ptr<arrow::Table>> m_cache;
 
   public:
-    FilesystemImporter(const std::filesystem::path& root) : m_root(root) {}
+    FilesystemImporter(const std::filesystem::path& root) :
+        m_root(root) {}
 
     std::shared_ptr<arrow::Schema>
     import_schema(const std::string& name) override final {
@@ -69,7 +70,8 @@ class FilesystemExporter : public Exporter {
     std::filesystem::path m_root;
 
   public:
-    FilesystemExporter(const std::filesystem::path& root) : m_root(root) {}
+    FilesystemExporter(const std::filesystem::path& root) :
+        m_root(root) {}
 
     void
     export_table(const std::string& name, std::shared_ptr<arrow::Table> table)
@@ -96,7 +98,8 @@ class FilesystemTracer : public Tracer {
     std::filesystem::path m_root;
 
   public:
-    FilesystemTracer(const std::filesystem::path& root) : m_root(root) {}
+    FilesystemTracer(const std::filesystem::path& root) :
+        m_root(root) {}
 
     void
     write_manifest(const dtl::manifest::Manifest& manifest) override final {

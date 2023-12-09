@@ -18,32 +18,28 @@ visit_string(const String& string, std::function<void(const Node&)> callback) {
 
 static void
 visit_literal(
-    variant_ptr_t<const Literal> literal, std::function<void(const Node&)> callback
-) {
+    variant_ptr_t<const Literal> literal, std::function<void(const Node&)> callback) {
     std::visit([&](const String* string) { visit_string(*string, callback); }, literal);
 }
 
 static void
 visit_unqualified_column_name(
     const UnqualifiedColumnName& column_name,
-    std::function<void(const Node&)> callback
-) {
+    std::function<void(const Node&)> callback) {
     callback(column_name);
 }
 
 static void
 visit_qualified_column_name(
     const QualifiedColumnName& column_name,
-    std::function<void(const Node&)> callback
-) {
+    std::function<void(const Node&)> callback) {
     callback(column_name);
 }
 
 static void
 visit_column_name(
     variant_ptr_t<const ColumnName> base_column_name,
-    std::function<void(const Node&)> callback
-) {
+    std::function<void(const Node&)> callback) {
     if (std::holds_alternative<const UnqualifiedColumnName*>(base_column_name)) {
         auto& column_name = std::get<const UnqualifiedColumnName*>(base_column_name);
         visit_unqualified_column_name(*column_name, callback);

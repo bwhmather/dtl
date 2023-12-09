@@ -3,7 +3,7 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 ---
 Language: Cpp
-ColumnLimit: 80
+ColumnLimit: 0
 DerivePointerAlignment: false
 PointerAlignment: Left
 # AlignAfterOpenBracket: BlockIndent

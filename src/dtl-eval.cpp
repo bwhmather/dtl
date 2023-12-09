@@ -62,7 +62,8 @@ class EvalShapeExpressionVisitor : public dtl::ir::ShapeExpressionVisitor {
     EvalContext& m_context;
 
   public:
-    EvalShapeExpressionVisitor(EvalContext& context) : m_context(context){};
+    EvalShapeExpressionVisitor(EvalContext& context) :
+        m_context(context){};
 
     void
     visit_import_shape_expression(
@@ -100,7 +101,8 @@ class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
     EvalContext& m_context;
 
   public:
-    EvalArrayExpressionVisitor(EvalContext& context) : m_context(context){};
+    EvalArrayExpressionVisitor(EvalContext& context) :
+        m_context(context){};
 
     void
     visit_import_expression(
@@ -194,7 +196,8 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
     EvalContext& m_context;
 
   public:
-    EvalCommandVisitor(EvalContext& context) : m_context(context){};
+    EvalCommandVisitor(EvalContext& context) :
+        m_context(context){};
 
     void
     visit_evaluate_array_command(

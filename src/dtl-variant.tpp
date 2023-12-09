@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace dtl {
 
 template <typename _TIn>
