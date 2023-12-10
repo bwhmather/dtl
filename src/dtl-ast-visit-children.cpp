@@ -249,6 +249,36 @@ visit_table_binding(
     };
 }
 
+static void
+visit_join_on_constraint(
+    const JoinOnConstraint& constraint,
+    std::function<void(const Node&)> callback) {
+    callback(constraint);
+    visit_expression(borrow(constraint.predicate), callback);
+}
+
+static void
+visit_join_using_constraint(
+    const JoinUsingConstraint& constraint,
+    std::function<void(const Node&)> callback) {
+    callback(constraint);
+    for (auto&& column : constraint.columns) {
+        visit_children(*column, callback);
+    }
+}
+
+static void
+visit_join_constraint(
+    variant_ptr_t<const JoinConstraint> base_constraint,
+    std::function<void(const Node&)> callback) {
+    if (auto constraint = dtl::get_if<const JoinOnConstraint*>(&base_constraint)) {
+        visit_join_on_constraint(*constraint, callback);
+    };
+    if (auto constraint = dtl::get_if<const JoinUsingConstraint*>(&base_constraint)) {
+        visit_join_using_constraint(*constraint, callback);
+    };
+}
+
 void
 visit_children(const Node& node, std::function<void(const Node&)> callback) {
     callback(node);
@@ -329,23 +359,15 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     // Joins.
     case Type::JOIN_CONSTRAINT:
         throw "Unreachable";
-    case Type::JOIN_ON_CONSTRAINT: {
-        const auto& constraint = static_cast<const JoinOnConstraint&>(node);
-        visit_expression(borrow(constraint.predicate), callback);
-        return;
-    }
-    case Type::JOIN_USING_CONSTRAINT: {
-        const auto& constraint = static_cast<const JoinUsingConstraint&>(node);
-        for (auto&& column : constraint.columns) {
-            visit_children(*column, callback);
-        }
-        return;
-    }
+    case Type::JOIN_ON_CONSTRAINT:
+        throw "Unreachable";
+    case Type::JOIN_USING_CONSTRAINT:
+        throw "Unreachable";
 
     case Type::JOIN_CLAUSE: {
         const auto& clause = static_cast<const JoinClause&>(node);
         visit_table_binding(borrow(clause.binding), callback);
-        visit_children(*clause.constraint, callback);
+        visit_join_constraint(borrow(clause.constraint), callback);
         return;
     }
 

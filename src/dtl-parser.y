@@ -290,7 +290,7 @@
 
 %type <std::unique_ptr<const dtl::ast::FromClause>> from_clause;
 
-%type <std::unique_ptr<const dtl::ast::JoinConstraint>> join_constraint;
+%type <dtl::unique_variant_ptr_t<const dtl::ast::JoinConstraint>> join_constraint;
 %type <std::unique_ptr<const dtl::ast::JoinOnConstraint>> join_on_constraint;
 %type <std::unique_ptr<const dtl::ast::JoinUsingConstraint>> join_using_constraint;
 

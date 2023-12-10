@@ -353,9 +353,7 @@ class FromClause final : public Node {
 
 /* === Joins ================================================================ */
 
-class JoinConstraint : public Node {};
-
-class JoinOnConstraint final : public JoinConstraint {
+class JoinOnConstraint final : public Node {
   public:
     Type
     type() const override final;
@@ -363,7 +361,7 @@ class JoinOnConstraint final : public JoinConstraint {
     dtl::unique_variant_ptr_t<const Expression> predicate;
 };
 
-class JoinUsingConstraint final : public JoinConstraint {
+class JoinUsingConstraint final : public Node {
   public:
     Type
     type() const override final;
@@ -371,13 +369,15 @@ class JoinUsingConstraint final : public JoinConstraint {
     std::vector<std::unique_ptr<const UnqualifiedColumnName>> columns;
 };
 
+typedef std::variant<JoinOnConstraint, JoinUsingConstraint> JoinConstraint;
+
 class JoinClause final : public Node {
   public:
     Type
     type() const override final;
 
     dtl::unique_variant_ptr_t<const TableBinding> binding;
-    std::unique_ptr<const JoinConstraint> constraint;
+    dtl::unique_variant_ptr_t<const JoinConstraint> constraint;
 };
 
 /* === Filtering ============================================================ */
