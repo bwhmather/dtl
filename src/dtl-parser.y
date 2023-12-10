@@ -284,7 +284,7 @@
 %type <std::unique_ptr<const dtl::ast::ImplicitColumnBinding>> implicit_column_binding;
 %type <std::unique_ptr<const dtl::ast::AliasedColumnBinding>> aliased_column_binding;
 
-%type <std::unique_ptr<const dtl::ast::TableBinding>> table_binding;
+%type <dtl::unique_variant_ptr_t<const dtl::ast::TableBinding>> table_binding;
 %type <std::unique_ptr<const dtl::ast::ImplicitTableBinding>> implicit_table_binding;
 %type <std::unique_ptr<const dtl::ast::AliasedTableBinding>> aliased_table_binding;
 

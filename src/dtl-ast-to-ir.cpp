@@ -291,19 +291,16 @@ compile_column_binding(
 }
 
 static const TableExpression&
-table_binding_expression(const TableBinding& base_binding) {
-    switch (base_binding.type()) {
-    case Type::IMPLICIT_TABLE_BINDING:
-        return *static_cast<const ImplicitTableBinding&>(base_binding)
-                    .expression;
-
-    case Type::ALIASED_TABLE_BINDING:
-        return *static_cast<const AliasedTableBinding&>(base_binding)
-                    .expression;
-
-    default:
-        throw "Unreachable";
+table_binding_expression(dtl::variant_ptr_t<const TableBinding> base_binding) {
+    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(&base_binding)) {
+        return *binding->expression;
     }
+
+    if (auto binding = dtl::get_if<const AliasedTableBinding*>(&base_binding)) {
+        return *binding->expression;
+    }
+
+    throw "Unreachable";
 }
 
 static std::string
@@ -317,18 +314,16 @@ table_expression_name(const TableExpression& base_expression) {
 }
 
 static std::optional<std::string>
-table_binding_name(const TableBinding& base_binding) {
-    switch (base_binding.type()) {
-    case Type::IMPLICIT_TABLE_BINDING:
-        return table_expression_name(
-            *static_cast<const ImplicitTableBinding&>(base_binding).expression);
-
-    case Type::ALIASED_TABLE_BINDING:
-        return static_cast<const AliasedTableBinding&>(base_binding).alias;
-
-    default:
-        throw "Unreachable";
+table_binding_name(dtl::variant_ptr_t<const TableBinding> base_binding) {
+    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(&base_binding)) {
+        return table_expression_name(*binding->expression);
     }
+
+    if (auto binding = dtl::get_if<const AliasedTableBinding*>(&base_binding)) {
+        return binding->alias;
+    }
+
+    throw "Unreachable";
 }
 
 static std::shared_ptr<Scope>
@@ -340,8 +335,8 @@ compile_table_expression(
         auto& expression =
             static_cast<const SelectExpression&>(base_expression);
         auto& src_expression =
-            table_binding_expression(*expression.source->binding);
-        auto src_name = table_binding_name(*expression.source->binding);
+            table_binding_expression(borrow(expression.source->binding));
+        auto src_name = table_binding_name(borrow(expression.source->binding));
         auto src_scope = compile_table_expression(src_expression, context);
 
         std::vector<ScopeColumn> src_columns;

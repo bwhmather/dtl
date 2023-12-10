@@ -221,6 +221,34 @@ visit_column_binding(
     };
 }
 
+static void
+visit_implicit_table_binding(
+    const ImplicitTableBinding& binding,
+    std::function<void(const Node&)> callback) {
+    callback(binding);
+    visit_children(*binding.expression, callback);
+}
+
+static void
+visit_aliased_table_binding(
+    const AliasedTableBinding& binding,
+    std::function<void(const Node&)> callback) {
+    callback(binding);
+    visit_children(*binding.expression, callback);
+}
+
+static void
+visit_table_binding(
+    variant_ptr_t<const TableBinding> base_binding,
+    std::function<void(const Node&)> callback) {
+    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(&base_binding)) {
+        visit_implicit_table_binding(*binding, callback);
+    };
+    if (auto binding = dtl::get_if<const AliasedTableBinding*>(&base_binding)) {
+        visit_aliased_table_binding(*binding, callback);
+    };
+}
+
 void
 visit_children(const Node& node, std::function<void(const Node&)> callback) {
     callback(node);
@@ -288,19 +316,13 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     // From.
     case Type::TABLE_BINDING:
         throw "Unreachable";
-    case Type::IMPLICIT_TABLE_BINDING: {
-        const auto& binding = static_cast<const ImplicitTableBinding&>(node);
-        visit_children(*binding.expression, callback);
-        return;
-    }
-    case Type::ALIASED_TABLE_BINDING: {
-        const auto& binding = static_cast<const AliasedTableBinding&>(node);
-        visit_children(*binding.expression, callback);
-        return;
-    }
+    case Type::IMPLICIT_TABLE_BINDING:
+        throw "Unreachable";
+    case Type::ALIASED_TABLE_BINDING:
+        throw "Unreachable";
     case Type::FROM_CLAUSE: {
         const auto& clause = static_cast<const FromClause&>(node);
-        visit_children(*clause.binding, callback);
+        visit_table_binding(borrow(clause.binding), callback);
         return;
     }
 
@@ -322,7 +344,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
 
     case Type::JOIN_CLAUSE: {
         const auto& clause = static_cast<const JoinClause&>(node);
-        visit_children(*clause.binding, callback);
+        visit_table_binding(borrow(clause.binding), callback);
         visit_children(*clause.constraint, callback);
         return;
     }

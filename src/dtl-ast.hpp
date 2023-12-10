@@ -324,9 +324,7 @@ typedef std::variant<
 
 /* === From ================================================================= */
 
-class TableBinding : public Node {};
-
-class ImplicitTableBinding final : public TableBinding {
+class ImplicitTableBinding final : public Node {
   public:
     Type
     type() const override final;
@@ -334,7 +332,7 @@ class ImplicitTableBinding final : public TableBinding {
     std::unique_ptr<const TableExpression> expression;
 };
 
-class AliasedTableBinding final : public TableBinding {
+class AliasedTableBinding final : public Node {
   public:
     Type
     type() const override final;
@@ -343,12 +341,14 @@ class AliasedTableBinding final : public TableBinding {
     std::string alias;
 };
 
+typedef std::variant<ImplicitTableBinding, AliasedTableBinding> TableBinding;
+
 class FromClause final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const TableBinding> binding;
+    dtl::unique_variant_ptr_t<const TableBinding> binding;
 };
 
 /* === Joins ================================================================ */
@@ -376,7 +376,7 @@ class JoinClause final : public Node {
     Type
     type() const override final;
 
-    std::unique_ptr<const TableBinding> binding;
+    dtl::unique_variant_ptr_t<const TableBinding> binding;
     std::unique_ptr<const JoinConstraint> constraint;
 };
 
