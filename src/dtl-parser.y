@@ -331,8 +331,7 @@ name
 
 literal
     : string {
-        $$.emplace<std::unique_ptr<const dtl::ast::String>>();
-        std::get<std::unique_ptr<const dtl::ast::String>>($$).swap($1);
+        $$ = std::move($1);
     }
     ;
 
@@ -364,12 +363,10 @@ string
 
 column_name
     : unqualified_column_name {
-        $$.emplace<std::unique_ptr<const dtl::ast::UnqualifiedColumnName>>();
-        std::get<std::unique_ptr<const dtl::ast::UnqualifiedColumnName>>($$).swap($1);
+        $$ = std::move($1);
     }
     | qualified_column_name {
-        $$.emplace<std::unique_ptr<const dtl::ast::QualifiedColumnName>>();
-        std::get<std::unique_ptr<const dtl::ast::QualifiedColumnName>>($$).swap($1);
+        $$ = std::move($1);
     }
     ;
 
