@@ -278,8 +278,8 @@
 %type <std::unique_ptr<const dtl::ast::TableName>> table_name;
 %type <std::unique_ptr<const dtl::ast::DistinctClause>> distinct_clause;
 
-%type <std::unique_ptr<const dtl::ast::ColumnBinding>> column_binding;
-%type <std::vector<std::unique_ptr<const dtl::ast::ColumnBinding>>> column_binding_list;
+%type <dtl::unique_variant_ptr_t<const dtl::ast::ColumnBinding>> column_binding;
+%type <std::vector<dtl::unique_variant_ptr_t<const dtl::ast::ColumnBinding>>> column_binding_list;
 %type <std::unique_ptr<const dtl::ast::WildcardColumnBinding>> wildcard_column_binding;
 %type <std::unique_ptr<const dtl::ast::ImplicitColumnBinding>> implicit_column_binding;
 %type <std::unique_ptr<const dtl::ast::AliasedColumnBinding>> aliased_column_binding;

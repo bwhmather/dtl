@@ -181,6 +181,46 @@ visit_expression(
     };
 }
 
+static void
+visit_wildcard_column_binding(
+    const WildcardColumnBinding& binding,
+    std::function<void(const Node&)> callback) {
+    (void)binding;
+    (void)callback;
+    throw "Not implemented";
+}
+
+static void
+visit_implicit_column_binding(
+    const ImplicitColumnBinding& binding,
+    std::function<void(const Node&)> callback) {
+    callback(binding);
+    visit_expression(borrow(binding.expression), callback);
+}
+
+static void
+visit_aliased_column_binding(
+    const AliasedColumnBinding& binding,
+    std::function<void(const Node&)> callback) {
+    callback(binding);
+    visit_expression(borrow(binding.expression), callback);
+}
+
+static void
+visit_column_binding(
+    variant_ptr_t<const ColumnBinding> base_binding,
+    std::function<void(const Node&)> callback) {
+    if (auto binding = dtl::get_if<const WildcardColumnBinding*>(&base_binding)) {
+        visit_wildcard_column_binding(*binding, callback);
+    };
+    if (auto binding = dtl::get_if<const ImplicitColumnBinding*>(&base_binding)) {
+        visit_implicit_column_binding(*binding, callback);
+    };
+    if (auto binding = dtl::get_if<const AliasedColumnBinding*>(&base_binding)) {
+        visit_aliased_column_binding(*binding, callback);
+    };
+}
+
 void
 visit_children(const Node& node, std::function<void(const Node&)> callback) {
     callback(node);
@@ -239,14 +279,11 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     case Type::COLUMN_BINDING:
         throw "Unreachable";
     case Type::WILDCARD_COLUMN_BINDING:
-        return;
-    case Type::IMPLICIT_COLUMN_BINDING: {
-        const auto& binding = static_cast<const ImplicitColumnBinding&>(node);
-        visit_expression(borrow(binding.expression), callback);
-        return;
-    }
+        throw "Unreachable";
+    case Type::IMPLICIT_COLUMN_BINDING:
+        throw "Unreachable";
     case Type::ALIASED_COLUMN_BINDING:
-        return;
+        throw "Unreachable";
 
     // From.
     case Type::TABLE_BINDING:
@@ -315,7 +352,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
             visit_children(*expression.distinct, callback);
         }
         for (auto&& column : expression.columns) {
-            visit_children(*column, callback);
+            visit_column_binding(borrow(column), callback);
         }
         visit_children(*expression.source, callback);
         for (auto&& join : expression.joins) {

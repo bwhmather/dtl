@@ -263,37 +263,31 @@ expression_name(dtl::variant_ptr_t<const Expression> base_expression) {
 
 static ScopeColumn
 compile_column_binding(
-    const ColumnBinding& base_binding, std::shared_ptr<Scope> scope,
+    dtl::variant_ptr_t<const ColumnBinding> base_binding, std::shared_ptr<Scope> scope,
     Context& context) {
-    switch (base_binding.type()) {
-    case Type::WILDCARD_COLUMN_BINDING:
+    if (dtl::get_if<const WildcardColumnBinding*>(&base_binding)) {
         throw "Not implemented";
+    }
 
-    case Type::IMPLICIT_COLUMN_BINDING: {
-        const auto& binding =
-            static_cast<const ImplicitColumnBinding&>(base_binding);
+    if (auto binding = dtl::get_if<const ImplicitColumnBinding*>(&base_binding)) {
         return {
-            .name = expression_name(borrow(binding.expression)),
+            .name = expression_name(borrow(binding->expression)),
             .namespaces = {{}},
             .expression =
-                compile_expression(borrow(binding.expression), scope, context),
+                compile_expression(borrow(binding->expression), scope, context),
         };
     }
 
-    case Type::ALIASED_COLUMN_BINDING: {
-        const auto& binding =
-            static_cast<const AliasedColumnBinding&>(base_binding);
+    if (auto binding = dtl::get_if<const AliasedColumnBinding*>(&base_binding)) {
         return {
-            .name = binding.alias,
+            .name = binding->alias,
             .namespaces = {{}},
             .expression =
-                compile_expression(borrow(binding.expression), scope, context),
+                compile_expression(borrow(binding->expression), scope, context),
         };
     }
 
-    default:
-        throw "Unreachable";
-    }
+    throw "Unreachable";
 }
 
 static const TableExpression&
@@ -379,11 +373,9 @@ compile_table_expression(
         // TODO duplicate column bindings.
 
         auto scope = std::make_shared<Scope>();
-        for (auto&& column_binding_ptr : expression.columns) {
-            auto& column_binding = *column_binding_ptr;
-
+        for (auto&& column_binding : expression.columns) {
             scope->columns.push_back(
-                compile_column_binding(column_binding, src_scope, context));
+                compile_column_binding(borrow(column_binding), src_scope, context));
         }
         context.trace_table_expression(scope, expression.start, expression.end);
 

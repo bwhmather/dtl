@@ -293,15 +293,13 @@ class DistinctClause final : public Node {
 
 /* === Column Bindings ====================================================== */
 
-class ColumnBinding : public Node {};
-
-class WildcardColumnBinding final : public ColumnBinding {
+class WildcardColumnBinding final : public Node {
   public:
     Type
     type() const override final;
 };
 
-class ImplicitColumnBinding final : public ColumnBinding {
+class ImplicitColumnBinding final : public Node {
   public:
     Type
     type() const override final;
@@ -309,7 +307,7 @@ class ImplicitColumnBinding final : public ColumnBinding {
     dtl::unique_variant_ptr_t<const Expression> expression;
 };
 
-class AliasedColumnBinding final : public ColumnBinding {
+class AliasedColumnBinding final : public Node {
   public:
     Type
     type() const override final;
@@ -317,6 +315,12 @@ class AliasedColumnBinding final : public ColumnBinding {
     dtl::unique_variant_ptr_t<const Expression> expression;
     std::string alias;
 };
+
+typedef std::variant<
+    WildcardColumnBinding,
+    ImplicitColumnBinding,
+    AliasedColumnBinding>
+    ColumnBinding;
 
 /* === From ================================================================= */
 
@@ -407,7 +411,7 @@ class SelectExpression final : public TableExpression {
     type() const override final;
 
     std::unique_ptr<const DistinctClause> distinct; /* nullable */
-    std::vector<std::unique_ptr<const ColumnBinding>> columns;
+    std::vector<dtl::unique_variant_ptr_t<const ColumnBinding>> columns;
     std::unique_ptr<const FromClause> source;
     std::vector<std::unique_ptr<const JoinClause>> joins;
     std::unique_ptr<const WhereClause> where;      /* nullable */
