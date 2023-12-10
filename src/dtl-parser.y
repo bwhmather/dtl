@@ -265,10 +265,10 @@
 %type <std::unique_ptr<const dtl::ast::UnqualifiedColumnName>> unqualified_column_name;
 %type <std::unique_ptr<const dtl::ast::QualifiedColumnName>> qualified_column_name;
 
-%type <std::unique_ptr<const dtl::ast::Expression>> expression;
+%type <dtl::unique_variant_ptr_t<const dtl::ast::Expression>> expression;
 %type <std::unique_ptr<const dtl::ast::ColumnReferenceExpression>> column_reference_expression;
 %type <std::unique_ptr<const dtl::ast::LiteralExpression>> literal_expression;
-%type <std::vector<std::unique_ptr<const dtl::ast::Expression>>> expression_list;
+%type <std::vector<dtl::unique_variant_ptr_t<const dtl::ast::Expression>>> expression_list;
 %type <std::unique_ptr<const dtl::ast::FunctionCallExpression>> function_call_expression;
 %type <std::unique_ptr<const dtl::ast::AddExpression>> add_expression;
 %type <std::unique_ptr<const dtl::ast::SubtractExpression>> subtract_expression;

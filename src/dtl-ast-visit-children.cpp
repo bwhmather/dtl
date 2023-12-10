@@ -51,6 +51,136 @@ visit_column_name(
     }
 }
 
+static void
+visit_expression(
+    variant_ptr_t<const Expression> base_expression,
+    std::function<void(const Node&)> callback);
+
+static void
+visit_column_reference_expression(const ColumnReferenceExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_column_name(borrow(expression.name), callback);
+}
+
+static void
+visit_literal_expression(const LiteralExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_literal(borrow(expression.value), callback);
+}
+
+static void
+visit_function_call_expression(const FunctionCallExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    for (auto&& argument : expression.arguments) {
+        visit_expression(borrow(argument), callback);
+    }
+}
+
+static void
+visit_equal_to_expression(const EqualToExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_less_than_expression(const LessThanExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_less_than_equal_expression(const LessThanEqualExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_greater_than_expression(const GreaterThanExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_greater_than_equal_expression(const GreaterThanEqualExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_add_expression(const AddExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_subtract_expression(const SubtractExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_multiply_expression(const MultiplyExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_divide_expression(const DivideExpression& expression, std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_expression(borrow(expression.left), callback);
+    visit_expression(borrow(expression.right), callback);
+}
+
+static void
+visit_expression(
+    variant_ptr_t<const Expression> base_expression,
+    std::function<void(const Node&)> callback) {
+    if (auto expression = dtl::get_if<const ColumnReferenceExpression*>(&base_expression)) {
+        visit_column_reference_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const LiteralExpression*>(&base_expression)) {
+        visit_literal_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const FunctionCallExpression*>(&base_expression)) {
+        visit_function_call_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const EqualToExpression*>(&base_expression)) {
+        visit_equal_to_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const LessThanExpression*>(&base_expression)) {
+        visit_less_than_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const LessThanEqualExpression*>(&base_expression)) {
+        visit_less_than_equal_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const GreaterThanExpression*>(&base_expression)) {
+        visit_greater_than_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const GreaterThanEqualExpression*>(&base_expression)) {
+        visit_greater_than_equal_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const AddExpression*>(&base_expression)) {
+        visit_add_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const SubtractExpression*>(&base_expression)) {
+        visit_subtract_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const MultiplyExpression*>(&base_expression)) {
+        visit_multiply_expression(*expression, callback);
+    };
+    if (auto expression = dtl::get_if<const DivideExpression*>(&base_expression)) {
+        visit_divide_expression(*expression, callback);
+    };
+}
+
 void
 visit_children(const Node& node, std::function<void(const Node&)> callback) {
     callback(node);
@@ -72,82 +202,30 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     // Expressions.
     case Type::EXPRESSION:
         throw "Unreachable";
-    case Type::COLUMN_REFERENCE_EXPRESSION: {
-        const auto& expression =
-            static_cast<const ColumnReferenceExpression&>(node);
-        visit_column_name(borrow(expression.name), callback);
-        return;
-    }
-    case Type::LITERAL_EXPRESSION: {
-        const auto& expression = static_cast<const LiteralExpression&>(node);
-        visit_literal(borrow(expression.value), callback);
-        return;
-    }
-    case Type::FUNCTION_CALL_EXPRESSION: {
-        const auto& expression =
-            static_cast<const FunctionCallExpression&>(node);
-        for (auto&& argument : expression.arguments) {
-            visit_children(*argument, callback);
-        }
-        return;
-    }
-    case Type::EQUAL_TO_EXPRESSION: {
-        const auto& expression = static_cast<const EqualToExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
-    case Type::LESS_THAN_EXPRESSION: {
-        const auto& expression = static_cast<const LessThanExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
-    case Type::LESS_THAN_EQUAL_EXPRESSION: {
-        const auto& expression =
-            static_cast<const LessThanEqualExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
-    case Type::GREATER_THAN_EXPRESSION: {
-        const auto& expression =
-            static_cast<const GreaterThanExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
-    case Type::GREATER_THAN_EQUAL_EXPRESSION: {
-        const auto& expression =
-            static_cast<const GreaterThanEqualExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
-    case Type::ADD_EXPRESSION: {
-        const auto& expression = static_cast<const AddExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
-    case Type::SUBTRACT_EXPRESSION: {
-        const auto& expression = static_cast<const SubtractExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
-    case Type::MULTIPLY_EXPRESSION: {
-        const auto& expression = static_cast<const MultiplyExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
-    case Type::DIVIDE_EXPRESSION: {
-        const auto& expression = static_cast<const DivideExpression&>(node);
-        visit_children(*expression.left, callback);
-        visit_children(*expression.right, callback);
-        return;
-    }
+    case Type::COLUMN_REFERENCE_EXPRESSION:
+        throw "Unreachable";
+    case Type::LITERAL_EXPRESSION:
+        throw "Unreachable";
+    case Type::FUNCTION_CALL_EXPRESSION:
+        throw "Unreachable";
+    case Type::EQUAL_TO_EXPRESSION:
+        throw "Unreachable";
+    case Type::LESS_THAN_EXPRESSION:
+        throw "Unreachable";
+    case Type::LESS_THAN_EQUAL_EXPRESSION:
+        throw "Unreachable";
+    case Type::GREATER_THAN_EXPRESSION:
+        throw "Unreachable";
+    case Type::GREATER_THAN_EQUAL_EXPRESSION:
+        throw "Unreachable";
+    case Type::ADD_EXPRESSION:
+        throw "Unreachable";
+    case Type::SUBTRACT_EXPRESSION:
+        throw "Unreachable";
+    case Type::MULTIPLY_EXPRESSION:
+        throw "Unreachable";
+    case Type::DIVIDE_EXPRESSION:
+        throw "Unreachable";
 
     // Tables.
     case Type::TABLE_NAME:
@@ -164,7 +242,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
         return;
     case Type::IMPLICIT_COLUMN_BINDING: {
         const auto& binding = static_cast<const ImplicitColumnBinding&>(node);
-        visit_children(*binding.expression, callback);
+        visit_expression(borrow(binding.expression), callback);
         return;
     }
     case Type::ALIASED_COLUMN_BINDING:
@@ -194,7 +272,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
         throw "Unreachable";
     case Type::JOIN_ON_CONSTRAINT: {
         const auto& constraint = static_cast<const JoinOnConstraint&>(node);
-        visit_children(*constraint.predicate, callback);
+        visit_expression(borrow(constraint.predicate), callback);
         return;
     }
     case Type::JOIN_USING_CONSTRAINT: {
@@ -215,7 +293,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     // Filtering.
     case Type::WHERE_CLAUSE: {
         const auto& clause = static_cast<const WhereClause&>(node);
-        visit_children(*clause.predicate, callback);
+        visit_expression(borrow(clause.predicate), callback);
         return;
     }
 
@@ -223,7 +301,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     case Type::GROUP_BY_CLAUSE: {
         const auto& clause = static_cast<const GroupByClause&>(node);
         for (auto&& expression : clause.pattern) {
-            visit_children(*expression, callback);
+            visit_expression(borrow(expression), callback);
         }
         return;
     }

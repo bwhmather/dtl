@@ -137,9 +137,35 @@ typedef std::variant<
 
 /* === Expressions ========================================================== */
 
-class Expression : public Node {};
+class ColumnReferenceExpression;
+class LiteralExpression;
+class FunctionCallExpression;
+class EqualToExpression;
+class LessThanExpression;
+class LessThanEqualExpression;
+class GreaterThanExpression;
+class GreaterThanEqualExpression;
+class AddExpression;
+class SubtractExpression;
+class MultiplyExpression;
+class DivideExpression;
 
-class ColumnReferenceExpression final : public Expression {
+typedef std::variant<
+    ColumnReferenceExpression,
+    LiteralExpression,
+    FunctionCallExpression,
+    EqualToExpression,
+    LessThanExpression,
+    LessThanEqualExpression,
+    GreaterThanExpression,
+    GreaterThanEqualExpression,
+    AddExpression,
+    SubtractExpression,
+    MultiplyExpression,
+    DivideExpression>
+    Expression;
+
+class ColumnReferenceExpression final : public Node {
   public:
     Type
     type() const override final;
@@ -147,7 +173,7 @@ class ColumnReferenceExpression final : public Expression {
     dtl::unique_variant_ptr_t<const ColumnName> name;
 };
 
-class LiteralExpression final : public Expression {
+class LiteralExpression final : public Node {
   public:
     Type
     type() const override final;
@@ -155,94 +181,94 @@ class LiteralExpression final : public Expression {
     dtl::unique_variant_ptr_t<const Literal> value;
 };
 
-class FunctionCallExpression final : public Expression {
+class FunctionCallExpression final : public Node {
   public:
     Type
     type() const override final;
 
     std::string name;
-    std::vector<std::unique_ptr<const Expression>> arguments;
+    std::vector<dtl::unique_variant_ptr_t<const Expression>> arguments;
 };
 
-class EqualToExpression final : public Expression {
+class EqualToExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
-class LessThanExpression final : public Expression {
+class LessThanExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
-class LessThanEqualExpression final : public Expression {
+class LessThanEqualExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
-class GreaterThanExpression final : public Expression {
+class GreaterThanExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
-class GreaterThanEqualExpression final : public Expression {
+class GreaterThanEqualExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
-class AddExpression final : public Expression {
+class AddExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
-class SubtractExpression final : public Expression {
+class SubtractExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
-class MultiplyExpression final : public Expression {
+class MultiplyExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
-class DivideExpression final : public Expression {
+class DivideExpression final : public Node {
   public:
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> left;
-    std::unique_ptr<const Expression> right;
+    dtl::unique_variant_ptr_t<const Expression> left;
+    dtl::unique_variant_ptr_t<const Expression> right;
 };
 
 /* === Tables =============================================================== */
@@ -280,7 +306,7 @@ class ImplicitColumnBinding final : public ColumnBinding {
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> expression;
+    dtl::unique_variant_ptr_t<const Expression> expression;
 };
 
 class AliasedColumnBinding final : public ColumnBinding {
@@ -288,7 +314,7 @@ class AliasedColumnBinding final : public ColumnBinding {
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> expression;
+    dtl::unique_variant_ptr_t<const Expression> expression;
     std::string alias;
 };
 
@@ -330,7 +356,7 @@ class JoinOnConstraint final : public JoinConstraint {
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> predicate;
+    dtl::unique_variant_ptr_t<const Expression> predicate;
 };
 
 class JoinUsingConstraint final : public JoinConstraint {
@@ -357,7 +383,7 @@ class WhereClause final : public Node {
     Type
     type() const override final;
 
-    std::unique_ptr<const Expression> predicate;
+    dtl::unique_variant_ptr_t<const Expression> predicate;
 };
 
 /* === Grouping ============================================================= */
@@ -368,7 +394,7 @@ class GroupByClause final : public Node {
     type() const override final;
 
     bool consecutive;
-    std::vector<std::unique_ptr<const Expression>> pattern;
+    std::vector<dtl::unique_variant_ptr_t<const Expression>> pattern;
 };
 
 /* === Table Expressions ==================================================== */

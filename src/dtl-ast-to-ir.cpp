@@ -163,14 +163,13 @@ class Context {
 
 static std::shared_ptr<const dtl::ir::ArrayExpression>
 compile_expression(
-    const Expression& base_expression, std::shared_ptr<Scope> scope,
+    dtl::variant_ptr_t<const Expression> base_expression, std::shared_ptr<Scope> scope,
     Context& context) {
     (void)context;
 
-    switch (base_expression.type()) {
-    case Type::COLUMN_REFERENCE_EXPRESSION: {
+    if (std::holds_alternative<const ColumnReferenceExpression*>(base_expression)) {
         const auto& expression =
-            static_cast<const ColumnReferenceExpression&>(base_expression);
+            *std::get<const ColumnReferenceExpression*>(base_expression);
 
         std::optional<std::string> ns = column_name_namespace(borrow(expression.name));
         std::string name = column_name_name(borrow(expression.name));
@@ -188,31 +187,41 @@ compile_expression(
         }
         throw "Could not resolve reference";
     }
-    case Type::LITERAL_EXPRESSION:
+    if (std::holds_alternative<const LiteralExpression*>(base_expression)) {
         throw "Not implemented";
-    case Type::FUNCTION_CALL_EXPRESSION:
-        throw "Not implemented";
-    case Type::EQUAL_TO_EXPRESSION:
-        throw "Not implemented";
-    case Type::LESS_THAN_EXPRESSION:
-        throw "Not implemented";
-    case Type::LESS_THAN_EQUAL_EXPRESSION:
-        throw "Not implemented";
-    case Type::GREATER_THAN_EXPRESSION:
-        throw "Not implemented";
-    case Type::GREATER_THAN_EQUAL_EXPRESSION:
-        throw "Not implemented";
-    case Type::ADD_EXPRESSION:
-        throw "Not implemented";
-    case Type::SUBTRACT_EXPRESSION:
-        throw "Not implemented";
-    case Type::MULTIPLY_EXPRESSION:
-        throw "Not implemented";
-    case Type::DIVIDE_EXPRESSION:
-        throw "Not implemented";
-    default:
-        throw "Unreachable";
     }
+    if (std::holds_alternative<const FunctionCallExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const EqualToExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const LessThanExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const LessThanEqualExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const GreaterThanExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const GreaterThanEqualExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const AddExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const SubtractExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const MultiplyExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+    if (std::holds_alternative<const DivideExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    throw "Unreachable";
 }
 
 static std::string
@@ -242,11 +251,11 @@ column_name_namespace(variant_ptr_t<const ColumnName> base_column_name) {
 }
 
 static std::string
-expression_name(const Expression& expression) {
-    if (expression.type() == dtl::ast::Type::COLUMN_REFERENCE_EXPRESSION) {
-        return column_name_name(
-            borrow(static_cast<const dtl::ast::ColumnReferenceExpression&>(expression)
-                       .name));
+expression_name(dtl::variant_ptr_t<const Expression> base_expression) {
+    if (std::holds_alternative<const ColumnReferenceExpression*>(base_expression)) {
+        const auto& expression =
+            *std::get<const ColumnReferenceExpression*>(base_expression);
+        return column_name_name(borrow(expression.name));
     }
 
     throw "No name could be derived for expression";
@@ -264,10 +273,10 @@ compile_column_binding(
         const auto& binding =
             static_cast<const ImplicitColumnBinding&>(base_binding);
         return {
-            .name = expression_name(*binding.expression),
+            .name = expression_name(borrow(binding.expression)),
             .namespaces = {{}},
             .expression =
-                compile_expression(*binding.expression, scope, context),
+                compile_expression(borrow(binding.expression), scope, context),
         };
     }
 
@@ -278,7 +287,7 @@ compile_column_binding(
             .name = binding.alias,
             .namespaces = {{}},
             .expression =
-                compile_expression(*binding.expression, scope, context),
+                compile_expression(borrow(binding.expression), scope, context),
         };
     }
 
