@@ -13,8 +13,6 @@
 namespace dtl {
 namespace ast {
 
-class TableExpression;
-
 enum class Type {
     // Literals.
     LITERAL = 0x0100,
@@ -99,6 +97,90 @@ class Node {
     virtual ~Node() {}
 };
 
+class String;
+typedef std::variant<String> Literal;
+
+class UnqualifiedColumnName;
+class QualifiedColumnName;
+typedef std::variant<
+    UnqualifiedColumnName,
+    QualifiedColumnName>
+    ColumnName;
+
+class ColumnReferenceExpression;
+class LiteralExpression;
+class FunctionCallExpression;
+class EqualToExpression;
+class LessThanExpression;
+class LessThanEqualExpression;
+class GreaterThanExpression;
+class GreaterThanEqualExpression;
+class AddExpression;
+class SubtractExpression;
+class MultiplyExpression;
+class DivideExpression;
+typedef std::variant<
+    ColumnReferenceExpression,
+    LiteralExpression,
+    FunctionCallExpression,
+    EqualToExpression,
+    LessThanExpression,
+    LessThanEqualExpression,
+    GreaterThanExpression,
+    GreaterThanEqualExpression,
+    AddExpression,
+    SubtractExpression,
+    MultiplyExpression,
+    DivideExpression>
+    Expression;
+
+class TableName;
+
+class DistinctClause;
+
+class WildcardColumnBinding;
+class ImplicitColumnBinding;
+class AliasedColumnBinding;
+typedef std::variant<
+    WildcardColumnBinding,
+    ImplicitColumnBinding,
+    AliasedColumnBinding>
+    ColumnBinding;
+
+class ImplicitTableBinding;
+class AliasedTableBinding;
+typedef std::variant<ImplicitTableBinding, AliasedTableBinding> TableBinding;
+
+class FromClause;
+
+class JoinOnConstraint;
+class JoinUsingConstraint;
+typedef std::variant<JoinOnConstraint, JoinUsingConstraint> JoinConstraint;
+
+class JoinClause;
+
+class WhereClause;
+
+class GroupByClause;
+
+class SelectExpression;
+class ImportExpression;
+class TableReferenceExpression;
+typedef std::variant<
+    SelectExpression,
+    ImportExpression,
+    TableReferenceExpression>
+    TableExpression;
+
+class AssignmentStatement;
+class UpdateStatement;
+class DeleteStatement;
+class InsertStatement;
+class ExportStatement;
+class BeginStatement;
+
+class Script;
+
 /* === Literals ============================================================= */
 
 class String final : public Node {
@@ -108,8 +190,6 @@ class String final : public Node {
 
     std::string value;
 };
-
-typedef std::variant<String> Literal;
 
 /* === Columns ============================================================== */
 
@@ -130,40 +210,7 @@ class QualifiedColumnName final : public Node {
     std::string column_name;
 };
 
-typedef std::variant<
-    UnqualifiedColumnName,
-    QualifiedColumnName>
-    ColumnName;
-
 /* === Expressions ========================================================== */
-
-class ColumnReferenceExpression;
-class LiteralExpression;
-class FunctionCallExpression;
-class EqualToExpression;
-class LessThanExpression;
-class LessThanEqualExpression;
-class GreaterThanExpression;
-class GreaterThanEqualExpression;
-class AddExpression;
-class SubtractExpression;
-class MultiplyExpression;
-class DivideExpression;
-
-typedef std::variant<
-    ColumnReferenceExpression,
-    LiteralExpression,
-    FunctionCallExpression,
-    EqualToExpression,
-    LessThanExpression,
-    LessThanEqualExpression,
-    GreaterThanExpression,
-    GreaterThanEqualExpression,
-    AddExpression,
-    SubtractExpression,
-    MultiplyExpression,
-    DivideExpression>
-    Expression;
 
 class ColumnReferenceExpression final : public Node {
   public:
@@ -316,12 +363,6 @@ class AliasedColumnBinding final : public Node {
     std::string alias;
 };
 
-typedef std::variant<
-    WildcardColumnBinding,
-    ImplicitColumnBinding,
-    AliasedColumnBinding>
-    ColumnBinding;
-
 /* === From ================================================================= */
 
 class ImplicitTableBinding final : public Node {
@@ -329,7 +370,7 @@ class ImplicitTableBinding final : public Node {
     Type
     type() const override final;
 
-    std::unique_ptr<const TableExpression> expression;
+    dtl::unique_variant_ptr_t<const TableExpression> expression;
 };
 
 class AliasedTableBinding final : public Node {
@@ -337,11 +378,9 @@ class AliasedTableBinding final : public Node {
     Type
     type() const override final;
 
-    std::unique_ptr<const TableExpression> expression;
+    dtl::unique_variant_ptr_t<const TableExpression> expression;
     std::string alias;
 };
-
-typedef std::variant<ImplicitTableBinding, AliasedTableBinding> TableBinding;
 
 class FromClause final : public Node {
   public:
@@ -368,8 +407,6 @@ class JoinUsingConstraint final : public Node {
 
     std::vector<std::unique_ptr<const UnqualifiedColumnName>> columns;
 };
-
-typedef std::variant<JoinOnConstraint, JoinUsingConstraint> JoinConstraint;
 
 class JoinClause final : public Node {
   public:
@@ -403,9 +440,7 @@ class GroupByClause final : public Node {
 
 /* === Table Expressions ==================================================== */
 
-class TableExpression : public Node {};
-
-class SelectExpression final : public TableExpression {
+class SelectExpression final : public Node {
   public:
     Type
     type() const override final;
@@ -418,7 +453,7 @@ class SelectExpression final : public TableExpression {
     std::unique_ptr<const GroupByClause> group_by; /* nullable */
 };
 
-class ImportExpression final : public TableExpression {
+class ImportExpression final : public Node {
   public:
     Type
     type() const override final;
@@ -426,7 +461,7 @@ class ImportExpression final : public TableExpression {
     std::unique_ptr<const String> location;
 };
 
-class TableReferenceExpression final : public TableExpression {
+class TableReferenceExpression final : public Node {
   public:
     Type
     type() const override final;
@@ -444,7 +479,7 @@ class AssignmentStatement final : public Statement {
     type() const override final;
 
     std::unique_ptr<const TableName> target;
-    std::unique_ptr<const TableExpression> expression;
+    dtl::unique_variant_ptr_t<const TableExpression> expression;
 };
 
 class UpdateStatement final : public Statement {
@@ -477,7 +512,7 @@ class ExportStatement final : public Statement {
     type() const override final;
 
     std::unique_ptr<const String> location;
-    std::unique_ptr<const TableExpression> expression;
+    dtl::unique_variant_ptr_t<const TableExpression> expression;
 };
 
 class BeginStatement final : public Statement {

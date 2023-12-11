@@ -300,7 +300,7 @@
 %type <std::unique_ptr<const dtl::ast::WhereClause>> where_clause;
 %type <std::unique_ptr<const dtl::ast::GroupByClause>> group_by_clause;
 
-%type <std::unique_ptr<const dtl::ast::TableExpression>> table_expression;
+%type <dtl::unique_variant_ptr_t<const dtl::ast::TableExpression>> table_expression;
 %type <std::unique_ptr<const dtl::ast::SelectExpression>> select_expression;
 %type <std::unique_ptr<const dtl::ast::ImportExpression>> import_expression;
 %type <std::unique_ptr<const dtl::ast::TableReferenceExpression>> table_reference_expression;

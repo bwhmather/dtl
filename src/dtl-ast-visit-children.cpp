@@ -12,6 +12,11 @@ namespace dtl {
 namespace ast {
 
 static void
+visit_table_expression(
+    dtl::variant_ptr_t<const TableExpression> base_expression,
+    std::function<void(const Node&)> callback);
+
+static void
 visit_string(const String& string, std::function<void(const Node&)> callback) {
     callback(string);
 }
@@ -226,7 +231,7 @@ visit_implicit_table_binding(
     const ImplicitTableBinding& binding,
     std::function<void(const Node&)> callback) {
     callback(binding);
-    visit_children(*binding.expression, callback);
+    visit_table_expression(borrow(binding.expression), callback);
 }
 
 static void
@@ -234,7 +239,7 @@ visit_aliased_table_binding(
     const AliasedTableBinding& binding,
     std::function<void(const Node&)> callback) {
     callback(binding);
-    visit_children(*binding.expression, callback);
+    visit_table_expression(borrow(binding.expression), callback);
 }
 
 static void
@@ -277,6 +282,66 @@ visit_join_constraint(
     if (auto constraint = dtl::get_if<const JoinUsingConstraint*>(&base_constraint)) {
         visit_join_using_constraint(*constraint, callback);
     };
+}
+
+static void
+visit_select_expression(
+    const SelectExpression& expression,
+    std::function<void(const Node&)> callback) {
+    callback(expression);
+    if (expression.distinct) {
+        visit_children(*expression.distinct, callback);
+    }
+    for (auto&& column : expression.columns) {
+        visit_column_binding(borrow(column), callback);
+    }
+    visit_children(*expression.source, callback);
+    for (auto&& join : expression.joins) {
+        visit_children(*join, callback);
+    }
+    if (expression.where) {
+        visit_children(*expression.where, callback);
+    }
+    if (expression.group_by) {
+        visit_children(*expression.group_by, callback);
+    }
+}
+
+static void
+visit_import_expression(
+    const ImportExpression& expression,
+    std::function<void(const Node&)> callback) {
+    callback(expression);
+    visit_children(*expression.location, callback);
+}
+
+static void
+visit_table_reference_expression(
+    const TableReferenceExpression& expression,
+    std::function<void(const Node&)> callback) {
+    callback(expression);
+}
+
+static void
+visit_table_expression(
+    dtl::variant_ptr_t<const TableExpression> base_expression,
+    std::function<void(const Node&)> callback) {
+    if (auto expression = dtl::get_if<const SelectExpression*>(&base_expression)) {
+        visit_select_expression(*expression, callback);
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const ImportExpression*>(&base_expression)) {
+        visit_import_expression(*expression, callback);
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const TableReferenceExpression*>(&base_expression)) {
+        visit_table_reference_expression(*expression, callback);
+        return;
+    }
+
+    throw "Unreachable";
 }
 
 void
@@ -390,41 +455,19 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     // Table Expressions.
     case Type::TABLE_EXPRESSION:
         throw "Unreachable";
-    case Type::SELECT_EXPRESSION: {
-        auto& expression = static_cast<const SelectExpression&>(node);
-        if (expression.distinct) {
-            visit_children(*expression.distinct, callback);
-        }
-        for (auto&& column : expression.columns) {
-            visit_column_binding(borrow(column), callback);
-        }
-        visit_children(*expression.source, callback);
-        for (auto&& join : expression.joins) {
-            visit_children(*join, callback);
-        }
-        if (expression.where) {
-            visit_children(*expression.where, callback);
-        }
-        if (expression.group_by) {
-            visit_children(*expression.group_by, callback);
-        }
-        return;
-    }
-    case Type::IMPORT_EXPRESSION: {
-        auto& expression = static_cast<const ImportExpression&>(node);
-        visit_children(*expression.location, callback);
-        return;
-    }
+    case Type::SELECT_EXPRESSION:
+        throw "Unreachable";
+    case Type::IMPORT_EXPRESSION:
+        throw "Unreachable";
     case Type::TABLE_REFERENCE_EXPRESSION:
-        return;
-
+        throw "Unreachable";
     // Statements.
     case Type::STATEMENT:
         throw "Unreachable";
     case Type::ASSIGNMENT_STATEMENT: {
         const auto& statement = static_cast<const AssignmentStatement&>(node);
         visit_children(*statement.target, callback);
-        visit_children(*statement.expression, callback);
+        visit_table_expression(borrow(statement.expression), callback);
         return;
     }
     case Type::UPDATE_STATEMENT:
@@ -436,7 +479,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     case Type::EXPORT_STATEMENT: {
         const auto& statement = static_cast<const ExportStatement&>(node);
         visit_children(*statement.location, callback);
-        visit_children(*statement.expression, callback);
+        visit_table_expression(borrow(statement.expression), callback);
         return;
     }
     case Type::BEGIN_STATEMENT:

@@ -23,7 +23,7 @@ struct Scope;
 struct Context;
 
 static std::shared_ptr<Scope>
-compile_table_expression(const TableExpression& expression, Context& context);
+compile_table_expression(dtl::variant_ptr_t<const TableExpression> expression, Context& context);
 static std::string
 column_name_name(dtl::variant_ptr_t<const ColumnName> column_name);
 static std::optional<std::string>
@@ -290,24 +290,23 @@ compile_column_binding(
     throw "Unreachable";
 }
 
-static const TableExpression&
+static dtl::variant_ptr_t<const TableExpression>
 table_binding_expression(dtl::variant_ptr_t<const TableBinding> base_binding) {
     if (auto binding = dtl::get_if<const ImplicitTableBinding*>(&base_binding)) {
-        return *binding->expression;
+        return borrow(binding->expression);
     }
 
     if (auto binding = dtl::get_if<const AliasedTableBinding*>(&base_binding)) {
-        return *binding->expression;
+        return borrow(binding->expression);
     }
 
     throw "Unreachable";
 }
 
 static std::string
-table_expression_name(const TableExpression& base_expression) {
-    if (base_expression.type() == Type::TABLE_REFERENCE_EXPRESSION) {
-        return static_cast<const TableReferenceExpression&>(base_expression)
-            .name;
+table_expression_name(dtl::variant_ptr_t<const TableExpression> base_expression) {
+    if (auto expression = dtl::get_if<const TableReferenceExpression*>(&base_expression)) {
+        return expression->name;
     }
 
     return "";
@@ -316,7 +315,7 @@ table_expression_name(const TableExpression& base_expression) {
 static std::optional<std::string>
 table_binding_name(dtl::variant_ptr_t<const TableBinding> base_binding) {
     if (auto binding = dtl::get_if<const ImplicitTableBinding*>(&base_binding)) {
-        return table_expression_name(*binding->expression);
+        return table_expression_name(borrow(binding->expression));
     }
 
     if (auto binding = dtl::get_if<const AliasedTableBinding*>(&base_binding)) {
@@ -328,15 +327,12 @@ table_binding_name(dtl::variant_ptr_t<const TableBinding> base_binding) {
 
 static std::shared_ptr<Scope>
 compile_table_expression(
-    const TableExpression& base_expression, Context& context) {
-    switch (base_expression.type()) {
-    case Type::SELECT_EXPRESSION: {
+    dtl::variant_ptr_t<const TableExpression> base_expression, Context& context) {
+    if (auto expression = dtl::get_if<const SelectExpression*>(&base_expression)) {
         // TODO
-        auto& expression =
-            static_cast<const SelectExpression&>(base_expression);
-        auto& src_expression =
-            table_binding_expression(borrow(expression.source->binding));
-        auto src_name = table_binding_name(borrow(expression.source->binding));
+        auto src_expression =
+            table_binding_expression(borrow(expression->source->binding));
+        auto src_name = table_binding_name(borrow(expression->source->binding));
         auto src_scope = compile_table_expression(src_expression, context);
 
         std::vector<ScopeColumn> src_columns;
@@ -368,32 +364,28 @@ compile_table_expression(
         // TODO duplicate column bindings.
 
         auto scope = std::make_shared<Scope>();
-        for (auto&& column_binding : expression.columns) {
+        for (auto&& column_binding : expression->columns) {
             scope->columns.push_back(
                 compile_column_binding(borrow(column_binding), src_scope, context));
         }
-        context.trace_table_expression(scope, expression.start, expression.end);
+        context.trace_table_expression(scope, expression->start, expression->end);
 
         return scope;
     }
-    case Type::IMPORT_EXPRESSION: {
-        auto& expression =
-            static_cast<const ImportExpression&>(base_expression);
-        auto scope = context.import_table(expression.location->value);
-        context.trace_table_expression(scope, expression.start, expression.end);
+
+    if (auto expression = dtl::get_if<const ImportExpression*>(&base_expression)) {
+        auto scope = context.import_table(expression->location->value);
+        context.trace_table_expression(scope, expression->start, expression->end);
         return scope;
     }
 
-    case Type::TABLE_REFERENCE_EXPRESSION: {
-        auto& expression =
-            static_cast<const TableReferenceExpression&>(base_expression);
-        auto scope = context.get_global(expression.name);
-        context.trace_table_expression(scope, expression.start, expression.end);
+    if (auto expression = dtl::get_if<const TableReferenceExpression*>(&base_expression)) {
+        auto scope = context.get_global(expression->name);
+        context.trace_table_expression(scope, expression->start, expression->end);
         return scope;
     }
-    default:
-        throw "Unreachable";
-    }
+
+    throw "Unreachable";
 }
 
 static std::shared_ptr<Scope>
@@ -421,7 +413,7 @@ compile_statement(const Statement& base_statement, Context& context) {
         auto& statement =
             static_cast<const AssignmentStatement&>(base_statement);
         auto expression_table =
-            compile_table_expression(*statement.expression, context);
+            compile_table_expression(borrow(statement.expression), context);
 
         auto result_table = strip_namespaces(expression_table);
 
@@ -441,7 +433,7 @@ compile_statement(const Statement& base_statement, Context& context) {
     case Type::EXPORT_STATEMENT: {
         auto& statement = static_cast<const ExportStatement&>(base_statement);
         auto expression_table =
-            compile_table_expression(*statement.expression, context);
+            compile_table_expression(borrow(statement.expression), context);
 
         auto result_table = strip_namespaces(expression_table);
 
