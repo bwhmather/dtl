@@ -471,9 +471,7 @@ class TableReferenceExpression final : public Node {
 
 /* === Statements =========================================================== */
 
-class Statement : public Node {};
-
-class AssignmentStatement final : public Statement {
+class AssignmentStatement final : public Node {
   public:
     Type
     type() const override final;
@@ -482,7 +480,7 @@ class AssignmentStatement final : public Statement {
     dtl::unique_variant_ptr_t<const TableExpression> expression;
 };
 
-class UpdateStatement final : public Statement {
+class UpdateStatement final : public Node {
   public:
     Type
     type() const override final;
@@ -490,7 +488,7 @@ class UpdateStatement final : public Statement {
     /* TODO */
 };
 
-class DeleteStatement final : public Statement {
+class DeleteStatement final : public Node {
   public:
     Type
     type() const override final;
@@ -498,7 +496,7 @@ class DeleteStatement final : public Statement {
     /* TODO */
 };
 
-class InsertStatement final : public Statement {
+class InsertStatement final : public Node {
   public:
     Type
     type() const override final;
@@ -506,7 +504,7 @@ class InsertStatement final : public Statement {
     /* TODO */
 };
 
-class ExportStatement final : public Statement {
+class ExportStatement final : public Node {
   public:
     Type
     type() const override final;
@@ -515,13 +513,22 @@ class ExportStatement final : public Statement {
     dtl::unique_variant_ptr_t<const TableExpression> expression;
 };
 
-class BeginStatement final : public Statement {
+class BeginStatement final : public Node {
   public:
     Type
     type() const override final;
 
     std::string text;
 };
+
+typedef std::variant<
+    AssignmentStatement,
+    UpdateStatement,
+    DeleteStatement,
+    InsertStatement,
+    ExportStatement,
+    BeginStatement>
+    Statement;
 
 /* === Scripts ============================================================== */
 
@@ -530,7 +537,7 @@ class Script final : public Node {
     Type
     type() const override final;
 
-    std::vector<std::unique_ptr<const Statement>> statements;
+    std::vector<dtl::unique_variant_ptr_t<const Statement>> statements;
 };
 
 } /* namespace ast */

@@ -344,6 +344,97 @@ visit_table_expression(
     throw "Unreachable";
 }
 
+static void
+visit_assignment_statement(
+    const AssignmentStatement& statement,
+    std::function<void(const Node&)> callback) {
+    callback(statement);
+    visit_children(*statement.target, callback);
+    visit_table_expression(borrow(statement.expression), callback);
+}
+
+static void
+visit_update_statement(
+    const UpdateStatement& statement,
+    std::function<void(const Node&)> callback) {
+    (void)statement;
+    (void)callback;
+    throw "Not implement";
+}
+
+static void
+visit_delete_statement(
+    const DeleteStatement& statement,
+    std::function<void(const Node&)> callback) {
+    (void)statement;
+    (void)callback;
+    throw "Not implement";
+}
+
+static void
+visit_insert_statement(
+    const InsertStatement& statement,
+    std::function<void(const Node&)> callback) {
+    (void)statement;
+    (void)callback;
+    throw "Not implement";
+}
+
+static void
+visit_export_statement(
+    const ExportStatement& statement,
+    std::function<void(const Node&)> callback) {
+    callback(statement);
+    visit_children(*statement.location, callback);
+    visit_table_expression(borrow(statement.expression), callback);
+}
+
+static void
+visit_begin_statement(
+    const BeginStatement& statement,
+    std::function<void(const Node&)> callback) {
+    (void)statement;
+    (void)callback;
+    throw "Not implement";
+}
+
+static void
+visit_statement(
+    dtl::variant_ptr_t<const Statement> base_statement,
+    std::function<void(const Node&)> callback) {
+    if (auto statement = dtl::get_if<const AssignmentStatement*>(&base_statement)) {
+        visit_assignment_statement(*statement, callback);
+        return;
+    }
+
+    if (auto statement = dtl::get_if<const UpdateStatement*>(&base_statement)) {
+        visit_update_statement(*statement, callback);
+        return;
+    }
+
+    if (auto statement = dtl::get_if<const DeleteStatement*>(&base_statement)) {
+        visit_delete_statement(*statement, callback);
+        return;
+    }
+
+    if (auto statement = dtl::get_if<const InsertStatement*>(&base_statement)) {
+        visit_insert_statement(*statement, callback);
+        return;
+    }
+
+    if (auto statement = dtl::get_if<const ExportStatement*>(&base_statement)) {
+        visit_export_statement(*statement, callback);
+        return;
+    }
+
+    if (auto statement = dtl::get_if<const BeginStatement*>(&base_statement)) {
+        visit_begin_statement(*statement, callback);
+        return;
+    }
+
+    throw "Unreachable";
+}
+
 void
 visit_children(const Node& node, std::function<void(const Node&)> callback) {
     callback(node);
@@ -464,24 +555,16 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     // Statements.
     case Type::STATEMENT:
         throw "Unreachable";
-    case Type::ASSIGNMENT_STATEMENT: {
-        const auto& statement = static_cast<const AssignmentStatement&>(node);
-        visit_children(*statement.target, callback);
-        visit_table_expression(borrow(statement.expression), callback);
-        return;
-    }
+    case Type::ASSIGNMENT_STATEMENT:
+        throw "Unreachable";
     case Type::UPDATE_STATEMENT:
         throw "Not implemented";
     case Type::DELETE_STATEMENT:
         throw "Not implemented";
     case Type::INSERT_STATEMENT:
         throw "Not implemented";
-    case Type::EXPORT_STATEMENT: {
-        const auto& statement = static_cast<const ExportStatement&>(node);
-        visit_children(*statement.location, callback);
-        visit_table_expression(borrow(statement.expression), callback);
-        return;
-    }
+    case Type::EXPORT_STATEMENT:
+        throw "Unreachable";
     case Type::BEGIN_STATEMENT:
         return;
 
@@ -489,7 +572,7 @@ visit_children(const Node& node, std::function<void(const Node&)> callback) {
     case Type::SCRIPT: {
         const auto& script = static_cast<const Script&>(node);
         for (auto&& statement : script.statements) {
-            visit_children(*statement, callback);
+            visit_statement(borrow(statement), callback);
         }
         return;
     }

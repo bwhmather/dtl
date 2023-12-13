@@ -407,46 +407,46 @@ strip_namespaces(std::shared_ptr<Scope> input) {
 }
 
 static void
-compile_statement(const Statement& base_statement, Context& context) {
-    switch (base_statement.type()) {
-    case Type::ASSIGNMENT_STATEMENT: {
-        auto& statement =
-            static_cast<const AssignmentStatement&>(base_statement);
+compile_statement(dtl::variant_ptr_t<const Statement> base_statement, Context& context) {
+    if (auto statement = dtl::get_if<const AssignmentStatement*>(&base_statement)) {
         auto expression_table =
-            compile_table_expression(borrow(statement.expression), context);
+            compile_table_expression(borrow(statement->expression), context);
 
         auto result_table = strip_namespaces(expression_table);
 
-        context.trace_statement(result_table, statement.start, statement.end);
-        context.set_global(statement.target->table_name, result_table);
+        context.trace_statement(result_table, statement->start, statement->end);
+        context.set_global(statement->target->table_name, result_table);
         return;
     }
-    case Type::UPDATE_STATEMENT:
-        throw "Not implemented";
 
-    case Type::DELETE_STATEMENT:
+    if (dtl::get_if<const UpdateStatement*>(&base_statement)) {
         throw "Not implemented";
+    }
 
-    case Type::INSERT_STATEMENT:
+    if (dtl::get_if<const DeleteStatement*>(&base_statement)) {
         throw "Not implemented";
+    }
 
-    case Type::EXPORT_STATEMENT: {
-        auto& statement = static_cast<const ExportStatement&>(base_statement);
+    if (dtl::get_if<const InsertStatement*>(&base_statement)) {
+        throw "Not implemented";
+    }
+
+    if (auto statement = dtl::get_if<const ExportStatement*>(&base_statement)) {
         auto expression_table =
-            compile_table_expression(borrow(statement.expression), context);
+            compile_table_expression(borrow(statement->expression), context);
 
         auto result_table = strip_namespaces(expression_table);
 
-        context.trace_statement(result_table, statement.start, statement.end);
-        context.export_table(statement.location->value, result_table);
+        context.trace_statement(result_table, statement->start, statement->end);
+        context.export_table(statement->location->value, result_table);
         return;
     }
-    case Type::BEGIN_STATEMENT:
-        throw "Not implemented";
 
-    default:
-        throw "Unreachable";
+    if (dtl::get_if<const BeginStatement*>(&base_statement)) {
+        throw "Not implemented";
     }
+
+    throw "Unreachable";
 }
 
 static void
@@ -484,7 +484,7 @@ to_ir(Script& script, dtl::io::Importer& importer) {
     }
 
     for (auto&& statement : script.statements) {
-        compile_statement(*statement, context);
+        compile_statement(borrow(statement), context);
     }
 
     return context.freeze();

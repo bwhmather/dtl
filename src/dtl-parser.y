@@ -305,8 +305,8 @@
 %type <std::unique_ptr<const dtl::ast::ImportExpression>> import_expression;
 %type <std::unique_ptr<const dtl::ast::TableReferenceExpression>> table_reference_expression;
 
-%type <std::unique_ptr<const dtl::ast::Statement>> statement;
-%type <std::vector<std::unique_ptr<const dtl::ast::Statement>>> statement_list;
+%type <dtl::unique_variant_ptr_t<const dtl::ast::Statement>> statement;
+%type <std::vector<dtl::unique_variant_ptr_t<const dtl::ast::Statement>>> statement_list;
 %type <std::unique_ptr<const dtl::ast::AssignmentStatement>> assignment_statement;
 //%type <std::unique_ptr<const dtl::ast::UpdateStatement>> update_statement;
 //%type <std::unique_ptr<const dtl::ast::DeleteStatement>> delete_statement;
