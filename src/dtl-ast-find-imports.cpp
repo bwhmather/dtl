@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "dtl-ast-visit-children.hpp"
+#include "dtl-ast-visit.hpp"
 #include "dtl-ast.hpp"
 
 namespace dtl {
@@ -14,7 +14,7 @@ namespace ast {
 std::vector<std::string>
 find_imports(dtl::ast::Script& script) {
     std::vector<std::string> imports;
-    visit_children(script, [&](const Node& node) {
+    visit_script(script, [&](const Node& node) {
         if (node.type() == Type::IMPORT_EXPRESSION) {
             const auto& expression = static_cast<const ImportExpression&>(node);
             imports.push_back(expression.location->value);
