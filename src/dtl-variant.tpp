@@ -20,43 +20,43 @@ struct variant_ptr_t<const std::variant<_TVal...>> {
 };
 
 template <typename _TIn>
-struct unique_variant_ptr_t;
+struct unique_variant_ptr;
 
 template <typename... _TVal>
-struct unique_variant_ptr_t<std::variant<_TVal...>> {
+struct unique_variant_ptr<std::variant<_TVal...>> {
     std::variant<std::unique_ptr<_TVal>...> __value;
 
     using base = typename std::variant<_TVal...>;
 
-    unique_variant_ptr_t() = default;
-    unique_variant_ptr_t(const unique_variant_ptr_t& __rhs) = delete;
-    unique_variant_ptr_t(unique_variant_ptr_t&&) = default;
-    unique_variant_ptr_t&
-    operator=(const unique_variant_ptr_t&) = delete;
-    unique_variant_ptr_t&
-    operator=(unique_variant_ptr_t&&) = default;
+    unique_variant_ptr() = default;
+    unique_variant_ptr(const unique_variant_ptr& __rhs) = delete;
+    unique_variant_ptr(unique_variant_ptr&&) = default;
+    unique_variant_ptr&
+    operator=(const unique_variant_ptr&) = delete;
+    unique_variant_ptr&
+    operator=(unique_variant_ptr&&) = default;
 
     template <typename T>
-    unique_variant_ptr_t(T&& value) :
+    unique_variant_ptr(T&& value) :
         __value(std::move(value)) {}
 };
 
 template <typename... _TVal>
-struct unique_variant_ptr_t<const std::variant<_TVal...>> {
+struct unique_variant_ptr<const std::variant<_TVal...>> {
     std::variant<std::unique_ptr<const _TVal>...> __value;
 
     using base = const std::variant<_TVal...>;
 
-    unique_variant_ptr_t() = default;
-    unique_variant_ptr_t(const unique_variant_ptr_t& __rhs) = delete;
-    unique_variant_ptr_t(unique_variant_ptr_t&&) = default;
-    unique_variant_ptr_t&
-    operator=(const unique_variant_ptr_t&) = delete;
-    unique_variant_ptr_t&
-    operator=(unique_variant_ptr_t&&) = default;
+    unique_variant_ptr() = default;
+    unique_variant_ptr(const unique_variant_ptr& __rhs) = delete;
+    unique_variant_ptr(unique_variant_ptr&&) = default;
+    unique_variant_ptr&
+    operator=(const unique_variant_ptr&) = delete;
+    unique_variant_ptr&
+    operator=(unique_variant_ptr&&) = default;
 
     template <typename T>
-    unique_variant_ptr_t(T&& value) :
+    unique_variant_ptr(T&& value) :
         __value(std::move(value)) {}
 };
 

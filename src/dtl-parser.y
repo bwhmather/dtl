@@ -257,18 +257,18 @@
 
 %type <std::string> name;
 
-%type <dtl::unique_variant_ptr_t<const dtl::ast::Literal>> literal;
+%type <dtl::unique_variant_ptr<const dtl::ast::Literal>> literal;
 %type <std::unique_ptr<const dtl::ast::String>> string;
 
-%type <dtl::unique_variant_ptr_t<const dtl::ast::ColumnName>> column_name;
+%type <dtl::unique_variant_ptr<const dtl::ast::ColumnName>> column_name;
 %type <std::vector<std::unique_ptr<const dtl::ast::UnqualifiedColumnName>>> unqualified_column_name_list;
 %type <std::unique_ptr<const dtl::ast::UnqualifiedColumnName>> unqualified_column_name;
 %type <std::unique_ptr<const dtl::ast::QualifiedColumnName>> qualified_column_name;
 
-%type <dtl::unique_variant_ptr_t<const dtl::ast::Expression>> expression;
+%type <dtl::unique_variant_ptr<const dtl::ast::Expression>> expression;
 %type <std::unique_ptr<const dtl::ast::ColumnReferenceExpression>> column_reference_expression;
 %type <std::unique_ptr<const dtl::ast::LiteralExpression>> literal_expression;
-%type <std::vector<dtl::unique_variant_ptr_t<const dtl::ast::Expression>>> expression_list;
+%type <std::vector<dtl::unique_variant_ptr<const dtl::ast::Expression>>> expression_list;
 %type <std::unique_ptr<const dtl::ast::FunctionCallExpression>> function_call_expression;
 %type <std::unique_ptr<const dtl::ast::AddExpression>> add_expression;
 %type <std::unique_ptr<const dtl::ast::SubtractExpression>> subtract_expression;
@@ -278,19 +278,19 @@
 %type <std::unique_ptr<const dtl::ast::TableName>> table_name;
 %type <std::unique_ptr<const dtl::ast::DistinctClause>> distinct_clause;
 
-%type <dtl::unique_variant_ptr_t<const dtl::ast::ColumnBinding>> column_binding;
-%type <std::vector<dtl::unique_variant_ptr_t<const dtl::ast::ColumnBinding>>> column_binding_list;
+%type <dtl::unique_variant_ptr<const dtl::ast::ColumnBinding>> column_binding;
+%type <std::vector<dtl::unique_variant_ptr<const dtl::ast::ColumnBinding>>> column_binding_list;
 %type <std::unique_ptr<const dtl::ast::WildcardColumnBinding>> wildcard_column_binding;
 %type <std::unique_ptr<const dtl::ast::ImplicitColumnBinding>> implicit_column_binding;
 %type <std::unique_ptr<const dtl::ast::AliasedColumnBinding>> aliased_column_binding;
 
-%type <dtl::unique_variant_ptr_t<const dtl::ast::TableBinding>> table_binding;
+%type <dtl::unique_variant_ptr<const dtl::ast::TableBinding>> table_binding;
 %type <std::unique_ptr<const dtl::ast::ImplicitTableBinding>> implicit_table_binding;
 %type <std::unique_ptr<const dtl::ast::AliasedTableBinding>> aliased_table_binding;
 
 %type <std::unique_ptr<const dtl::ast::FromClause>> from_clause;
 
-%type <dtl::unique_variant_ptr_t<const dtl::ast::JoinConstraint>> join_constraint;
+%type <dtl::unique_variant_ptr<const dtl::ast::JoinConstraint>> join_constraint;
 %type <std::unique_ptr<const dtl::ast::JoinOnConstraint>> join_on_constraint;
 %type <std::unique_ptr<const dtl::ast::JoinUsingConstraint>> join_using_constraint;
 
@@ -300,13 +300,13 @@
 %type <std::unique_ptr<const dtl::ast::WhereClause>> where_clause;
 %type <std::unique_ptr<const dtl::ast::GroupByClause>> group_by_clause;
 
-%type <dtl::unique_variant_ptr_t<const dtl::ast::TableExpression>> table_expression;
+%type <dtl::unique_variant_ptr<const dtl::ast::TableExpression>> table_expression;
 %type <std::unique_ptr<const dtl::ast::SelectExpression>> select_expression;
 %type <std::unique_ptr<const dtl::ast::ImportExpression>> import_expression;
 %type <std::unique_ptr<const dtl::ast::TableReferenceExpression>> table_reference_expression;
 
-%type <dtl::unique_variant_ptr_t<const dtl::ast::Statement>> statement;
-%type <std::vector<dtl::unique_variant_ptr_t<const dtl::ast::Statement>>> statement_list;
+%type <dtl::unique_variant_ptr<const dtl::ast::Statement>> statement;
+%type <std::vector<dtl::unique_variant_ptr<const dtl::ast::Statement>>> statement_list;
 %type <std::unique_ptr<const dtl::ast::AssignmentStatement>> assignment_statement;
 //%type <std::unique_ptr<const dtl::ast::UpdateStatement>> update_statement;
 //%type <std::unique_ptr<const dtl::ast::DeleteStatement>> delete_statement;

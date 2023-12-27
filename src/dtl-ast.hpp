@@ -122,61 +122,61 @@ struct QualifiedColumnName final : public Node {
 /* === Expressions ========================================================== */
 
 struct ColumnReferenceExpression final : public Node {
-    dtl::unique_variant_ptr_t<const ColumnName> name;
+    dtl::unique_variant_ptr<const ColumnName> name;
 };
 
 struct LiteralExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Literal> value;
+    dtl::unique_variant_ptr<const Literal> value;
 };
 
 struct FunctionCallExpression final : public Node {
     std::string name;
-    std::vector<dtl::unique_variant_ptr_t<const Expression>> arguments;
+    std::vector<dtl::unique_variant_ptr<const Expression>> arguments;
 };
 
 struct EqualToExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 struct LessThanExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 struct LessThanEqualExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 struct GreaterThanExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 struct GreaterThanEqualExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 struct AddExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 struct SubtractExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 struct MultiplyExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 struct DivideExpression final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> left;
-    dtl::unique_variant_ptr_t<const Expression> right;
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
 };
 
 /* === Tables =============================================================== */
@@ -197,33 +197,33 @@ struct WildcardColumnBinding final : public Node {
 };
 
 struct ImplicitColumnBinding final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> expression;
+    dtl::unique_variant_ptr<const Expression> expression;
 };
 
 struct AliasedColumnBinding final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> expression;
+    dtl::unique_variant_ptr<const Expression> expression;
     std::string alias;
 };
 
 /* === From ================================================================= */
 
 struct ImplicitTableBinding final : public Node {
-    dtl::unique_variant_ptr_t<const TableExpression> expression;
+    dtl::unique_variant_ptr<const TableExpression> expression;
 };
 
 struct AliasedTableBinding final : public Node {
-    dtl::unique_variant_ptr_t<const TableExpression> expression;
+    dtl::unique_variant_ptr<const TableExpression> expression;
     std::string alias;
 };
 
 struct FromClause final : public Node {
-    dtl::unique_variant_ptr_t<const TableBinding> binding;
+    dtl::unique_variant_ptr<const TableBinding> binding;
 };
 
 /* === Joins ================================================================ */
 
 struct JoinOnConstraint final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> predicate;
+    dtl::unique_variant_ptr<const Expression> predicate;
 };
 
 struct JoinUsingConstraint final : public Node {
@@ -231,28 +231,28 @@ struct JoinUsingConstraint final : public Node {
 };
 
 struct JoinClause final : public Node {
-    dtl::unique_variant_ptr_t<const TableBinding> binding;
-    dtl::unique_variant_ptr_t<const JoinConstraint> constraint;
+    dtl::unique_variant_ptr<const TableBinding> binding;
+    dtl::unique_variant_ptr<const JoinConstraint> constraint;
 };
 
 /* === Filtering ============================================================ */
 
 struct WhereClause final : public Node {
-    dtl::unique_variant_ptr_t<const Expression> predicate;
+    dtl::unique_variant_ptr<const Expression> predicate;
 };
 
 /* === Grouping ============================================================= */
 
 struct GroupByClause final : public Node {
     bool consecutive;
-    std::vector<dtl::unique_variant_ptr_t<const Expression>> pattern;
+    std::vector<dtl::unique_variant_ptr<const Expression>> pattern;
 };
 
 /* === Table Expressions ==================================================== */
 
 struct SelectExpression final : public Node {
     std::unique_ptr<const DistinctClause> distinct; /* nullable */
-    std::vector<dtl::unique_variant_ptr_t<const ColumnBinding>> columns;
+    std::vector<dtl::unique_variant_ptr<const ColumnBinding>> columns;
     std::unique_ptr<const FromClause> source;
     std::vector<std::unique_ptr<const JoinClause>> joins;
     std::unique_ptr<const WhereClause> where;      /* nullable */
@@ -271,7 +271,7 @@ struct TableReferenceExpression final : public Node {
 
 struct AssignmentStatement final : public Node {
     std::unique_ptr<const TableName> target;
-    dtl::unique_variant_ptr_t<const TableExpression> expression;
+    dtl::unique_variant_ptr<const TableExpression> expression;
 };
 
 struct UpdateStatement final : public Node {
@@ -288,7 +288,7 @@ struct InsertStatement final : public Node {
 
 struct ExportStatement final : public Node {
     std::unique_ptr<const String> location;
-    dtl::unique_variant_ptr_t<const TableExpression> expression;
+    dtl::unique_variant_ptr<const TableExpression> expression;
 };
 
 struct BeginStatement final : public Node {
@@ -307,7 +307,7 @@ typedef std::variant<
 /* === Scripts ============================================================== */
 
 struct Script final : public Node {
-    std::vector<dtl::unique_variant_ptr_t<const Statement>> statements;
+    std::vector<dtl::unique_variant_ptr<const Statement>> statements;
 };
 
 } /* namespace ast */
