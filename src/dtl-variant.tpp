@@ -6,11 +6,6 @@ template <typename _TIn>
 struct __unique_variant_ptr_impl;
 
 template <typename... _TVal>
-struct __unique_variant_ptr_impl<std::variant<_TVal*...>> {
-    using type = typename std::variant<std::unique_ptr<_TVal>...>;
-};
-
-template <typename... _TVal>
 struct __unique_variant_ptr_impl<std::variant<_TVal...>> {
     using type = typename std::variant<std::unique_ptr<_TVal>...>;
 };
