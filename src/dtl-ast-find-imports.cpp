@@ -13,12 +13,12 @@ namespace ast {
 
 void
 find_imports_in_table_expression(
-    dtl::variant_ptr_t<const TableExpression> base_expression,
+    dtl::variant_ptr<const TableExpression> base_expression,
     std::function<void(const std::string&)> callback);
 
 void
 find_imports_in_expression(
-    variant_ptr_t<const Expression> base_expression,
+    variant_ptr<const Expression> base_expression,
     std::function<void(const std::string&)> callback);
 
 void
@@ -104,7 +104,7 @@ find_imports_in_divide_expression(
 
 void
 find_imports_in_expression(
-    variant_ptr_t<const Expression> base_expression,
+    variant_ptr<const Expression> base_expression,
     std::function<void(const std::string&)> callback) {
     if (auto expression = dtl::get_if<const FunctionCallExpression*>(base_expression)) {
         find_imports_in_function_call_expression(*expression, callback);
@@ -154,7 +154,7 @@ find_imports_in_aliased_column_binding(
 
 void
 find_imports_in_column_binding(
-    variant_ptr_t<const ColumnBinding> base_binding,
+    variant_ptr<const ColumnBinding> base_binding,
     std::function<void(const std::string&)> callback) {
     if (auto binding = dtl::get_if<const ImplicitColumnBinding*>(base_binding)) {
         find_imports_in_implicit_column_binding(*binding, callback);
@@ -180,7 +180,7 @@ find_imports_in_aliased_table_binding(
 
 void
 find_imports_in_table_binding(
-    variant_ptr_t<const TableBinding> base_binding,
+    variant_ptr<const TableBinding> base_binding,
     std::function<void(const std::string&)> callback) {
     if (auto binding = dtl::get_if<const ImplicitTableBinding*>(base_binding)) {
         find_imports_in_implicit_table_binding(*binding, callback);
@@ -206,7 +206,7 @@ find_imports_in_join_on_constraint(
 
 void
 find_imports_in_join_constraint(
-    variant_ptr_t<const JoinConstraint> base_constraint,
+    variant_ptr<const JoinConstraint> base_constraint,
     std::function<void(const std::string&)> callback) {
     if (auto constraint = dtl::get_if<const JoinOnConstraint*>(base_constraint)) {
         find_imports_in_join_on_constraint(*constraint, callback);
@@ -265,7 +265,7 @@ find_imports_in_import_expression(
 
 void
 find_imports_in_table_expression(
-    dtl::variant_ptr_t<const TableExpression> base_expression,
+    dtl::variant_ptr<const TableExpression> base_expression,
     std::function<void(const std::string&)> callback) {
     if (auto expression = dtl::get_if<const SelectExpression*>(base_expression)) {
         find_imports_in_select_expression(*expression, callback);
@@ -330,7 +330,7 @@ find_imports_in_begin_statement(
 
 void
 find_imports_in_statement(
-    dtl::variant_ptr_t<const Statement> base_statement,
+    dtl::variant_ptr<const Statement> base_statement,
     std::function<void(const std::string&)> callback) {
     if (auto statement = dtl::get_if<const AssignmentStatement*>(base_statement)) {
         find_imports_in_assignment_statement(*statement, callback);

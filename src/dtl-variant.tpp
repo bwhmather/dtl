@@ -3,17 +3,17 @@
 namespace dtl {
 
 template <typename _TIn>
-struct variant_ptr_t;
+struct variant_ptr;
 
 template <typename... _TVal>
-struct variant_ptr_t<std::variant<_TVal...>> {
+struct variant_ptr<std::variant<_TVal...>> {
     std::variant<_TVal*...> __value;
 
     using base = typename std::variant<_TVal...>;
 };
 
 template <typename... _TVal>
-struct variant_ptr_t<const std::variant<_TVal...>> {
+struct variant_ptr<const std::variant<_TVal...>> {
     std::variant<const _TVal*...> __value;
 
     using base = typename std::variant<_TVal...>;
@@ -61,9 +61,9 @@ struct unique_variant_ptr<const std::variant<_TVal...>> {
 };
 
 template <typename _TPtr>
-variant_ptr_t<typename _TPtr::base>
+variant_ptr<typename _TPtr::base>
 borrow(_TPtr& ptr) {
-    variant_ptr_t<typename _TPtr::base> result;
+    variant_ptr<typename _TPtr::base> result;
     std::visit([&](auto&& ptr) { result.__value = &*ptr; }, ptr.__value);
     return result;
 }

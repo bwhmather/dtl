@@ -23,11 +23,11 @@ struct Scope;
 struct Context;
 
 static std::shared_ptr<Scope>
-compile_table_expression(dtl::variant_ptr_t<const TableExpression> expression, Context& context);
+compile_table_expression(dtl::variant_ptr<const TableExpression> expression, Context& context);
 static std::string
-column_name_name(dtl::variant_ptr_t<const ColumnName> column_name);
+column_name_name(dtl::variant_ptr<const ColumnName> column_name);
 static std::optional<std::string>
-column_name_namespace(dtl::variant_ptr_t<const ColumnName> column_name);
+column_name_namespace(dtl::variant_ptr<const ColumnName> column_name);
 
 struct ScopeColumn {
     std::string name;
@@ -163,7 +163,7 @@ class Context {
 
 static std::shared_ptr<const dtl::ir::ArrayExpression>
 compile_expression(
-    dtl::variant_ptr_t<const Expression> base_expression, std::shared_ptr<Scope> scope,
+    dtl::variant_ptr<const Expression> base_expression, std::shared_ptr<Scope> scope,
     Context& context) {
     (void)context;
 
@@ -222,7 +222,7 @@ compile_expression(
 }
 
 static std::string
-column_name_name(dtl::variant_ptr_t<const ColumnName> base_column_name) {
+column_name_name(dtl::variant_ptr<const ColumnName> base_column_name) {
     if (auto column_name = dtl::get_if<const UnqualifiedColumnName*>(base_column_name)) {
         return column_name->column_name;
     }
@@ -235,7 +235,7 @@ column_name_name(dtl::variant_ptr_t<const ColumnName> base_column_name) {
 }
 
 static std::optional<std::string>
-column_name_namespace(variant_ptr_t<const ColumnName> base_column_name) {
+column_name_namespace(variant_ptr<const ColumnName> base_column_name) {
     if (dtl::get_if<const UnqualifiedColumnName*>(base_column_name)) {
         return std::optional<std::string>();
     }
@@ -248,7 +248,7 @@ column_name_namespace(variant_ptr_t<const ColumnName> base_column_name) {
 }
 
 static std::string
-expression_name(dtl::variant_ptr_t<const Expression> base_expression) {
+expression_name(dtl::variant_ptr<const Expression> base_expression) {
     if (auto expression = dtl::get_if<const ColumnReferenceExpression*>(base_expression)) {
         return column_name_name(borrow(expression->name));
     }
@@ -258,7 +258,7 @@ expression_name(dtl::variant_ptr_t<const Expression> base_expression) {
 
 static ScopeColumn
 compile_column_binding(
-    dtl::variant_ptr_t<const ColumnBinding> base_binding, std::shared_ptr<Scope> scope,
+    dtl::variant_ptr<const ColumnBinding> base_binding, std::shared_ptr<Scope> scope,
     Context& context) {
     if (dtl::get_if<const WildcardColumnBinding*>(base_binding)) {
         throw "Not implemented";
@@ -285,8 +285,8 @@ compile_column_binding(
     throw "Unreachable";
 }
 
-static dtl::variant_ptr_t<const TableExpression>
-table_binding_expression(dtl::variant_ptr_t<const TableBinding> base_binding) {
+static dtl::variant_ptr<const TableExpression>
+table_binding_expression(dtl::variant_ptr<const TableBinding> base_binding) {
     if (auto binding = dtl::get_if<const ImplicitTableBinding*>(base_binding)) {
         return borrow(binding->expression);
     }
@@ -299,7 +299,7 @@ table_binding_expression(dtl::variant_ptr_t<const TableBinding> base_binding) {
 }
 
 static std::string
-table_expression_name(dtl::variant_ptr_t<const TableExpression> base_expression) {
+table_expression_name(dtl::variant_ptr<const TableExpression> base_expression) {
     if (auto expression = dtl::get_if<const TableReferenceExpression*>(base_expression)) {
         return expression->name;
     }
@@ -308,7 +308,7 @@ table_expression_name(dtl::variant_ptr_t<const TableExpression> base_expression)
 }
 
 static std::optional<std::string>
-table_binding_name(dtl::variant_ptr_t<const TableBinding> base_binding) {
+table_binding_name(dtl::variant_ptr<const TableBinding> base_binding) {
     if (auto binding = dtl::get_if<const ImplicitTableBinding*>(base_binding)) {
         return table_expression_name(borrow(binding->expression));
     }
@@ -322,7 +322,7 @@ table_binding_name(dtl::variant_ptr_t<const TableBinding> base_binding) {
 
 static std::shared_ptr<Scope>
 compile_table_expression(
-    dtl::variant_ptr_t<const TableExpression> base_expression, Context& context) {
+    dtl::variant_ptr<const TableExpression> base_expression, Context& context) {
     if (auto expression = dtl::get_if<const SelectExpression*>(base_expression)) {
         // TODO
         auto src_expression =
@@ -402,7 +402,7 @@ strip_namespaces(std::shared_ptr<Scope> input) {
 }
 
 static void
-compile_statement(dtl::variant_ptr_t<const Statement> base_statement, Context& context) {
+compile_statement(dtl::variant_ptr<const Statement> base_statement, Context& context) {
     if (auto statement = dtl::get_if<const AssignmentStatement*>(base_statement)) {
         auto expression_table =
             compile_table_expression(borrow(statement->expression), context);
