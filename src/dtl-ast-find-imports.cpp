@@ -106,34 +106,34 @@ void
 find_imports_in_expression(
     variant_ptr_t<const Expression> base_expression,
     std::function<void(const std::string&)> callback) {
-    if (auto expression = dtl::get_if<const FunctionCallExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const FunctionCallExpression*>(base_expression)) {
         find_imports_in_function_call_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const EqualToExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const EqualToExpression*>(base_expression)) {
         find_imports_in_equal_to_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const LessThanExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const LessThanExpression*>(base_expression)) {
         find_imports_in_less_than_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const LessThanEqualExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const LessThanEqualExpression*>(base_expression)) {
         find_imports_in_less_than_equal_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const GreaterThanExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const GreaterThanExpression*>(base_expression)) {
         find_imports_in_greater_than_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const GreaterThanEqualExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const GreaterThanEqualExpression*>(base_expression)) {
         find_imports_in_greater_than_equal_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const AddExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const AddExpression*>(base_expression)) {
         find_imports_in_add_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const SubtractExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const SubtractExpression*>(base_expression)) {
         find_imports_in_subtract_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const MultiplyExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const MultiplyExpression*>(base_expression)) {
         find_imports_in_multiply_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const DivideExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const DivideExpression*>(base_expression)) {
         find_imports_in_divide_expression(*expression, callback);
     };
 }
@@ -156,10 +156,10 @@ void
 find_imports_in_column_binding(
     variant_ptr_t<const ColumnBinding> base_binding,
     std::function<void(const std::string&)> callback) {
-    if (auto binding = dtl::get_if<const ImplicitColumnBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const ImplicitColumnBinding*>(base_binding)) {
         find_imports_in_implicit_column_binding(*binding, callback);
     };
-    if (auto binding = dtl::get_if<const AliasedColumnBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const AliasedColumnBinding*>(base_binding)) {
         find_imports_in_aliased_column_binding(*binding, callback);
     };
 }
@@ -182,10 +182,10 @@ void
 find_imports_in_table_binding(
     variant_ptr_t<const TableBinding> base_binding,
     std::function<void(const std::string&)> callback) {
-    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(base_binding)) {
         find_imports_in_implicit_table_binding(*binding, callback);
     };
-    if (auto binding = dtl::get_if<const AliasedTableBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const AliasedTableBinding*>(base_binding)) {
         find_imports_in_aliased_table_binding(*binding, callback);
     };
 }
@@ -208,7 +208,7 @@ void
 find_imports_in_join_constraint(
     variant_ptr_t<const JoinConstraint> base_constraint,
     std::function<void(const std::string&)> callback) {
-    if (auto constraint = dtl::get_if<const JoinOnConstraint*>(&base_constraint)) {
+    if (auto constraint = dtl::get_if<const JoinOnConstraint*>(base_constraint)) {
         find_imports_in_join_on_constraint(*constraint, callback);
     };
 }
@@ -267,12 +267,12 @@ void
 find_imports_in_table_expression(
     dtl::variant_ptr_t<const TableExpression> base_expression,
     std::function<void(const std::string&)> callback) {
-    if (auto expression = dtl::get_if<const SelectExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const SelectExpression*>(base_expression)) {
         find_imports_in_select_expression(*expression, callback);
         return;
     }
 
-    if (auto expression = dtl::get_if<const ImportExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const ImportExpression*>(base_expression)) {
         find_imports_in_import_expression(*expression, callback);
         return;
     }
@@ -332,32 +332,32 @@ void
 find_imports_in_statement(
     dtl::variant_ptr_t<const Statement> base_statement,
     std::function<void(const std::string&)> callback) {
-    if (auto statement = dtl::get_if<const AssignmentStatement*>(&base_statement)) {
+    if (auto statement = dtl::get_if<const AssignmentStatement*>(base_statement)) {
         find_imports_in_assignment_statement(*statement, callback);
         return;
     }
 
-    if (auto statement = dtl::get_if<const UpdateStatement*>(&base_statement)) {
+    if (auto statement = dtl::get_if<const UpdateStatement*>(base_statement)) {
         find_imports_in_update_statement(*statement, callback);
         return;
     }
 
-    if (auto statement = dtl::get_if<const DeleteStatement*>(&base_statement)) {
+    if (auto statement = dtl::get_if<const DeleteStatement*>(base_statement)) {
         find_imports_in_delete_statement(*statement, callback);
         return;
     }
 
-    if (auto statement = dtl::get_if<const InsertStatement*>(&base_statement)) {
+    if (auto statement = dtl::get_if<const InsertStatement*>(base_statement)) {
         find_imports_in_insert_statement(*statement, callback);
         return;
     }
 
-    if (auto statement = dtl::get_if<const ExportStatement*>(&base_statement)) {
+    if (auto statement = dtl::get_if<const ExportStatement*>(base_statement)) {
         find_imports_in_export_statement(*statement, callback);
         return;
     }
 
-    if (auto statement = dtl::get_if<const BeginStatement*>(&base_statement)) {
+    if (auto statement = dtl::get_if<const BeginStatement*>(base_statement)) {
         find_imports_in_begin_statement(*statement, callback);
         return;
     }

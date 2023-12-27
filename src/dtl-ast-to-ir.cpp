@@ -265,11 +265,11 @@ static ScopeColumn
 compile_column_binding(
     dtl::variant_ptr_t<const ColumnBinding> base_binding, std::shared_ptr<Scope> scope,
     Context& context) {
-    if (dtl::get_if<const WildcardColumnBinding*>(&base_binding)) {
+    if (dtl::get_if<const WildcardColumnBinding*>(base_binding)) {
         throw "Not implemented";
     }
 
-    if (auto binding = dtl::get_if<const ImplicitColumnBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const ImplicitColumnBinding*>(base_binding)) {
         return {
             .name = expression_name(borrow(binding->expression)),
             .namespaces = {{}},
@@ -278,7 +278,7 @@ compile_column_binding(
         };
     }
 
-    if (auto binding = dtl::get_if<const AliasedColumnBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const AliasedColumnBinding*>(base_binding)) {
         return {
             .name = binding->alias,
             .namespaces = {{}},
@@ -292,11 +292,11 @@ compile_column_binding(
 
 static dtl::variant_ptr_t<const TableExpression>
 table_binding_expression(dtl::variant_ptr_t<const TableBinding> base_binding) {
-    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(base_binding)) {
         return borrow(binding->expression);
     }
 
-    if (auto binding = dtl::get_if<const AliasedTableBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const AliasedTableBinding*>(base_binding)) {
         return borrow(binding->expression);
     }
 
@@ -305,7 +305,7 @@ table_binding_expression(dtl::variant_ptr_t<const TableBinding> base_binding) {
 
 static std::string
 table_expression_name(dtl::variant_ptr_t<const TableExpression> base_expression) {
-    if (auto expression = dtl::get_if<const TableReferenceExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const TableReferenceExpression*>(base_expression)) {
         return expression->name;
     }
 
@@ -314,11 +314,11 @@ table_expression_name(dtl::variant_ptr_t<const TableExpression> base_expression)
 
 static std::optional<std::string>
 table_binding_name(dtl::variant_ptr_t<const TableBinding> base_binding) {
-    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const ImplicitTableBinding*>(base_binding)) {
         return table_expression_name(borrow(binding->expression));
     }
 
-    if (auto binding = dtl::get_if<const AliasedTableBinding*>(&base_binding)) {
+    if (auto binding = dtl::get_if<const AliasedTableBinding*>(base_binding)) {
         return binding->alias;
     }
 
@@ -328,7 +328,7 @@ table_binding_name(dtl::variant_ptr_t<const TableBinding> base_binding) {
 static std::shared_ptr<Scope>
 compile_table_expression(
     dtl::variant_ptr_t<const TableExpression> base_expression, Context& context) {
-    if (auto expression = dtl::get_if<const SelectExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const SelectExpression*>(base_expression)) {
         // TODO
         auto src_expression =
             table_binding_expression(borrow(expression->source->binding));
@@ -373,13 +373,13 @@ compile_table_expression(
         return scope;
     }
 
-    if (auto expression = dtl::get_if<const ImportExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const ImportExpression*>(base_expression)) {
         auto scope = context.import_table(expression->location->value);
         context.trace_table_expression(scope, expression->start, expression->end);
         return scope;
     }
 
-    if (auto expression = dtl::get_if<const TableReferenceExpression*>(&base_expression)) {
+    if (auto expression = dtl::get_if<const TableReferenceExpression*>(base_expression)) {
         auto scope = context.get_global(expression->name);
         context.trace_table_expression(scope, expression->start, expression->end);
         return scope;
@@ -408,7 +408,7 @@ strip_namespaces(std::shared_ptr<Scope> input) {
 
 static void
 compile_statement(dtl::variant_ptr_t<const Statement> base_statement, Context& context) {
-    if (auto statement = dtl::get_if<const AssignmentStatement*>(&base_statement)) {
+    if (auto statement = dtl::get_if<const AssignmentStatement*>(base_statement)) {
         auto expression_table =
             compile_table_expression(borrow(statement->expression), context);
 
@@ -419,19 +419,19 @@ compile_statement(dtl::variant_ptr_t<const Statement> base_statement, Context& c
         return;
     }
 
-    if (dtl::get_if<const UpdateStatement*>(&base_statement)) {
+    if (dtl::get_if<const UpdateStatement*>(base_statement)) {
         throw "Not implemented";
     }
 
-    if (dtl::get_if<const DeleteStatement*>(&base_statement)) {
+    if (dtl::get_if<const DeleteStatement*>(base_statement)) {
         throw "Not implemented";
     }
 
-    if (dtl::get_if<const InsertStatement*>(&base_statement)) {
+    if (dtl::get_if<const InsertStatement*>(base_statement)) {
         throw "Not implemented";
     }
 
-    if (auto statement = dtl::get_if<const ExportStatement*>(&base_statement)) {
+    if (auto statement = dtl::get_if<const ExportStatement*>(base_statement)) {
         auto expression_table =
             compile_table_expression(borrow(statement->expression), context);
 
@@ -442,7 +442,7 @@ compile_statement(dtl::variant_ptr_t<const Statement> base_statement, Context& c
         return;
     }
 
-    if (dtl::get_if<const BeginStatement*>(&base_statement)) {
+    if (dtl::get_if<const BeginStatement*>(base_statement)) {
         throw "Not implemented";
     }
 

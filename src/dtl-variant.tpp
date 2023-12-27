@@ -60,7 +60,7 @@ borrow(_TPtr& ptr) {
 template <typename _T, typename _V>
 _T
 get_if(_V variant) {
-    _T* value = std::get_if<_T>(variant);
+    _T* value = std::get_if<_T>(&variant);
     return value == NULL ? NULL : *value;
 }
 
