@@ -3,20 +3,21 @@
 namespace dtl {
 
 template <typename _TIn>
-struct __variant_ptr_impl;
+struct variant_ptr_t;
 
 template <typename... _TVal>
-struct __variant_ptr_impl<std::variant<_TVal...>> {
-    using type = typename std::variant<_TVal*...>;
+struct variant_ptr_t<std::variant<_TVal...>> {
+    std::variant<_TVal*...> __value;
+
+    using base = typename std::variant<_TVal...>;
 };
 
 template <typename... _TVal>
-struct __variant_ptr_impl<const std::variant<_TVal...>> {
-    using type = typename std::variant<const _TVal*...>;
-};
+struct variant_ptr_t<const std::variant<_TVal...>> {
+    std::variant<const _TVal*...> __value;
 
-template <typename _TIn>
-using variant_ptr_t = __variant_ptr_impl<_TIn>::type;
+    using base = typename std::variant<_TVal...>;
+};
 
 template <typename _TIn>
 struct unique_variant_ptr_t;
@@ -63,14 +64,14 @@ template <typename _TPtr>
 variant_ptr_t<typename _TPtr::base>
 borrow(_TPtr& ptr) {
     variant_ptr_t<typename _TPtr::base> result;
-    std::visit([&](auto&& ptr) { result = &*ptr; }, ptr.__value);
+    std::visit([&](auto&& ptr) { result.__value = &*ptr; }, ptr.__value);
     return result;
 }
 
 template <typename _T, typename _V>
 _T
 get_if(_V variant) {
-    _T* value = std::get_if<_T>(&variant);
+    _T* value = std::get_if<_T>(&variant.__value);
     return value == NULL ? NULL : *value;
 }
 

@@ -167,12 +167,9 @@ compile_expression(
     Context& context) {
     (void)context;
 
-    if (std::holds_alternative<const ColumnReferenceExpression*>(base_expression)) {
-        const auto& expression =
-            *std::get<const ColumnReferenceExpression*>(base_expression);
-
-        std::optional<std::string> ns = column_name_namespace(borrow(expression.name));
-        std::string name = column_name_name(borrow(expression.name));
+    if (auto expression = dtl::get_if<const ColumnReferenceExpression*>(base_expression)) {
+        std::optional<std::string> ns = column_name_namespace(borrow(expression->name));
+        std::string name = column_name_name(borrow(expression->name));
 
         for (auto&& column : scope->columns) {
             if (!column.namespaces.contains(ns)) {
@@ -187,37 +184,37 @@ compile_expression(
         }
         throw "Could not resolve reference";
     }
-    if (std::holds_alternative<const LiteralExpression*>(base_expression)) {
+    if (dtl::get_if<const LiteralExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const FunctionCallExpression*>(base_expression)) {
+    if (dtl::get_if<const FunctionCallExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const EqualToExpression*>(base_expression)) {
+    if (dtl::get_if<const EqualToExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const LessThanExpression*>(base_expression)) {
+    if (dtl::get_if<const LessThanExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const LessThanEqualExpression*>(base_expression)) {
+    if (dtl::get_if<const LessThanEqualExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const GreaterThanExpression*>(base_expression)) {
+    if (dtl::get_if<const GreaterThanExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const GreaterThanEqualExpression*>(base_expression)) {
+    if (dtl::get_if<const GreaterThanEqualExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const AddExpression*>(base_expression)) {
+    if (dtl::get_if<const AddExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const SubtractExpression*>(base_expression)) {
+    if (dtl::get_if<const SubtractExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const MultiplyExpression*>(base_expression)) {
+    if (dtl::get_if<const MultiplyExpression*>(base_expression)) {
         throw "Not implemented";
     }
-    if (std::holds_alternative<const DivideExpression*>(base_expression)) {
+    if (dtl::get_if<const DivideExpression*>(base_expression)) {
         throw "Not implemented";
     }
 
@@ -226,12 +223,12 @@ compile_expression(
 
 static std::string
 column_name_name(dtl::variant_ptr_t<const ColumnName> base_column_name) {
-    if (std::holds_alternative<const UnqualifiedColumnName*>(base_column_name)) {
-        return std::get<const UnqualifiedColumnName*>(base_column_name)->column_name;
+    if (auto column_name = dtl::get_if<const UnqualifiedColumnName*>(base_column_name)) {
+        return column_name->column_name;
     }
 
-    if (std::holds_alternative<const QualifiedColumnName*>(base_column_name)) {
-        return std::get<const QualifiedColumnName*>(base_column_name)->column_name;
+    if (auto column_name = dtl::get_if<const QualifiedColumnName*>(base_column_name)) {
+        return column_name->column_name;
     }
 
     throw "Unreachable";
@@ -239,12 +236,12 @@ column_name_name(dtl::variant_ptr_t<const ColumnName> base_column_name) {
 
 static std::optional<std::string>
 column_name_namespace(variant_ptr_t<const ColumnName> base_column_name) {
-    if (std::holds_alternative<const UnqualifiedColumnName*>(base_column_name)) {
+    if (dtl::get_if<const UnqualifiedColumnName*>(base_column_name)) {
         return std::optional<std::string>();
     }
 
-    if (std::holds_alternative<const QualifiedColumnName*>(base_column_name)) {
-        return std::get<const QualifiedColumnName*>(base_column_name)->table_name;
+    if (auto column_name = dtl::get_if<const QualifiedColumnName*>(base_column_name)) {
+        return column_name->table_name;
     }
 
     throw "Unreachable";
@@ -252,10 +249,8 @@ column_name_namespace(variant_ptr_t<const ColumnName> base_column_name) {
 
 static std::string
 expression_name(dtl::variant_ptr_t<const Expression> base_expression) {
-    if (std::holds_alternative<const ColumnReferenceExpression*>(base_expression)) {
-        const auto& expression =
-            *std::get<const ColumnReferenceExpression*>(base_expression);
-        return column_name_name(borrow(expression.name));
+    if (auto expression = dtl::get_if<const ColumnReferenceExpression*>(base_expression)) {
+        return column_name_name(borrow(expression->name));
     }
 
     throw "No name could be derived for expression";
