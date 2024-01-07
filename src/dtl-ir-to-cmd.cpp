@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "dtl-ast.hpp"
-#include "dtl-ir-defaulted-visitor.tpp"
 #include "dtl-ir-dependencies.hpp"
 #include "dtl-ir.hpp"
 
