@@ -11,7 +11,8 @@ namespace ir {
 void
 for_each_direct_dependency(
     dtl::variant_ptr<const Expression> base_expression,
-    std::function<void(dtl::variant_ptr<const Expression>)> callback) {
+    std::function<void(dtl::variant_ptr<const Expression>)> callback
+) {
     if (dtl::get_if<const ImportShapeExpression*>(base_expression)) {
         return;
     }

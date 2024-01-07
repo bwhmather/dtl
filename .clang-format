@@ -6,8 +6,7 @@ Language: Cpp
 ColumnLimit: 0
 DerivePointerAlignment: false
 PointerAlignment: Left
-# AlignAfterOpenBracket: BlockIndent
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: BlockIndent
 AlwaysBreakTemplateDeclarations: Yes
 AlwaysBreakAfterReturnType: All
 AlwaysBreakBeforeMultilineStrings: true

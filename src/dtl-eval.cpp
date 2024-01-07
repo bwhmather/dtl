@@ -37,7 +37,8 @@ class ExtractExportTablesVisitor : public dtl::ir::TableVisitor {
 
 static std::vector<std::shared_ptr<const dtl::ir::ExportTable>>
 extract_export_tables(
-    std::vector<std::shared_ptr<const dtl::ir::Table>> tables) {
+    std::vector<std::shared_ptr<const dtl::ir::Table>> tables
+) {
     ExtractExportTablesVisitor visitor;
     for (auto&& table : tables) {
         table->accept(visitor);
@@ -60,7 +61,8 @@ struct EvalContext {
 
 void
 eval_shape_expression(
-    EvalContext& context, dtl::variant_ptr<const dtl::ir::ShapeExpression> base_expression) {
+    EvalContext& context, dtl::variant_ptr<const dtl::ir::ShapeExpression> base_expression
+) {
     (void)context;
 
     if (dtl::get_if<const dtl::ir::ImportShapeExpression*>(base_expression)) {
@@ -78,7 +80,8 @@ eval_shape_expression(
 
 void
 eval_array_expression(
-    EvalContext& context, dtl::variant_ptr<const dtl::ir::ArrayExpression> base_expression) {
+    EvalContext& context, dtl::variant_ptr<const dtl::ir::ArrayExpression> base_expression
+) {
     if (auto expression = dtl::get_if<const dtl::ir::ImportExpression*>(base_expression)) {
         auto table = context.importer.import_table(expression->location);
         auto array = table->GetColumnByName(expression->name);
@@ -132,13 +135,15 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
 
     void
     visit_evaluate_array_command(
-        const dtl::cmd::EvaluateArrayCommand& cmd) override final {
+        const dtl::cmd::EvaluateArrayCommand& cmd
+    ) override final {
         eval_array_expression(m_context, dtl::borrow(cmd.expression));
     }
 
     void
     visit_evaluate_shape_command(
-        const dtl::cmd::EvaluateShapeCommand& cmd) override final {
+        const dtl::cmd::EvaluateShapeCommand& cmd
+    ) override final {
         // TODO
         (void)cmd;
         throw "Not implemented";
@@ -146,7 +151,8 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
 
     void
     visit_collect_array_command(
-        const dtl::cmd::CollectArrayCommand& cmd) override final {
+        const dtl::cmd::CollectArrayCommand& cmd
+    ) override final {
         // TODO
         (void)cmd;
         throw "Not implemented";
@@ -154,7 +160,8 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
 
     void
     visit_trace_array_command(
-        const dtl::cmd::TraceArrayCommand& cmd) override final {
+        const dtl::cmd::TraceArrayCommand& cmd
+    ) override final {
         // TODO
         (void)cmd;
         throw "Not implemented";
@@ -162,7 +169,8 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
 
     void
     visit_export_table_command(
-        const dtl::cmd::ExportTableCommand& cmd) override final {
+        const dtl::cmd::ExportTableCommand& cmd
+    ) override final {
         const dtl::ir::ExportTable& description = *cmd.table;
 
         std::vector<std::shared_ptr<arrow::Field>> fields;
@@ -233,11 +241,15 @@ run(std::string source, dtl::io::Importer& importer,
             if (std::find(
                     std::begin(roots), std::end(roots),
                     dtl::cast<dtl::variant_ptr<const dtl::ir::Expression>>(
-                        dtl::borrow(column.expression))) ==
+                        dtl::borrow(column.expression)
+                    )
+                ) ==
                 std::end(roots)) {
                 roots.push_back(
                     dtl::cast<dtl::variant_ptr<const dtl::ir::Expression>>(
-                        dtl::borrow(column.expression)));
+                        dtl::borrow(column.expression)
+                    )
+                );
             }
         }
     }
@@ -250,7 +262,8 @@ run(std::string source, dtl::io::Importer& importer,
     // === Inject Commands to Export Tables ====================================
     for (auto&& table : export_tables) {
         commands.push_back(
-            std::make_unique<dtl::cmd::ExportTableCommand>(table));
+            std::make_unique<dtl::cmd::ExportTableCommand>(table)
+        );
     }
 
     // === Setup Tracing =======================================================

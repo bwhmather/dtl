@@ -23,7 +23,8 @@ struct Command {
 class EvaluateArrayCommand : public Command {
   public:
     EvaluateArrayCommand(
-        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression);
+        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression
+    );
 
     dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression;
 
@@ -34,7 +35,8 @@ class EvaluateArrayCommand : public Command {
 class EvaluateShapeCommand : public Command {
   public:
     EvaluateShapeCommand(
-        dtl::shared_variant_ptr<const dtl::ir::ShapeExpression> expression);
+        dtl::shared_variant_ptr<const dtl::ir::ShapeExpression> expression
+    );
 
     dtl::shared_variant_ptr<const dtl::ir::ShapeExpression> expression;
 
@@ -45,7 +47,8 @@ class EvaluateShapeCommand : public Command {
 class CollectArrayCommand : public Command {
   public:
     CollectArrayCommand(
-        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression);
+        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression
+    );
 
     dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression;
 
@@ -57,7 +60,8 @@ class TraceArrayCommand : public Command {
   public:
     TraceArrayCommand(
         dtl::UUID uuid,
-        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression);
+        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression
+    );
 
     dtl::UUID uuid;
     dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression;

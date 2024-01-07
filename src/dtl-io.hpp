@@ -29,7 +29,8 @@ class Exporter {
 
     virtual void
     export_table(
-        const std::string& name, std::shared_ptr<arrow::Table> table) = 0;
+        const std::string& name, std::shared_ptr<arrow::Table> table
+    ) = 0;
 };
 
 class Tracer {
@@ -41,7 +42,8 @@ class Tracer {
 
     virtual void
     write_array(
-        dtl::UUID array_id, std::shared_ptr<const arrow::Array> array) = 0;
+        dtl::UUID array_id, std::shared_ptr<const arrow::Array> array
+    ) = 0;
 };
 
 } /* namespace io */

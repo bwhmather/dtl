@@ -15,7 +15,8 @@ namespace ir {
 void
 for_each_dependency(
     const std::vector<dtl::variant_ptr<const Expression>>& roots,
-    std::function<void(dtl::variant_ptr<const Expression>)> callback) {
+    std::function<void(dtl::variant_ptr<const Expression>)> callback
+) {
     // A vector of all unyielded expressions in approximate reverse dependency
     // order.  After traversing the graph, the last root will be the first
     // expression in the list, followed by its dependencies, followed by the
@@ -49,7 +50,8 @@ for_each_dependency(
                     }
 
                     refcounts[dependency]++;
-                });
+                }
+            );
         }
     }
 
@@ -72,7 +74,8 @@ for_each_dependency(
         // Decrement refcount of all dependencies.
         for_each_direct_dependency(
             expression,
-            [&](dtl::variant_ptr<const Expression> dependency) { refcounts[dependency]--; });
+            [&](dtl::variant_ptr<const Expression> dependency) { refcounts[dependency]--; }
+        );
 
         // Call callback on removed expression.
         callback(expression);
@@ -87,18 +90,21 @@ to_cmd(std::vector<dtl::variant_ptr<const dtl::ir::Expression>>& roots) {
         roots, [&](dtl::variant_ptr<const Expression> base_dependency) {
             if (auto dependency = dtl::get_if<dtl::variant_ptr<const ShapeExpression>>(base_dependency)) {
                 auto command = std::make_unique<dtl::cmd::EvaluateShapeCommand>(
-                    dtl::acquire(dependency));
+                    dtl::acquire(dependency)
+                );
 
                 commands.push_back(std::move(command));
             }
 
             if (auto dependency = dtl::get_if<dtl::variant_ptr<const ArrayExpression>>(base_dependency)) {
                 auto command = std::make_unique<dtl::cmd::EvaluateArrayCommand>(
-                    dtl::acquire(dependency));
+                    dtl::acquire(dependency)
+                );
 
                 commands.push_back(std::move(command));
             }
-        });
+        }
+    );
 
     return commands;
 }

@@ -42,11 +42,14 @@ class FilesystemImporter : public Importer {
             std::shared_ptr<arrow::io::ReadableFile> input_file;
             PARQUET_ASSIGN_OR_THROW(
                 input_file, arrow::io::ReadableFile::Open(
-                                input_path, arrow::default_memory_pool()));
+                                input_path, arrow::default_memory_pool()
+                            )
+            );
 
             std::unique_ptr<parquet::arrow::FileReader> reader;
             PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(
-                input_file, arrow::default_memory_pool(), &reader));
+                input_file, arrow::default_memory_pool(), &reader
+            ));
 
             PARQUET_THROW_NOT_OK(reader->ReadTable(&table));
 
@@ -80,10 +83,12 @@ class FilesystemExporter : public Exporter {
 
         std::shared_ptr<arrow::io::FileOutputStream> outfile;
         PARQUET_ASSIGN_OR_THROW(
-            outfile, arrow::io::FileOutputStream::Open(output_path));
+            outfile, arrow::io::FileOutputStream::Open(output_path)
+        );
 
         PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(
-            *table, arrow::default_memory_pool(), outfile, 65535));
+            *table, arrow::default_memory_pool(), outfile, 65535
+        ));
     }
 };
 

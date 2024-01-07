@@ -4,7 +4,8 @@ namespace dtl {
 namespace cmd {
 
 EvaluateArrayCommand::EvaluateArrayCommand(
-    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression_) :
+    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression_
+) :
     expression(expression_){};
 
 void
@@ -13,7 +14,8 @@ EvaluateArrayCommand::accept(CommandVisitor& visitor) const {
 }
 
 EvaluateShapeCommand::EvaluateShapeCommand(
-    dtl::shared_variant_ptr<const dtl::ir::ShapeExpression> expression_) :
+    dtl::shared_variant_ptr<const dtl::ir::ShapeExpression> expression_
+) :
     expression(expression_){};
 
 void
@@ -22,7 +24,8 @@ EvaluateShapeCommand::accept(CommandVisitor& visitor) const {
 }
 
 CollectArrayCommand::CollectArrayCommand(
-    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression_) :
+    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression_
+) :
     expression(expression_){};
 
 void
@@ -32,7 +35,8 @@ CollectArrayCommand::accept(CommandVisitor& visitor) const {
 
 TraceArrayCommand::TraceArrayCommand(
     dtl::UUID uuid_,
-    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression_) :
+    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression_
+) :
     uuid(uuid_),
     expression(expression_){};
 
@@ -42,7 +46,8 @@ TraceArrayCommand::accept(CommandVisitor& visitor) const {
 }
 
 ExportTableCommand::ExportTableCommand(
-    std::shared_ptr<const dtl::ir::ExportTable> table_) :
+    std::shared_ptr<const dtl::ir::ExportTable> table_
+) :
     table(table_){};
 
 void

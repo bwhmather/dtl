@@ -16,7 +16,8 @@ struct variant_ptr<std::variant<_TVal...>> {
             [](auto&& val) -> bool {
                 return val != NULL;
             },
-            __value);
+            __value
+        );
     }
 
     bool
@@ -34,7 +35,8 @@ struct variant_ptr<const std::variant<_TVal...>> {
             [](auto&& val) -> bool {
                 return val != NULL;
             },
-            __value);
+            __value
+        );
     }
 
     bool
@@ -164,7 +166,8 @@ acquire(variant_ptr<_TVariant>& ptr) {
         [](auto&& val) -> shared_variant_ptr<_TVariant> {
             return shared_variant_ptr<_TVariant>(val->shared_from_this());
         },
-        ptr.__value);
+        ptr.__value
+    );
 }
 
 /**
@@ -197,7 +200,8 @@ struct __get_if_impl<dtl::variant_ptr<_TBase>> {
 
                 return _TVar();
             },
-            variant.__value);
+            variant.__value
+        );
     }
 };
 
@@ -246,7 +250,8 @@ struct __cast_impl<dtl::variant_ptr<_TResultVals...>> {
             [&](auto&& value) -> _TResult {
                 return _TResult(value);
             },
-            input.__value);
+            input.__value
+        );
     }
 };
 
@@ -261,7 +266,8 @@ struct __cast_impl<dtl::shared_variant_ptr<_TResultVals...>> {
             [&](auto&& value) -> _TResult {
                 return _TResult(value);
             },
-            input.__value);
+            input.__value
+        );
     }
 };
 
@@ -281,7 +287,8 @@ struct std::hash<dtl::variant_ptr<_TVariant>> {
             [](auto&& val) -> std::size_t {
                 return std::hash<size_t>()(size_t(&*val));
             },
-            ptr.__value);
+            ptr.__value
+        );
     }
 };
 
@@ -293,6 +300,7 @@ struct std::hash<dtl::shared_variant_ptr<_TVariant>> {
             [](auto&& val) -> std::size_t {
                 return std::hash<size_t>()(size_t(&*val));
             },
-            ptr.__value);
+            ptr.__value
+        );
     }
 };

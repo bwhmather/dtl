@@ -55,7 +55,8 @@ class Context {
 
     void
     trace_column_expression(
-        std::shared_ptr<Scope> scope, dtl::Location start, dtl::Location end) {
+        std::shared_ptr<Scope> scope, dtl::Location start, dtl::Location end
+    ) {
         auto table = std::make_shared<dtl::ir::TraceTable>();
 
         table->level = dtl::ir::TraceLevel::COLUMN_EXPRESSION;
@@ -72,7 +73,8 @@ class Context {
 
     void
     trace_table_expression(
-        std::shared_ptr<Scope> scope, dtl::Location start, dtl::Location end) {
+        std::shared_ptr<Scope> scope, dtl::Location start, dtl::Location end
+    ) {
         auto table = std::make_shared<dtl::ir::TraceTable>();
 
         table->level = dtl::ir::TraceLevel::TABLE_EXPRESSION;
@@ -89,7 +91,8 @@ class Context {
 
     void
     trace_statement(
-        std::shared_ptr<Scope> scope, dtl::Location start, dtl::Location end) {
+        std::shared_ptr<Scope> scope, dtl::Location start, dtl::Location end
+    ) {
         auto table = std::make_shared<dtl::ir::TraceTable>();
 
         table->level = dtl::ir::TraceLevel::STATEMENT;
@@ -106,7 +109,8 @@ class Context {
 
     void
     trace_assertion(
-        std::shared_ptr<Scope> scope, dtl::Location start, dtl::Location end) {
+        std::shared_ptr<Scope> scope, dtl::Location start, dtl::Location end
+    ) {
         auto table = std::make_shared<dtl::ir::TraceTable>();
 
         table->level = dtl::ir::TraceLevel::ASSERTION;
@@ -164,7 +168,8 @@ class Context {
 static dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>
 compile_expression(
     dtl::variant_ptr<const Expression> base_expression, std::shared_ptr<Scope> scope,
-    Context& context) {
+    Context& context
+) {
     (void)context;
 
     if (auto expression = dtl::get_if<const ColumnReferenceExpression*>(base_expression)) {
@@ -259,7 +264,8 @@ expression_name(dtl::variant_ptr<const Expression> base_expression) {
 static ScopeColumn
 compile_column_binding(
     dtl::variant_ptr<const ColumnBinding> base_binding, std::shared_ptr<Scope> scope,
-    Context& context) {
+    Context& context
+) {
     if (dtl::get_if<const WildcardColumnBinding*>(base_binding)) {
         throw "Not implemented";
     }
@@ -322,7 +328,8 @@ table_binding_name(dtl::variant_ptr<const TableBinding> base_binding) {
 
 static std::shared_ptr<Scope>
 compile_table_expression(
-    dtl::variant_ptr<const TableExpression> base_expression, Context& context) {
+    dtl::variant_ptr<const TableExpression> base_expression, Context& context
+) {
     if (auto expression = dtl::get_if<const SelectExpression*>(base_expression)) {
         // TODO
         auto src_expression =
@@ -333,7 +340,8 @@ compile_table_expression(
         std::vector<ScopeColumn> src_columns;
         for (auto& src_column : src_scope->columns) {
             std::unordered_set<std::optional<std::string>> namespaces(
-                src_column.namespaces);
+                src_column.namespaces
+            );
             namespaces.insert({}); // TODO don't do this if binding is aliased.
             namespaces.insert(src_name);
 
@@ -361,7 +369,8 @@ compile_table_expression(
         auto scope = std::make_shared<Scope>();
         for (auto&& column_binding : expression->columns) {
             scope->columns.push_back(
-                compile_column_binding(borrow(column_binding), src_scope, context));
+                compile_column_binding(borrow(column_binding), src_scope, context)
+            );
         }
         context.trace_table_expression(scope, expression->start, expression->end);
 
@@ -447,7 +456,8 @@ compile_statement(dtl::variant_ptr<const Statement> base_statement, Context& con
 static void
 compile_input_table(
     const std::string& table_name, std::shared_ptr<arrow::Schema> schema,
-    Context& context) {
+    Context& context
+) {
     auto scope = std::make_shared<Scope>();
 
     for (int i = 0; i < schema->num_fields(); i++) {
