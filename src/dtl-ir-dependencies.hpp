@@ -3,16 +3,14 @@
 #include <functional>
 
 #include "dtl-ir.hpp"
+#include "dtl-variant.tpp"
 
 namespace dtl {
 namespace ir {
 
 void
 for_each_direct_dependency(
-    const Expression& node, std::function<void(const Expression&)> callback);
-
-void
-visit_direct_dependencies(const Expression& node, ExpressionVisitor& visitor);
+    dtl::variant_ptr<const Expression> node, std::function<void(dtl::variant_ptr<const Expression>)> callback);
 
 } /* namespace ir */
 } /* namespace dtl */

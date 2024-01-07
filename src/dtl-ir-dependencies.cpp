@@ -3,114 +3,88 @@
 #include <functional>
 
 #include "dtl-ir.hpp"
+#include "dtl-variant.tpp"
 
 namespace dtl {
 namespace ir {
 
-class ImmediateDependencyVisitor : public ExpressionVisitor {
-    std::function<void(const Expression& expression)> m_callback;
-
-  public:
-    ImmediateDependencyVisitor(
-        std::function<void(const Expression& expression)> callback) :
-        m_callback(callback) {}
-
-    void
-    visit_import_shape_expression(
-        const ImportShapeExpression& expression) override final {
-        (void)expression;
-    }
-
-    void
-    visit_where_shape_expression(
-        const WhereShapeExpression& expression) override final {
-        m_callback(*expression.mask);
-    }
-
-    void
-    visit_join_shape_expression(
-        const JoinShapeExpression& expression) override final {
-        m_callback(*expression.shape_a);
-        m_callback(*expression.shape_b);
-    }
-
-    void
-    visit_import_expression(const ImportExpression& expression) override final {
-        (void)expression;
-    }
-
-    void
-    visit_where_expression(const WhereExpression& expression) override final {
-        m_callback(*expression.source);
-        m_callback(*expression.mask);
-    }
-
-    void
-    visit_pick_expression(const PickExpression& expression) override final {
-        m_callback(*expression.source);
-        m_callback(*expression.indexes);
-    }
-
-    void
-    visit_index_expression(const IndexExpression& expression) override final {
-        m_callback(*expression.source);
-    }
-
-    void
-    visit_join_left_expression(
-        const JoinLeftExpression& expression) override final {
-        m_callback(*expression.left);
-        m_callback(*expression.right);
-    }
-
-    void
-    visit_join_right_expression(
-        const JoinRightExpression& expression) override final {
-        m_callback(*expression.left);
-        m_callback(*expression.right);
-    }
-
-    void
-    visit_add_expression(const AddExpression& expression) override final {
-        m_callback(*expression.left);
-        m_callback(*expression.right);
-    }
-
-    void
-    visit_subtract_expression(
-        const SubtractExpression& expression) override final {
-        m_callback(*expression.left);
-        m_callback(*expression.right);
-    }
-
-    void
-    visit_multiply_expression(
-        const MultiplyExpression& expression) override final {
-        m_callback(*expression.left);
-        m_callback(*expression.right);
-    }
-
-    void
-    visit_divide_expression(const DivideExpression& expression) override final {
-        m_callback(*expression.left);
-        m_callback(*expression.right);
-    }
-};
-
 void
 for_each_direct_dependency(
-    const Expression& root_expression,
-    std::function<void(const Expression&)> callback) {
-    ImmediateDependencyVisitor visitor(callback);
-    root_expression.accept(visitor);
-}
+    dtl::variant_ptr<const Expression> base_expression,
+    std::function<void(dtl::variant_ptr<const Expression>)> callback) {
+    if (dtl::get_if<const ImportShapeExpression*>(base_expression)) {
+        return;
+    }
 
-void
-visit_direct_dependencies(
-    const Expression& root_expression, ExpressionVisitor& visitor) {
-    for_each_direct_dependency(
-        root_expression,
-        [&](const Expression& expression) { expression.accept(visitor); });
+    if (auto expression = dtl::get_if<const WhereShapeExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->mask)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const JoinShapeExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->shape_a)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->shape_b)));
+        return;
+    }
+
+    if (dtl::get_if<const ImportExpression*>(base_expression)) {
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const WhereExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->source)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->mask)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const PickExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->source)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->indexes)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const IndexExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->source)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const JoinLeftExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->left)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->right)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const JoinRightExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->left)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->right)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const AddExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->left)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->right)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const SubtractExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->left)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->right)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const MultiplyExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->left)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->right)));
+        return;
+    }
+
+    if (auto expression = dtl::get_if<const DivideExpression*>(base_expression)) {
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->left)));
+        callback(dtl::cast<dtl::variant_ptr<const Expression>>(dtl::borrow(expression->right)));
+        return;
+    }
+
+    throw "Not implemented";
 }
 
 } /* namespace ir */

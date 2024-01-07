@@ -47,10 +47,10 @@ extract_export_tables(
 }
 
 struct EvalContext {
-    std::unordered_map<std::shared_ptr<const dtl::ir::ShapeExpression>, int>
+    std::unordered_map<dtl::shared_variant_ptr<const dtl::ir::ShapeExpression>, int>
         shapes;
     std::unordered_map<
-        std::shared_ptr<const dtl::ir::ArrayExpression>,
+        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>,
         std::shared_ptr<arrow::ChunkedArray>>
         arrays;
     dtl::io::Importer& importer;
@@ -58,138 +58,69 @@ struct EvalContext {
     dtl::io::Tracer& tracer;
 };
 
-class EvalShapeExpressionVisitor : public dtl::ir::ShapeExpressionVisitor {
-    EvalContext& m_context;
-
-  public:
-    EvalShapeExpressionVisitor(EvalContext& context) :
-        m_context(context){};
-
-    void
-    visit_import_shape_expression(
-        const dtl::ir::ImportShapeExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_join_shape_expression(
-        const dtl::ir::JoinShapeExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_where_shape_expression(
-        const dtl::ir::WhereShapeExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-};
-
 void
 eval_shape_expression(
-    EvalContext& context, const dtl::ir::ShapeExpression& expression) {
-    EvalShapeExpressionVisitor visitor(context);
-    expression.accept(visitor);
+    EvalContext& context, dtl::variant_ptr<const dtl::ir::ShapeExpression> base_expression) {
+    (void)context;
+
+    if (dtl::get_if<const dtl::ir::ImportShapeExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::JoinShapeExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::WhereShapeExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
 }
-
-class EvalArrayExpressionVisitor : public dtl::ir::ArrayExpressionVisitor {
-    EvalContext& m_context;
-
-  public:
-    EvalArrayExpressionVisitor(EvalContext& context) :
-        m_context(context){};
-
-    void
-    visit_import_expression(
-        const dtl::ir::ImportExpression& expression) override final {
-        auto table = m_context.importer.import_table(expression.location);
-        auto array = table->GetColumnByName(expression.name);
-        m_context.arrays[expression.get_ptr()] = array;
-    }
-
-    void
-    visit_where_expression(
-        const dtl::ir::WhereExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_pick_expression(
-        const dtl::ir::PickExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_index_expression(
-        const dtl::ir::IndexExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_join_left_expression(
-        const dtl::ir::JoinLeftExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_join_right_expression(
-        const dtl::ir::JoinRightExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_add_expression(
-        const dtl::ir::AddExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_subtract_expression(
-        const dtl::ir::SubtractExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_multiply_expression(
-        const dtl::ir::MultiplyExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-
-    void
-    visit_divide_expression(
-        const dtl::ir::DivideExpression& expression) override final {
-        // TODO
-        (void)expression;
-        throw "Not implemented";
-    }
-};
 
 void
 eval_array_expression(
-    EvalContext& context, const dtl::ir::ArrayExpression& expression) {
-    EvalArrayExpressionVisitor visitor(context);
-    expression.accept(visitor);
+    EvalContext& context, dtl::variant_ptr<const dtl::ir::ArrayExpression> base_expression) {
+    if (auto expression = dtl::get_if<const dtl::ir::ImportExpression*>(base_expression)) {
+        auto table = context.importer.import_table(expression->location);
+        auto array = table->GetColumnByName(expression->name);
+        context.arrays[expression->shared_from_this()] = array;
+        return;
+    }
+
+    if (dtl::get_if<const dtl::ir::WhereExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::PickExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::IndexExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::JoinLeftExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::JoinRightExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::AddExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::SubtractExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::MultiplyExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
+
+    if (dtl::get_if<const dtl::ir::DivideExpression*>(base_expression)) {
+        throw "Not implemented";
+    }
 }
 
 class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
@@ -202,7 +133,7 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
     void
     visit_evaluate_array_command(
         const dtl::cmd::EvaluateArrayCommand& cmd) override final {
-        eval_array_expression(m_context, *cmd.expression);
+        eval_array_expression(m_context, dtl::borrow(cmd.expression));
     }
 
     void
@@ -296,13 +227,17 @@ run(std::string source, dtl::io::Importer& importer,
 
     // === Compile Reachable Expressions to Command List =======================
     // Find reachable expressions.
-    std::vector<std::shared_ptr<const dtl::ir::Expression>> roots;
+    std::vector<dtl::variant_ptr<const dtl::ir::Expression>> roots;
     for (auto&& table : tables) {
         for (auto&& column : table->columns) {
             if (std::find(
-                    std::begin(roots), std::end(roots), column.expression) ==
+                    std::begin(roots), std::end(roots),
+                    dtl::cast<dtl::variant_ptr<const dtl::ir::Expression>>(
+                        dtl::borrow(column.expression))) ==
                 std::end(roots)) {
-                roots.push_back(column.expression);
+                roots.push_back(
+                    dtl::cast<dtl::variant_ptr<const dtl::ir::Expression>>(
+                        dtl::borrow(column.expression)));
             }
         }
     }

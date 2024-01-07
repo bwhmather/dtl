@@ -33,7 +33,7 @@ struct ScopeColumn {
     std::string name;
     std::unordered_set<std::optional<std::string>> namespaces;
 
-    std::shared_ptr<const dtl::ir::ArrayExpression> expression;
+    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression;
 };
 
 class Scope {
@@ -161,7 +161,7 @@ class Context {
     }
 };
 
-static std::shared_ptr<const dtl::ir::ArrayExpression>
+static dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>
 compile_expression(
     dtl::variant_ptr<const Expression> base_expression, std::shared_ptr<Scope> scope,
     Context& context) {

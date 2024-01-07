@@ -23,9 +23,9 @@ struct Command {
 class EvaluateArrayCommand : public Command {
   public:
     EvaluateArrayCommand(
-        std::shared_ptr<const dtl::ir::ArrayExpression> expression);
+        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression);
 
-    std::shared_ptr<const dtl::ir::ArrayExpression> expression;
+    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression;
 
     void
     accept(CommandVisitor& visitor) const override final;
@@ -34,9 +34,9 @@ class EvaluateArrayCommand : public Command {
 class EvaluateShapeCommand : public Command {
   public:
     EvaluateShapeCommand(
-        std::shared_ptr<const dtl::ir::ShapeExpression> expression);
+        dtl::shared_variant_ptr<const dtl::ir::ShapeExpression> expression);
 
-    std::shared_ptr<const dtl::ir::ShapeExpression> expression;
+    dtl::shared_variant_ptr<const dtl::ir::ShapeExpression> expression;
 
     void
     accept(CommandVisitor& visitor) const override final;
@@ -45,9 +45,9 @@ class EvaluateShapeCommand : public Command {
 class CollectArrayCommand : public Command {
   public:
     CollectArrayCommand(
-        std::shared_ptr<const dtl::ir::ArrayExpression> expression);
+        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression);
 
-    std::shared_ptr<const dtl::ir::ArrayExpression> expression;
+    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression;
 
     void
     accept(CommandVisitor& visitor) const override final;
@@ -57,10 +57,10 @@ class TraceArrayCommand : public Command {
   public:
     TraceArrayCommand(
         dtl::UUID uuid,
-        std::shared_ptr<const dtl::ir::ArrayExpression> expression);
+        dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression);
 
     dtl::UUID uuid;
-    std::shared_ptr<const dtl::ir::ArrayExpression> expression;
+    dtl::shared_variant_ptr<const dtl::ir::ArrayExpression> expression;
 
     void
     accept(CommandVisitor& visitor) const override final;
