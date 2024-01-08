@@ -1,11 +1,10 @@
 #pragma once
 
+#include <arrow/api.h>
+#include <arrow/type.h>
 #include <memory>
 #include <string>
 
-#include <arrow/api.h>
-
-#include "dtl-location.hpp"
 #include "dtl-manifest.hpp"
 #include "dtl-uuid.hpp"
 

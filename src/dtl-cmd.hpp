@@ -1,11 +1,10 @@
 #pragma once
 
 #include <memory>
-#include <string>
-#include <vector>
 
 #include "dtl-ir.hpp"
 #include "dtl-uuid.hpp"
+#include "dtl-variant.tpp"
 
 namespace dtl {
 namespace cmd {

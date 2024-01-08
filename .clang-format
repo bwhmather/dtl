@@ -15,3 +15,11 @@ BreakConstructorInitializers: AfterColon
 KeepEmptyLinesAtTheStartOfBlocks: false
 SortIncludes: CaseSensitive
 SeparateDefinitionBlocks: Always
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '<config.h>'
+    Priority: -1
+  - Regex: '"dtl-.*"'
+    Priority: 2
+  - Regex: '<.+>'
+    Priority: 1

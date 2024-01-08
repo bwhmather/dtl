@@ -1,5 +1,11 @@
 #include "dtl-cmd.hpp"
 
+#include <memory>
+
+#include "dtl-ir.hpp"
+#include "dtl-uuid.hpp"
+#include "dtl-variant.tpp"
+
 namespace dtl {
 namespace cmd {
 

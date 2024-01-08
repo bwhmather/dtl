@@ -1,12 +1,13 @@
 #include "dtl-ast-find-imports.hpp"
 
 #include <functional>
+#include <iterator>
 #include <memory>
-#include <stddef.h>
 #include <string>
 #include <vector>
 
 #include "dtl-ast.hpp"
+#include "dtl-variant.tpp"
 
 namespace dtl {
 namespace ast {

@@ -1,12 +1,18 @@
 #include "dtl-ir-to-cmd.hpp"
 
+#include <algorithm>
 #include <cassert>
+#include <functional>
+#include <iterator>
 #include <memory>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include "dtl-ast.hpp"
+#include "dtl-cmd.hpp"
 #include "dtl-ir-dependencies.hpp"
 #include "dtl-ir.hpp"
+#include "dtl-variant.tpp"
 
 namespace dtl {
 namespace ir {

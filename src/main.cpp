@@ -1,16 +1,14 @@
+#include <cassert>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <string>
 
-#include "dtl-ast-to-ir.hpp"
-#include "dtl-ast.hpp"
 #include "dtl-eval.hpp"
 #include "dtl-io-filesystem.hpp"
-#include "dtl-ir.hpp"
 #include "dtl-parser.hpp"
-#include "dtl-tokenizer.hpp"
 
 int
 main(int argc, char* argv[]) {

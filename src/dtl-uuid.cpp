@@ -1,8 +1,8 @@
 #include "dtl-uuid.hpp"
 
 #include <array>
-#include <memory>
-#include <uuid/uuid.h>
+#include <cstddef>
+#include <uuid.h>
 
 namespace dtl {
 

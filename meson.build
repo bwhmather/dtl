@@ -96,12 +96,19 @@ foreach suite, tests : test_suites
 endforeach
 
 py_test_suites = {
-    'end-to-end': [
-        'basic',
-        'duplicate-columns',
-        'rename-columns',
-        'subset-columns',
-    ]
+  'end-to-end': [
+    'basic',
+    'duplicate-columns',
+    'rename-columns',
+    'subset-columns',
+  ],
+  'lint': [
+    'exact-includes',
+    'unused-symbols',
+    'no-circular-includes',
+    'source-and-header-orders-match',
+    'source-and-header-contents-match',
+  ]
 }
 
 pymod = import('python')
@@ -110,17 +117,19 @@ python = pymod.find_installation('python3')
 foreach suite, tests : py_test_suites
   foreach test_name : tests
     test(
-        suite + '-' + test_name,
-        python,
-        args: [
-            meson.current_source_dir() +
-            '/tests/' + suite +
-            '/test_' + test_name.replace('-', '_') + '.py',
-        ],
-        env: {
-            'DTL': exe.full_path(),
-        },
-        timeout: 10,
+      suite + '-' + test_name,
+      python,
+      args: [
+        meson.current_source_dir() +
+        '/tests/' + suite +
+        '/test_' + test_name.replace('-', '_') + '.py',
+      ],
+      env: {
+        'DTL': exe.full_path(),
+        'MESON_BUILD_ROOT': meson.project_build_root(),
+        'MESON_SOURCE_ROOT': meson.project_source_root(),
+      },
+      timeout: 120,
     )
 
   endforeach

@@ -1,5 +1,7 @@
 #include "dtl-ir.hpp"
 
+#include <memory>
+
 namespace dtl {
 namespace ir {
 

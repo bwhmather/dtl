@@ -1,8 +1,9 @@
 #include "dtl-tokenizer.hpp"
 
-#include <cassert>
-#include <iostream>
+#include <iterator>
 #include <map>
+#include <string>
+#include <utility>
 
 #include "dtl-location.hpp"
 #include "dtl-tokens.hpp"

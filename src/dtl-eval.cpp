@@ -1,15 +1,24 @@
 #include "dtl-eval.hpp"
 
+#include <algorithm>
+#include <arrow/api.h>
+#include <arrow/type.h>
+#include <iterator>
 #include <memory>
+#include <ranges>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "dtl-ast-to-ir.hpp"
-#include "dtl-ast.hpp"
 #include "dtl-cmd.hpp"
 #include "dtl-io.hpp"
 #include "dtl-ir-to-cmd.hpp"
 #include "dtl-ir.hpp"
 #include "dtl-parser.hpp"
 #include "dtl-tokenizer.hpp"
+#include "dtl-variant.tpp"
 
 namespace dtl {
 namespace eval {

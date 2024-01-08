@@ -1,13 +1,16 @@
 #include "dtl-io-filesystem.hpp"
 
-#include <filesystem>
-#include <memory>
-
 #include <arrow/api.h>
 #include <arrow/io/api.h>
+#include <arrow/type.h>
+#include <filesystem>
+#include <memory>
 #include <parquet/arrow/reader.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/exception.h>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include "dtl-io.hpp"
 #include "dtl-manifest.hpp"

@@ -1,19 +1,24 @@
 #include "dtl-ast-to-ir.hpp"
 
+#include <arrow/api.h>
+#include <arrow/type.h>
 #include <cassert>
+#include <initializer_list>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
-
-#include <arrow/type.h>
 
 #include "dtl-ast-find-imports.hpp"
 #include "dtl-ast.hpp"
 #include "dtl-io.hpp"
 #include "dtl-ir.hpp"
+#include "dtl-location.hpp"
+#include "dtl-variant.tpp"
 
 namespace dtl {
 namespace ast {

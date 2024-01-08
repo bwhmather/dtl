@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "dtl-ast.hpp"
 #include "dtl-io.hpp"
 #include "dtl-ir.hpp"

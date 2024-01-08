@@ -2,8 +2,6 @@
 
 #include <array>
 #include <cstddef>
-#include <memory>
-#include <string>
 
 namespace dtl {
 

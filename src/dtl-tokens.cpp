@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <iostream>
-#include <map>
 
 namespace dtl {
 namespace tokens {
