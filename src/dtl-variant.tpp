@@ -237,11 +237,10 @@ using merge = typename __merge_impl<_TVariants...>::type;
  * variant type.
  */
 template <typename _TResult>
-struct __cast_impl;
-
-template <typename... _TResultVals>
-struct __cast_impl<dtl::variant_ptr<_TResultVals...>> {
-    using _TResult = dtl::variant_ptr<_TResultVals...>;
+struct __cast_impl {
+    template <typename _TSource>
+    _TResult
+    operator()(_TSource) const;
 
     template <typename... _TSourceVals>
     _TResult
@@ -253,11 +252,6 @@ struct __cast_impl<dtl::variant_ptr<_TResultVals...>> {
             input.__value
         );
     }
-};
-
-template <typename... _TResultVals>
-struct __cast_impl<dtl::shared_variant_ptr<_TResultVals...>> {
-    using _TResult = dtl::shared_variant_ptr<_TResultVals...>;
 
     template <typename... _TSourceVals>
     _TResult
