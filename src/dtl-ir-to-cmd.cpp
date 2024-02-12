@@ -5,7 +5,7 @@
 #include <functional>
 #include <iterator>
 #include <memory>
-#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -22,68 +22,38 @@ for_each_dependency(
     const std::vector<dtl::variant_ptr<const Expression>>& roots,
     std::function<void(dtl::variant_ptr<const Expression>)> callback
 ) {
-    // A vector of all unyielded expressions in approximate reverse dependency
-    // order.  After traversing the graph, the last root will be the first
-    // expression in the list, followed by its dependencies, followed by the
-    // next root, and so on.
-    std::vector<dtl::variant_ptr<const Expression>> expressions;
-    std::unordered_map<dtl::variant_ptr<const Expression>, int> refcounts;
+    std::unordered_set<dtl::variant_ptr<const Expression>> visited;
+    std::vector<dtl::variant_ptr<const Expression>> stack(roots);
+    std::vector<bool> expanded(roots.size());
 
-    {
-        // Traverse and build list of all reachable expressions plus mapping to
-        // refcounts.
-        std::vector<dtl::variant_ptr<const Expression>> queue;
+    while (stack.size()) {
+        dtl::variant_ptr<const Expression> next = stack.back();
 
-        // Enqueue roots with a refcount of zero.
-        for (auto&& root : roots) {
-            queue.push_back(root);
-            refcounts[root] = 0;
+        if (visited.contains(next)) {
+            // Ignore
+            stack.pop_back();
+            expanded.pop_back();
+            continue;
         }
 
-        while (queue.size()) {
-            auto next = queue.back();
-            queue.pop_back();
-
-            expressions.push_back(next);
+        if (!expanded.back()) {
+            // Expand
+            expanded.back() = true;
 
             for_each_direct_dependency(
                 next, [&](dtl::variant_ptr<const Expression> dependency) {
-                    // Queue the dependency for traversal.
-                    if (!refcounts.contains(dependency)) {
-                        queue.push_back(dependency);
-                        refcounts[dependency] = 0;
-                    }
-
-                    refcounts[dependency]++;
+                    stack.push_back(dependency);
+                    expanded.push_back(false);
                 }
             );
+            continue;
         }
-    }
 
-    // Yield all reachable expressions in dependency order.
-    while (expressions.size()) {
-        // Find and remove next expression with a refcount of zero.  Worst case
-        // is O(n^2), but typical case should be closer to O(n) as expressions
-        // should be roughly in order.
-        auto unblocked = [&](dtl::variant_ptr<const Expression> expression) {
-            return refcounts[expression] == 0;
-        };
+        stack.pop_back();
+        expanded.pop_back();
 
-        auto cursor =
-            std::find_if(expressions.rbegin(), expressions.rend(), unblocked);
-        assert(cursor != expressions.rend());
-
-        dtl::variant_ptr<const Expression> expression = *cursor;
-        expressions.erase(cursor.base() - 1);
-
-        // Decrement refcount of all dependencies.
-        for_each_direct_dependency(
-            expression,
-            [&](dtl::variant_ptr<const Expression> dependency) { refcounts[dependency]--; }
-        );
-
-        // Call callback on removed expression.
-        callback(expression);
+        visited.insert(next);
+        callback(next);
     }
 }
 
