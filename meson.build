@@ -101,6 +101,7 @@ py_test_suites = {
     'duplicate-columns',
     'rename-columns',
     'subset-columns',
+    'add-expression',
   ],
   'lint': [
     'exact-includes',

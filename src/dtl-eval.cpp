@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <arrow/api.h>
+#include <arrow/compute/api.h>
 #include <arrow/type.h>
 #include <iterator>
 #include <memory>
@@ -118,8 +119,14 @@ eval_array_expression(
         throw "Not implemented";
     }
 
-    if (dtl::get_if<const dtl::ir::AddExpression*>(base_expression)) {
-        throw "Not implemented";
+    if (auto expression = dtl::get_if<const dtl::ir::AddExpression*>(base_expression)) {
+        auto left = context.arrays[expression->left];
+        auto right = context.arrays[expression->right];
+
+        arrow::Datum result = arrow::compute::Add(left, right).ValueOrDie();
+        auto r = std::move(result).chunked_array();
+        context.arrays[expression->shared_from_this()] = r;
+        return;
     }
 
     if (dtl::get_if<const dtl::ir::SubtractExpression*>(base_expression)) {
