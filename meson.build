@@ -1,4 +1,4 @@
-project('dtl', 'cpp', default_options: [
+project('dtl', ['c', 'cpp'], default_options: [
     'cpp_std=c++20',
 ])
 
@@ -38,6 +38,8 @@ lib_sources = [
   'src/dtl-tokenizer.cpp',
   'src/dtl-tokens.cpp',
   'src/dtl-uuid.cpp',
+  'src/dtl-graph.c',
+  'src/dtl-ir.c',
   parser_source,
 ]
 
