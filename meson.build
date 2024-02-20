@@ -38,7 +38,6 @@ lib_sources = [
   'src/dtl-tokenizer.cpp',
   'src/dtl-tokens.cpp',
   'src/dtl-uuid.cpp',
-  'src/dtl-graph.c',
   'src/dtl-ir.c',
   parser_source,
 ]
