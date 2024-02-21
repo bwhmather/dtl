@@ -312,3 +312,26 @@ dtl_ir_divide_expression_left(struct dtl_ir_graph* graph, struct dtl_ir_expressi
 
 struct dtl_ir_expression*
 dtl_ir_divide_expression_right(struct dtl_ir_graph* graph, struct dtl_ir_expression* expression);
+
+
+/* === Tables =================================================================================== */
+
+struct dtl_ir_table;
+
+struct dtl_ir_table *
+dtl_ir_table_create(void);
+
+void
+dtl_ir_table_destroy(struct dtl_ir_table *table);
+
+void
+dtl_ir_table_add_column(struct dtl_ir_table *table, const char *name, struct dtl_ir_expression *expression);
+
+size_t
+dtl_ir_table_get_num_columns(struct dtl_ir_table *table);
+
+struct dtl_ir_expression *
+dtl_ir_table_get_column_expression(struct dtl_ir_table *table, size_t column);
+
+const char *
+dtl_ir_table_get_column_name(struct dtl_ir_table *table, size_t column);

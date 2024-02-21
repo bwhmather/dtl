@@ -1034,3 +1034,60 @@ dtl_ir_divide_expression_right(struct dtl_ir_graph* graph, struct dtl_ir_express
 
     return dtl_ir_expression_get_dependency(graph, expression, 2);
 }
+
+/* === Tables =================================================================================== */
+
+struct dtl_ir_column {
+    char *name;
+    struct dtl_ir_expression *expression;
+};
+
+struct dtl_ir_table {
+    struct dtl_ir_column *columns;
+    size_t columns_length;
+};
+
+void
+dtl_ir_table_destroy(struct dtl_ir_table *table) {
+    assert(table != NULL);
+
+    for (size_t i = 0; i < table->columns_length; i++) {
+        free(table->columns[i].name);
+    }
+    free(table->columns);
+    free(table);
+}
+
+struct dtl_ir_table *
+dtl_ir_table_create(void) {
+    struct dtl_ir_table *table = calloc(sizeof(struct dtl_ir_table), 1);
+    return table;
+}
+
+void
+dtl_ir_table_add_column(struct dtl_ir_table *table, const char *name, struct dtl_ir_expression *expression) {
+    assert(table != NULL);
+
+    table->columns = realloc(table->columns, table->columns_length + 1);
+    assert(table->columns != NULL);
+
+    struct dtl_ir_column *column = &table->columns[table->columns_length];
+
+    column->name = strdup(name);
+    assert(column->name != NULL);
+
+    column->expression = expression;
+}
+
+size_t
+dtl_ir_table_get_num_columns(struct dtl_ir_table *table) {
+    assert(table != NULL);
+    return table->columns_length;
+}
+
+struct dtl_ir_expression *
+dtl_ir_table_get_column_expression(struct dtl_ir_table *table, size_t column);
+
+const char *
+dtl_ir_table_get_column_name(struct dtl_ir_table *table, size_t column);
+
