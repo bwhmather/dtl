@@ -20,7 +20,7 @@ bison = find_program('bison')
 
 parser_source = custom_target(
     'parser',
-    input: ['src/dtl-parser.y'], output: ['dtl-parser.cpp'],
+    input: ['src/dtl-parser.y'], output: ['dtl-parser.c'],
     command: [bison, '-o', '@OUTPUT@', '@INPUT@'],
 )
 
@@ -35,6 +35,7 @@ lib_sources = [
   'src/dtl-ir-dependencies.cpp',
   'src/dtl-ir-to-cmd.cpp',
   'src/dtl-manifest.cpp',
+  'src/dtl-tokenizer.c',
   'src/dtl-tokenizer.cpp',
   'src/dtl-tokens.cpp',
   'src/dtl-uuid.cpp',
