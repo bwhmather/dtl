@@ -161,6 +161,14 @@ struct DivideExpression :
     dtl::shared_variant_ptr<const ArrayExpression> right;
 };
 
+/* --- Helpers -------------------------------------------------------------- */
+
+DType
+expression_dtype(dtl::variant_ptr<const ArrayExpression> expression);
+
+dtl::shared_variant_ptr<const ShapeExpression>
+expression_shape(dtl::variant_ptr<const ArrayExpression> expression);
+
 /* === Tables =============================================================== */
 
 class TableVisitor;

@@ -220,13 +220,16 @@ compile_expression(
         auto left = compile_expression(dtl::borrow(expression->left), scope, context);
         auto right = compile_expression(dtl::borrow(expression->right), scope, context);
 
-        auto left_base = dtl::cast<const dtl::ir::BaseArrayExpression*>(
-            dtl::borrow(left)
-        );
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error");  // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error");  // TODO
+        }
 
         auto result = std::make_shared<dtl::ir::AddExpression>();
-        result->dtype = left_base->dtype; // TODO check match
-        result->shape = left_base->shape; // TODO check match.
+        result->dtype = expression_dtype(dtl::borrow(left));
+        result->shape = expression_shape(dtl::borrow(right));
         result->left = left;
         result->right = right;
 
@@ -236,13 +239,16 @@ compile_expression(
         auto left = compile_expression(dtl::borrow(expression->left), scope, context);
         auto right = compile_expression(dtl::borrow(expression->right), scope, context);
 
-        auto left_base = dtl::cast<const dtl::ir::BaseArrayExpression*>(
-            dtl::borrow(left)
-        );
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error");  // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error");  // TODO
+        }
 
         auto result = std::make_shared<dtl::ir::SubtractExpression>();
-        result->dtype = left_base->dtype; // TODO check match
-        result->shape = left_base->shape; // TODO check match.
+        result->dtype = expression_dtype(dtl::borrow(left));
+        result->shape = expression_shape(dtl::borrow(right));
         result->left = left;
         result->right = right;
 
@@ -252,13 +258,16 @@ compile_expression(
         auto left = compile_expression(dtl::borrow(expression->left), scope, context);
         auto right = compile_expression(dtl::borrow(expression->right), scope, context);
 
-        auto left_base = dtl::cast<const dtl::ir::BaseArrayExpression*>(
-            dtl::borrow(left)
-        );
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error");  // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error");  // TODO
+        }
 
         auto result = std::make_shared<dtl::ir::MultiplyExpression>();
-        result->dtype = left_base->dtype; // TODO check match
-        result->shape = left_base->shape; // TODO check match.
+        result->dtype = expression_dtype(dtl::borrow(left));
+        result->shape = expression_shape(dtl::borrow(right));
         result->left = left;
         result->right = right;
 
@@ -268,13 +277,16 @@ compile_expression(
         auto left = compile_expression(dtl::borrow(expression->left), scope, context);
         auto right = compile_expression(dtl::borrow(expression->right), scope, context);
 
-        auto left_base = dtl::cast<const dtl::ir::BaseArrayExpression*>(
-            dtl::borrow(left)
-        );
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error");  // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error");  // TODO
+        }
 
         auto result = std::make_shared<dtl::ir::MultiplyExpression>();
-        result->dtype = left_base->dtype; // TODO check match
-        result->shape = left_base->shape; // TODO check match.
+        result->dtype = expression_dtype(dtl::borrow(left));
+        result->shape = expression_shape(dtl::borrow(right));
         result->left = left;
         result->right = right;
 

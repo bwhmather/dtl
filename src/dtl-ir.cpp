@@ -5,6 +5,20 @@
 namespace dtl {
 namespace ir {
 
+/* === Expressions ========================================================== */
+
+DType
+expression_dtype(dtl::variant_ptr<const ArrayExpression> expression) {
+    auto base_expression = dtl::cast<const dtl::ir::BaseArrayExpression*>(expression);
+    return base_expression->dtype;
+}
+
+dtl::shared_variant_ptr<const ShapeExpression>
+expression_shape(dtl::variant_ptr<const ArrayExpression> expression) {
+    auto base_expression = dtl::cast<const dtl::ir::BaseArrayExpression*>(expression);
+    return base_expression->shape;
+}
+
 /* === Tables =============================================================== */
 
 std::shared_ptr<const Table>
