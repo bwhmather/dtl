@@ -232,14 +232,53 @@ compile_expression(
 
         return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
-    if (dtl::get_if<const SubtractExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const SubtractExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        auto left_base = dtl::cast<const dtl::ir::BaseArrayExpression*>(
+            dtl::borrow(left)
+        );
+
+        auto result = std::make_shared<dtl::ir::SubtractExpression>();
+        result->dtype = left_base->dtype; // TODO check match
+        result->shape = left_base->shape; // TODO check match.
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
-    if (dtl::get_if<const MultiplyExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const MultiplyExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        auto left_base = dtl::cast<const dtl::ir::BaseArrayExpression*>(
+            dtl::borrow(left)
+        );
+
+        auto result = std::make_shared<dtl::ir::MultiplyExpression>();
+        result->dtype = left_base->dtype; // TODO check match
+        result->shape = left_base->shape; // TODO check match.
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
-    if (dtl::get_if<const DivideExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const DivideExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        auto left_base = dtl::cast<const dtl::ir::BaseArrayExpression*>(
+            dtl::borrow(left)
+        );
+
+        auto result = std::make_shared<dtl::ir::MultiplyExpression>();
+        result->dtype = left_base->dtype; // TODO check match
+        result->shape = left_base->shape; // TODO check match.
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
 
     throw std::logic_error("Unreachable");

@@ -131,16 +131,34 @@ eval_array_expression(
         return;
     }
 
-    if (dtl::get_if<const dtl::ir::SubtractExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const dtl::ir::SubtractExpression*>(base_expression)) {
+        auto left = context.arrays[expression->left];
+        auto right = context.arrays[expression->right];
+
+        arrow::Datum result = arrow::compute::Subtract(left, right).ValueOrDie();
+        auto r = std::move(result).chunked_array();
+        context.arrays[expression->shared_from_this()] = r;
+        return;
     }
 
-    if (dtl::get_if<const dtl::ir::MultiplyExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const dtl::ir::MultiplyExpression*>(base_expression)) {
+        auto left = context.arrays[expression->left];
+        auto right = context.arrays[expression->right];
+
+        arrow::Datum result = arrow::compute::Multiply(left, right).ValueOrDie();
+        auto r = std::move(result).chunked_array();
+        context.arrays[expression->shared_from_this()] = r;
+        return;
     }
 
-    if (dtl::get_if<const dtl::ir::DivideExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const dtl::ir::DivideExpression*>(base_expression)) {
+        auto left = context.arrays[expression->left];
+        auto right = context.arrays[expression->right];
+
+        arrow::Datum result = arrow::compute::Divide(left, right).ValueOrDie();
+        auto r = std::move(result).chunked_array();
+        context.arrays[expression->shared_from_this()] = r;
+        return;
     }
 }
 

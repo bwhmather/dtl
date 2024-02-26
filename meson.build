@@ -102,6 +102,8 @@ py_test_suites = {
     'rename-columns',
     'subset-columns',
     'add-expression',
+    'associativity',
+    'precedence',
   ],
   'lint': [
     'exact-includes',
