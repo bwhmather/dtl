@@ -7,6 +7,7 @@
 #include <iterator>
 #include <memory>
 #include <ranges>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -76,15 +77,15 @@ eval_shape_expression(
     (void)context;
 
     if (dtl::get_if<const dtl::ir::ImportShapeExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const dtl::ir::JoinShapeExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const dtl::ir::WhereShapeExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 }
 
@@ -100,23 +101,23 @@ eval_array_expression(
     }
 
     if (dtl::get_if<const dtl::ir::WhereExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const dtl::ir::PickExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const dtl::ir::IndexExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const dtl::ir::JoinLeftExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const dtl::ir::JoinRightExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (auto expression = dtl::get_if<const dtl::ir::AddExpression*>(base_expression)) {
@@ -130,15 +131,15 @@ eval_array_expression(
     }
 
     if (dtl::get_if<const dtl::ir::SubtractExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const dtl::ir::MultiplyExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const dtl::ir::DivideExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 }
 
@@ -162,7 +163,7 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
     ) override final {
         // TODO
         (void)cmd;
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     void
@@ -171,7 +172,7 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
     ) override final {
         // TODO
         (void)cmd;
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     void
@@ -180,7 +181,7 @@ class EvalCommandVisitor : public dtl::cmd::CommandVisitor {
     ) override final {
         // TODO
         (void)cmd;
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     void

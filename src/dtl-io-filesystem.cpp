@@ -8,6 +8,7 @@
 #include <parquet/arrow/reader.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/exception.h>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -112,7 +113,7 @@ class FilesystemTracer : public Tracer {
     void
     write_manifest(const dtl::manifest::Manifest& manifest) override final {
         (void)manifest;
-        throw "Not implemented error";
+        throw std::logic_error("Not implemented");
     }
 
     void
@@ -120,7 +121,7 @@ class FilesystemTracer : public Tracer {
         override final {
         (void)array_id;
         (void)array;
-        throw "Not implemented error";
+        throw std::logic_error("Not implemented");
     }
 };
 

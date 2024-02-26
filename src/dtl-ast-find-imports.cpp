@@ -3,6 +3,7 @@
 #include <functional>
 #include <iterator>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -322,7 +323,7 @@ find_imports_in_update_statement(
 ) {
     (void)statement;
     (void)callback;
-    throw "Not implement";
+    throw std::logic_error("Not implement");
 }
 
 void
@@ -332,7 +333,7 @@ find_imports_in_delete_statement(
 ) {
     (void)statement;
     (void)callback;
-    throw "Not implement";
+    throw std::logic_error("Not implement");
 }
 
 void
@@ -342,7 +343,7 @@ find_imports_in_insert_statement(
 ) {
     (void)statement;
     (void)callback;
-    throw "Not implement";
+    throw std::logic_error("Not implement");
 }
 
 void
@@ -360,7 +361,7 @@ find_imports_in_begin_statement(
 ) {
     (void)statement;
     (void)callback;
-    throw "Not implement";
+    throw std::logic_error("Not implement");
 }
 
 void

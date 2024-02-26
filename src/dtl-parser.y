@@ -343,7 +343,7 @@ string
         while (true) {
             curr++;
             if (curr == $1.end()) {
-                throw "unexpected end of string";
+                throw std::runtime_error("Unexpected end of string");
             }
             if (*curr == '\'') {
                 curr++;
@@ -352,7 +352,7 @@ string
                 }
 
                 if (*curr != '\'') {
-                    throw "unexpected single quote";
+                    throw std::runtime_error("Unexpected single quote");
                 }
             }
             expr->value += *curr;

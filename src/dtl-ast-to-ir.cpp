@@ -7,6 +7,7 @@
 #include <iterator>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -192,28 +193,28 @@ compile_expression(
 
             return column.expression;
         }
-        throw "Could not resolve reference";
+        throw std::runtime_error("Could not resolve reference");
     }
     if (dtl::get_if<const LiteralExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const FunctionCallExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const EqualToExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const LessThanExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const LessThanEqualExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const GreaterThanExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const GreaterThanEqualExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (auto expression = dtl::get_if<const AddExpression*>(base_expression)) {
         auto left = compile_expression(dtl::borrow(expression->left), scope, context);
@@ -232,16 +233,16 @@ compile_expression(
         return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
     if (dtl::get_if<const SubtractExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const MultiplyExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const DivideExpression*>(base_expression)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
-    throw "Unreachable";
+    throw std::logic_error("Unreachable");
 }
 
 static std::string
@@ -254,7 +255,7 @@ column_name_name(dtl::variant_ptr<const ColumnName> base_column_name) {
         return column_name->column_name;
     }
 
-    throw "Unreachable";
+    throw std::logic_error("Unreachable");
 }
 
 static std::optional<std::string>
@@ -267,7 +268,7 @@ column_name_namespace(variant_ptr<const ColumnName> base_column_name) {
         return column_name->table_name;
     }
 
-    throw "Unreachable";
+    throw std::logic_error("Unreachable");
 }
 
 static std::string
@@ -276,7 +277,7 @@ expression_name(dtl::variant_ptr<const Expression> base_expression) {
         return column_name_name(borrow(expression->name));
     }
 
-    throw "No name could be derived for expression";
+    throw std::runtime_error("No name could be derived for expression");
 }
 
 static ScopeColumn
@@ -285,7 +286,7 @@ compile_column_binding(
     Context& context
 ) {
     if (dtl::get_if<const WildcardColumnBinding*>(base_binding)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (auto binding = dtl::get_if<const ImplicitColumnBinding*>(base_binding)) {
@@ -306,7 +307,7 @@ compile_column_binding(
         };
     }
 
-    throw "Unreachable";
+    throw std::logic_error("Unreachable");
 }
 
 static dtl::variant_ptr<const TableExpression>
@@ -319,7 +320,7 @@ table_binding_expression(dtl::variant_ptr<const TableBinding> base_binding) {
         return borrow(binding->expression);
     }
 
-    throw "Unreachable";
+    throw std::logic_error("Unreachable");
 }
 
 static std::string
@@ -341,7 +342,7 @@ table_binding_name(dtl::variant_ptr<const TableBinding> base_binding) {
         return binding->alias;
     }
 
-    throw "Unreachable";
+    throw std::logic_error("Unreachable");
 }
 
 static std::shared_ptr<Scope>
@@ -407,7 +408,7 @@ compile_table_expression(
         return scope;
     }
 
-    throw "Unreachable";
+    throw std::logic_error("Unreachable");
 }
 
 static std::shared_ptr<Scope>
@@ -442,15 +443,15 @@ compile_statement(dtl::variant_ptr<const Statement> base_statement, Context& con
     }
 
     if (dtl::get_if<const UpdateStatement*>(base_statement)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const DeleteStatement*>(base_statement)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (dtl::get_if<const InsertStatement*>(base_statement)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
     if (auto statement = dtl::get_if<const ExportStatement*>(base_statement)) {
@@ -465,10 +466,10 @@ compile_statement(dtl::variant_ptr<const Statement> base_statement, Context& con
     }
 
     if (dtl::get_if<const BeginStatement*>(base_statement)) {
-        throw "Not implemented";
+        throw std::logic_error("Not implemented");
     }
 
-    throw "Unreachable";
+    throw std::logic_error("Unreachable");
 }
 
 static void

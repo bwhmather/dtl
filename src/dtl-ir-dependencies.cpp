@@ -1,6 +1,7 @@
 #include "dtl-ir-dependencies.hpp"
 
 #include <functional>
+#include <stdexcept>
 
 #include "dtl-ir.hpp"
 #include "dtl-variant.tpp"
@@ -85,7 +86,7 @@ for_each_direct_dependency(
         return;
     }
 
-    throw "Not implemented";
+    throw std::logic_error("Not implemented");
 }
 
 } /* namespace ir */
