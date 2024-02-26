@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <arrow/api.h>
 #include <arrow/compute/api.h>
+#include <arrow/datum.h>
 #include <arrow/type.h>
 #include <iterator>
 #include <memory>

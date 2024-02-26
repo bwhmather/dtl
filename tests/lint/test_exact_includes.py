@@ -24,6 +24,8 @@ from dtl_lint import (
 INCLUDE_ALIASES = {
     "arrow/array/array_base.h": "arrow/api.h",
     "arrow/chunked_array.h": "arrow/type.h",
+    "arrow/compute/api_scalar.h": "arrow/compute/api.h",
+    "arrow/compute/row/grouper.h": "arrow/compute/api.h",
     "arrow/io/caching.h": "arrow/io/api.h",
     "arrow/io/file.h": "arrow/io/api.h",
     "arrow/result.h": "arrow/type.h",
