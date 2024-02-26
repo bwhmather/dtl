@@ -10,6 +10,7 @@
 %define api.token.constructor
 
 %define parse.assert
+%define parse.error verbose
 
 %locations
 %define api.location.file none
