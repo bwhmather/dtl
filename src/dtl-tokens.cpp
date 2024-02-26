@@ -99,12 +99,12 @@ type_to_string(TokenType type) {
         return "<NotEqual>";
     case TokenType::LessThan:
         return "<LessThan>";
-    case TokenType::LessThanEqual:
-        return "<LessThanEqual>";
+    case TokenType::LessThanOrEqual:
+        return "<LessThanOrEqual>";
     case TokenType::GreaterThan:
         return "<GreaterThan>";
-    case TokenType::GreaterThanEqual:
-        return "<GreaterThanEqual>";
+    case TokenType::GreaterThanOrEqual:
+        return "<GreaterThanOrEqual>";
     case TokenType::Minus:
         return "<Minus>";
     case TokenType::Plus:

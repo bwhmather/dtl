@@ -272,7 +272,7 @@ Tokenizer::next_type() {
     if (curr == '<') {
         if (peek() == '=') {
             bump();
-            return dtl::tokens::LessThanEqual;
+            return dtl::tokens::LessThanOrEqual;
         }
         return dtl::tokens::LessThan;
     }
@@ -280,7 +280,7 @@ Tokenizer::next_type() {
     if (curr == '>') {
         if (peek() == '=') {
             bump();
-            return dtl::tokens::GreaterThanEqual;
+            return dtl::tokens::GreaterThanOrEqual;
         }
         return dtl::tokens::GreaterThan;
     }

@@ -55,7 +55,7 @@ find_imports_in_less_than_expression(
 
 void
 find_imports_in_less_than_equal_expression(
-    const LessThanEqualExpression& expression,
+    const LessThanOrEqualExpression& expression,
     std::function<void(const std::string&)> callback
 ) {
     find_imports_in_expression(borrow(expression.left), callback);
@@ -73,7 +73,7 @@ find_imports_in_greater_than_expression(
 
 void
 find_imports_in_greater_than_equal_expression(
-    const GreaterThanEqualExpression& expression,
+    const GreaterThanOrEqualExpression& expression,
     std::function<void(const std::string&)> callback
 ) {
     find_imports_in_expression(borrow(expression.left), callback);
@@ -130,13 +130,13 @@ find_imports_in_expression(
     if (auto expression = dtl::get_if<const LessThanExpression*>(base_expression)) {
         find_imports_in_less_than_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const LessThanEqualExpression*>(base_expression)) {
+    if (auto expression = dtl::get_if<const LessThanOrEqualExpression*>(base_expression)) {
         find_imports_in_less_than_equal_expression(*expression, callback);
     };
     if (auto expression = dtl::get_if<const GreaterThanExpression*>(base_expression)) {
         find_imports_in_greater_than_expression(*expression, callback);
     };
-    if (auto expression = dtl::get_if<const GreaterThanEqualExpression*>(base_expression)) {
+    if (auto expression = dtl::get_if<const GreaterThanOrEqualExpression*>(base_expression)) {
         find_imports_in_greater_than_equal_expression(*expression, callback);
     };
     if (auto expression = dtl::get_if<const AddExpression*>(base_expression)) {

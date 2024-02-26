@@ -31,9 +31,9 @@ struct LiteralExpression;
 struct FunctionCallExpression;
 struct EqualToExpression;
 struct LessThanExpression;
-struct LessThanEqualExpression;
+struct LessThanOrEqualExpression;
 struct GreaterThanExpression;
-struct GreaterThanEqualExpression;
+struct GreaterThanOrEqualExpression;
 struct AddExpression;
 struct SubtractExpression;
 struct MultiplyExpression;
@@ -44,9 +44,9 @@ typedef std::variant<
     FunctionCallExpression,
     EqualToExpression,
     LessThanExpression,
-    LessThanEqualExpression,
+    LessThanOrEqualExpression,
     GreaterThanExpression,
-    GreaterThanEqualExpression,
+    GreaterThanOrEqualExpression,
     AddExpression,
     SubtractExpression,
     MultiplyExpression,
@@ -142,7 +142,7 @@ struct LessThanExpression final : public Node {
     dtl::unique_variant_ptr<const Expression> right;
 };
 
-struct LessThanEqualExpression final : public Node {
+struct LessThanOrEqualExpression final : public Node {
     dtl::unique_variant_ptr<const Expression> left;
     dtl::unique_variant_ptr<const Expression> right;
 };
@@ -152,7 +152,7 @@ struct GreaterThanExpression final : public Node {
     dtl::unique_variant_ptr<const Expression> right;
 };
 
-struct GreaterThanEqualExpression final : public Node {
+struct GreaterThanOrEqualExpression final : public Node {
     dtl::unique_variant_ptr<const Expression> left;
     dtl::unique_variant_ptr<const Expression> right;
 };

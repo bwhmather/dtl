@@ -71,9 +71,9 @@
 %token <std::string_view> NOT
 %token <std::string_view> NOT_EQUAL
 %token <std::string_view> LESS_THAN
-%token <std::string_view> LESS_THAN_EQUAL
+%token <std::string_view> LESS_THAN_OR_EQUAL
 %token <std::string_view> GREATER_THAN
-%token <std::string_view> GREATER_THAN_EQUAL
+%token <std::string_view> GREATER_THAN_OR_EQUAL
 %token <std::string_view> MINUS
 %token <std::string_view> PLUS
 %token <std::string_view> STAR
@@ -205,11 +205,11 @@
                 return sm::make_NOT_EQUAL(token_value, token_location);
             case dtl::tokens::LessThan:
                 return sm::make_LESS_THAN(token_value, token_location);
-            case dtl::tokens::LessThanEqual:
+            case dtl::tokens::LessThanOrEqual:
                 return sm::make_LESS_THAN_EQUAL(token_value, token_location);
             case dtl::tokens::GreaterThan:
                 return sm::make_GREATER_THAN(token_value, token_location);
-            case dtl::tokens::GreaterThanEqual:
+            case dtl::tokens::GreaterThanOrEqual:
                 return sm::make_GREATER_THAN_EQUAL(token_value, token_location);
             case dtl::tokens::Minus:
                 return sm::make_MINUS(token_value, token_location);

@@ -207,13 +207,13 @@ compile_expression(
     if (dtl::get_if<const LessThanExpression*>(base_expression)) {
         throw std::logic_error("Not implemented");
     }
-    if (dtl::get_if<const LessThanEqualExpression*>(base_expression)) {
+    if (dtl::get_if<const LessThanOrEqualExpression*>(base_expression)) {
         throw std::logic_error("Not implemented");
     }
     if (dtl::get_if<const GreaterThanExpression*>(base_expression)) {
         throw std::logic_error("Not implemented");
     }
-    if (dtl::get_if<const GreaterThanEqualExpression*>(base_expression)) {
+    if (dtl::get_if<const GreaterThanOrEqualExpression*>(base_expression)) {
         throw std::logic_error("Not implemented");
     }
     if (auto expression = dtl::get_if<const AddExpression*>(base_expression)) {
