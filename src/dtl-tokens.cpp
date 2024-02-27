@@ -91,7 +91,7 @@ type_to_string(TokenType type) {
         return "<Dollar>";
 
     /* Operators */
-    case TokenType::Eq:
+    case TokenType::Equal:
         return "<Eq>";
     case TokenType::Not:
         return "<Not>";

@@ -53,7 +53,7 @@ enum TokenType {
     Dollar,
 
     /* Operators */
-    Eq,
+    Equal,
     Not,
     NotEqual,
     LessThan,

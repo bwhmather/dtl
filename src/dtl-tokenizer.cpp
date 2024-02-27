@@ -258,7 +258,7 @@ Tokenizer::next_type() {
     }
 
     if (curr == '=') {
-        return dtl::tokens::Eq;
+        return dtl::tokens::Equal;
     }
 
     if (curr == '!') {

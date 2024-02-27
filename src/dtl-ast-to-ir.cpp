@@ -201,30 +201,129 @@ compile_expression(
     if (dtl::get_if<const FunctionCallExpression*>(base_expression)) {
         throw std::logic_error("Not implemented");
     }
-    if (dtl::get_if<const EqualToExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const EqualToExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error"); // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error"); // TODO
+        }
+
+        auto result = std::make_shared<dtl::ir::EqualToExpression>();
+        result->dtype = dtl::ir::DType::BOOL;
+        result->shape = expression_shape(dtl::borrow(right));
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
-    if (dtl::get_if<const LessThanExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const NotEqualToExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error"); // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error"); // TODO
+        }
+
+        auto result = std::make_shared<dtl::ir::NotEqualToExpression>();
+        result->dtype = dtl::ir::DType::BOOL;
+        result->shape = expression_shape(dtl::borrow(right));
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
-    if (dtl::get_if<const LessThanOrEqualExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const LessThanExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error"); // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error"); // TODO
+        }
+
+        auto result = std::make_shared<dtl::ir::LessThanExpression>();
+        result->dtype = dtl::ir::DType::BOOL;
+        result->shape = expression_shape(dtl::borrow(right));
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
-    if (dtl::get_if<const GreaterThanExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const LessThanOrEqualExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error"); // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error"); // TODO
+        }
+
+        auto result = std::make_shared<dtl::ir::LessThanOrEqualExpression>();
+        result->dtype = dtl::ir::DType::BOOL;
+        result->shape = expression_shape(dtl::borrow(right));
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
-    if (dtl::get_if<const GreaterThanOrEqualExpression*>(base_expression)) {
-        throw std::logic_error("Not implemented");
+    if (auto expression = dtl::get_if<const GreaterThanExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error"); // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error"); // TODO
+        }
+
+        auto result = std::make_shared<dtl::ir::GreaterThanExpression>();
+        result->dtype = dtl::ir::DType::BOOL;
+        result->shape = expression_shape(dtl::borrow(right));
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
+    }
+    if (auto expression = dtl::get_if<const GreaterThanOrEqualExpression*>(base_expression)) {
+        auto left = compile_expression(dtl::borrow(expression->left), scope, context);
+        auto right = compile_expression(dtl::borrow(expression->right), scope, context);
+
+        if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
+            throw std::runtime_error("Type error"); // TODO
+        }
+        if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
+            throw std::runtime_error("Incompatible shape error"); // TODO
+        }
+
+        auto result = std::make_shared<dtl::ir::GreaterThanOrEqualExpression>();
+        result->dtype = dtl::ir::DType::BOOL;
+        result->shape = expression_shape(dtl::borrow(right));
+        result->left = left;
+        result->right = right;
+
+        return dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(result);
     }
     if (auto expression = dtl::get_if<const AddExpression*>(base_expression)) {
         auto left = compile_expression(dtl::borrow(expression->left), scope, context);
         auto right = compile_expression(dtl::borrow(expression->right), scope, context);
 
         if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
-            throw std::runtime_error("Type error");  // TODO
+            throw std::runtime_error("Type error"); // TODO
         }
         if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
-            throw std::runtime_error("Incompatible shape error");  // TODO
+            throw std::runtime_error("Incompatible shape error"); // TODO
         }
 
         auto result = std::make_shared<dtl::ir::AddExpression>();
@@ -240,10 +339,10 @@ compile_expression(
         auto right = compile_expression(dtl::borrow(expression->right), scope, context);
 
         if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
-            throw std::runtime_error("Type error");  // TODO
+            throw std::runtime_error("Type error"); // TODO
         }
         if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
-            throw std::runtime_error("Incompatible shape error");  // TODO
+            throw std::runtime_error("Incompatible shape error"); // TODO
         }
 
         auto result = std::make_shared<dtl::ir::SubtractExpression>();
@@ -259,10 +358,10 @@ compile_expression(
         auto right = compile_expression(dtl::borrow(expression->right), scope, context);
 
         if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
-            throw std::runtime_error("Type error");  // TODO
+            throw std::runtime_error("Type error"); // TODO
         }
         if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
-            throw std::runtime_error("Incompatible shape error");  // TODO
+            throw std::runtime_error("Incompatible shape error"); // TODO
         }
 
         auto result = std::make_shared<dtl::ir::MultiplyExpression>();
@@ -278,10 +377,10 @@ compile_expression(
         auto right = compile_expression(dtl::borrow(expression->right), scope, context);
 
         if (dtl::ir::expression_dtype(dtl::borrow(left)) != dtl::ir::expression_dtype(dtl::borrow(right))) {
-            throw std::runtime_error("Type error");  // TODO
+            throw std::runtime_error("Type error"); // TODO
         }
         if (dtl::ir::expression_shape(dtl::borrow(left)) != dtl::ir::expression_shape(dtl::borrow(right))) {
-            throw std::runtime_error("Incompatible shape error");  // TODO
+            throw std::runtime_error("Incompatible shape error"); // TODO
         }
 
         auto result = std::make_shared<dtl::ir::MultiplyExpression>();

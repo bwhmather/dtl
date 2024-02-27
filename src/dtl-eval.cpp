@@ -121,6 +121,30 @@ eval_array_expression(
         throw std::logic_error("Not implemented");
     }
 
+    if (dtl::get_if<const dtl::ir::EqualToExpression*>(base_expression)) {
+        throw std::logic_error("Not implemented");
+    }
+
+    if (dtl::get_if<const dtl::ir::NotEqualToExpression*>(base_expression)) {
+        throw std::logic_error("Not implemented");
+    }
+
+    if (dtl::get_if<const dtl::ir::LessThanExpression*>(base_expression)) {
+        throw std::logic_error("Not implemented");
+    }
+
+    if (dtl::get_if<const dtl::ir::LessThanOrEqualExpression*>(base_expression)) {
+        throw std::logic_error("Not implemented");
+    }
+
+    if (dtl::get_if<const dtl::ir::GreaterThanExpression*>(base_expression)) {
+        throw std::logic_error("Not implemented");
+    }
+
+    if (dtl::get_if<const dtl::ir::GreaterThanOrEqualExpression*>(base_expression)) {
+        throw std::logic_error("Not implemented");
+    }
+
     if (auto expression = dtl::get_if<const dtl::ir::AddExpression*>(base_expression)) {
         auto left = context.arrays[expression->left];
         auto right = context.arrays[expression->right];

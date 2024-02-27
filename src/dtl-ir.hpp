@@ -42,6 +42,12 @@ struct PickExpression;
 struct IndexExpression;
 struct JoinLeftExpression;
 struct JoinRightExpression;
+struct EqualToExpression;
+struct NotEqualToExpression;
+struct LessThanExpression;
+struct LessThanOrEqualExpression;
+struct GreaterThanExpression;
+struct GreaterThanOrEqualExpression;
 struct AddExpression;
 struct SubtractExpression;
 struct MultiplyExpression;
@@ -54,6 +60,12 @@ typedef std::variant<
     IndexExpression,
     JoinLeftExpression,
     JoinRightExpression,
+    EqualToExpression,
+    NotEqualToExpression,
+    LessThanExpression,
+    LessThanOrEqualExpression,
+    GreaterThanExpression,
+    GreaterThanOrEqualExpression,
     AddExpression,
     SubtractExpression,
     MultiplyExpression,
@@ -131,6 +143,48 @@ struct JoinRightExpression :
     public std::enable_shared_from_this<JoinRightExpression> {
     dtl::shared_variant_ptr<const ShapeExpression> left;
     dtl::shared_variant_ptr<const ShapeExpression> right;
+};
+
+struct EqualToExpression :
+    public BaseArrayExpression,
+    public std::enable_shared_from_this<EqualToExpression> {
+    dtl::shared_variant_ptr<const ArrayExpression> left;
+    dtl::shared_variant_ptr<const ArrayExpression> right;
+};
+
+struct NotEqualToExpression :
+    public BaseArrayExpression,
+    public std::enable_shared_from_this<NotEqualToExpression> {
+    dtl::shared_variant_ptr<const ArrayExpression> left;
+    dtl::shared_variant_ptr<const ArrayExpression> right;
+};
+
+struct LessThanExpression :
+    public BaseArrayExpression,
+    public std::enable_shared_from_this<LessThanExpression> {
+    dtl::shared_variant_ptr<const ArrayExpression> left;
+    dtl::shared_variant_ptr<const ArrayExpression> right;
+};
+
+struct LessThanOrEqualExpression :
+    public BaseArrayExpression,
+    public std::enable_shared_from_this<LessThanOrEqualExpression> {
+    dtl::shared_variant_ptr<const ArrayExpression> left;
+    dtl::shared_variant_ptr<const ArrayExpression> right;
+};
+
+struct GreaterThanExpression :
+    public BaseArrayExpression,
+    public std::enable_shared_from_this<GreaterThanExpression> {
+    dtl::shared_variant_ptr<const ArrayExpression> left;
+    dtl::shared_variant_ptr<const ArrayExpression> right;
+};
+
+struct GreaterThanOrEqualExpression :
+    public BaseArrayExpression,
+    public std::enable_shared_from_this<GreaterThanOrEqualExpression> {
+    dtl::shared_variant_ptr<const ArrayExpression> left;
+    dtl::shared_variant_ptr<const ArrayExpression> right;
 };
 
 struct AddExpression :

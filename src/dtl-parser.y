@@ -67,7 +67,7 @@
 %token <std::string_view> DOLLAR
 
 /* Operators */
-%token <std::string_view> EQ
+%token <std::string_view> EQUAL
 %token <std::string_view> NOT
 %token <std::string_view> NOT_EQUAL
 %token <std::string_view> LESS_THAN
@@ -197,8 +197,8 @@
                 return sm::make_DOLLAR(token_value, token_location);
 
             /* Operators */
-            case dtl::tokens::Eq:
-                return sm::make_EQ(token_value, token_location);
+            case dtl::tokens::Equal:
+                return sm::make_EQUAL(token_value, token_location);
             case dtl::tokens::Not:
                 return sm::make_NOT(token_value, token_location);
             case dtl::tokens::NotEqual:
@@ -206,11 +206,11 @@
             case dtl::tokens::LessThan:
                 return sm::make_LESS_THAN(token_value, token_location);
             case dtl::tokens::LessThanOrEqual:
-                return sm::make_LESS_THAN_EQUAL(token_value, token_location);
+                return sm::make_LESS_THAN_OR_EQUAL(token_value, token_location);
             case dtl::tokens::GreaterThan:
                 return sm::make_GREATER_THAN(token_value, token_location);
             case dtl::tokens::GreaterThanOrEqual:
-                return sm::make_GREATER_THAN_EQUAL(token_value, token_location);
+                return sm::make_GREATER_THAN_OR_EQUAL(token_value, token_location);
             case dtl::tokens::Minus:
                 return sm::make_MINUS(token_value, token_location);
             case dtl::tokens::Plus:
@@ -271,6 +271,12 @@
 %type <std::unique_ptr<const dtl::ast::LiteralExpression>> literal_expression;
 %type <std::vector<dtl::unique_variant_ptr<const dtl::ast::Expression>>> expression_list;
 %type <std::unique_ptr<const dtl::ast::FunctionCallExpression>> function_call_expression;
+%type <std::unique_ptr<const dtl::ast::EqualToExpression>> equal_to_expression;
+%type <std::unique_ptr<const dtl::ast::NotEqualToExpression>> not_equal_to_expression;
+%type <std::unique_ptr<const dtl::ast::LessThanExpression>> less_than_expression;
+%type <std::unique_ptr<const dtl::ast::LessThanOrEqualExpression>> less_than_or_equal_expression;
+%type <std::unique_ptr<const dtl::ast::GreaterThanExpression>> greater_than_expression;
+%type <std::unique_ptr<const dtl::ast::GreaterThanOrEqualExpression>> greater_than_or_equal_expression;
 %type <std::unique_ptr<const dtl::ast::AddExpression>> add_expression;
 %type <std::unique_ptr<const dtl::ast::SubtractExpression>> subtract_expression;
 %type <std::unique_ptr<const dtl::ast::MultiplyExpression>> multiply_expression;
@@ -398,6 +404,24 @@ expression
     | function_call_expression {
         $$ = std::move($1);
     }
+    | equal_to_expression {
+        $$ = std::move($1);
+    }
+    | not_equal_to_expression {
+        $$ = std::move($1);
+    }
+    | less_than_expression {
+        $$ = std::move($1);
+    }
+    | less_than_or_equal_expression {
+        $$ = std::move($1);
+    }
+    | greater_than_expression {
+        $$ = std::move($1);
+    }
+    | greater_than_or_equal_expression {
+        $$ = std::move($1);
+    }
     | add_expression {
         $$ = std::move($1);
     }
@@ -443,6 +467,60 @@ function_call_expression
         auto expr = std::make_unique<dtl::ast::FunctionCallExpression>();
         expr->name = std::move($name);
         expr->arguments = std::move($arguments);
+        $$ = std::move(expr);
+    }
+    ;
+
+equal_to_expression
+    : expression[left] EQUAL expression[right] {
+        auto expr = std::make_unique<dtl::ast::EqualToExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
+    }
+    ;
+
+not_equal_to_expression
+    : expression[left] NOT_EQUAL expression[right] {
+        auto expr = std::make_unique<dtl::ast::NotEqualToExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
+    }
+    ;
+
+less_than_expression
+    : expression[left] LESS_THAN expression[right] {
+        auto expr = std::make_unique<dtl::ast::LessThanExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
+    }
+    ;
+
+less_than_or_equal_expression
+    : expression[left] LESS_THAN_OR_EQUAL expression[right] {
+        auto expr = std::make_unique<dtl::ast::LessThanOrEqualExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
+    }
+    ;
+
+greater_than_expression
+    : expression[left] GREATER_THAN expression[right] {
+        auto expr = std::make_unique<dtl::ast::GreaterThanExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
+        $$ = std::move(expr);
+    }
+    ;
+
+greater_than_or_equal_expression
+    : expression[left] GREATER_THAN_OR_EQUAL expression[right] {
+        auto expr = std::make_unique<dtl::ast::GreaterThanOrEqualExpression>();
+        expr->left = std::move($left);
+        expr->right = std::move($right);
         $$ = std::move(expr);
     }
     ;

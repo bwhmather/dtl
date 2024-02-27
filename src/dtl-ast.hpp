@@ -30,6 +30,7 @@ struct ColumnReferenceExpression;
 struct LiteralExpression;
 struct FunctionCallExpression;
 struct EqualToExpression;
+struct NotEqualToExpression;
 struct LessThanExpression;
 struct LessThanOrEqualExpression;
 struct GreaterThanExpression;
@@ -43,6 +44,7 @@ typedef std::variant<
     LiteralExpression,
     FunctionCallExpression,
     EqualToExpression,
+    NotEqualToExpression,
     LessThanExpression,
     LessThanOrEqualExpression,
     GreaterThanExpression,
@@ -133,6 +135,11 @@ struct FunctionCallExpression final : public Node {
 };
 
 struct EqualToExpression final : public Node {
+    dtl::unique_variant_ptr<const Expression> left;
+    dtl::unique_variant_ptr<const Expression> right;
+};
+
+struct NotEqualToExpression final : public Node {
     dtl::unique_variant_ptr<const Expression> left;
     dtl::unique_variant_ptr<const Expression> right;
 };
