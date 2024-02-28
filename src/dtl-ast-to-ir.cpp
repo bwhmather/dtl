@@ -523,12 +523,36 @@ compile_table_expression(
 
         // Not traced because the same expression should already have been
         // traced above in the call to `compile_table_expression`.
-        src_scope =
-            std::make_shared<Scope>(Scope{.columns = std::move(src_columns)});
+        src_scope = std::make_shared<Scope>(Scope{.columns = std::move(src_columns)});
 
         // TODO join clauses.
 
-        // TODO where clauses.
+        if (expression->where) {
+            auto predicate_expression = compile_expression(dtl::borrow(expression->where->predicate), src_scope, context);
+
+            auto where_shape_expression = std::make_shared<dtl::ir::WhereShapeExpression>();
+            where_shape_expression->mask = predicate_expression;
+            auto shape_expression = dtl::shared_variant_ptr<const dtl::ir::ShapeExpression>(where_shape_expression);
+
+
+            std::vector<ScopeColumn> filtered_columns;
+            for (auto& src_column : src_scope->columns) {
+                auto where_expression = std::make_shared<dtl::ir::WhereExpression>();
+                where_expression->dtype = expression_dtype(dtl::borrow(src_column.expression));
+                where_expression->shape = shape_expression;
+                where_expression->source = src_column.expression;
+                where_expression->mask = predicate_expression;
+
+                ScopeColumn column{
+                    .name = src_column.name,
+                    .namespaces = src_column.namespaces,
+                    .expression = dtl::shared_variant_ptr<const dtl::ir::ArrayExpression>(where_expression)
+                };
+                src_columns.push_back(std::move(column));
+            }
+
+            src_scope = std::make_shared<Scope>(Scope{.columns = std::move(filtered_columns)});
+        }
 
         // TODO group by.
 
