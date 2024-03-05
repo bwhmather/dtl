@@ -9,23 +9,25 @@
 #define DTL_AST_CLASS_EXPRESSION (3 << 27)
 #define DTL_AST_CLASS_COLUMN_BINDING (4 << 27)
 #define DTL_AST_CLASS_TABLE_BINDING (5 << 27)
-#define DTL_AST_CLASS_JOIN_CONSTRAINT (6 << 27)
-#define DTL_AST_CLASS_TABLE_EXPRESSION (7 << 27)
-#define DTL_AST_CLASS_STATEMENT (8 << 27)
+#define DTL_AST_CLASS_DISTINCT_CLAUSE (6 << 27)
+#define DTL_AST_CLASS_JOIN_CONSTRAINT (7 << 27)
+#define DTL_AST_CLASS_TABLE_EXPRESSION (8 << 27)
+#define DTL_AST_CLASS_STATEMENT (9 << 27)
 
 enum dtl_ast_node_type {
     DTL_AST_NAME = 1,
     DTL_AST_STRING,
 
     DTL_AST_TABLE_NAME,
-    DTL_AST_DISTINCT_CLAUSE,
     DTL_AST_COLUMN_BINDING_LIST,
     DTL_AST_FROM_CLAUSE,
     DTL_AST_JOIN_CLAUSE,
+    DTL_AST_JOIN_CLAUSE_LIST,
     DTL_AST_WHERE_CLAUSE,
     DTL_AST_GROUP_BY_CLAUSE,
     DTL_AST_GROUP_CONSECUTIVE_BY_CLAUSE,
     DTL_AST_EXPRESSION_LIST,
+    DTL_AST_STATEMENT_LIST,
     DTL_AST_SCRIPT,
 
     DTL_AST_INT_LITERAL = DTL_AST_CLASS_LITERAL,
@@ -54,6 +56,9 @@ enum dtl_ast_node_type {
     DTL_AST_IMPLICIT_TABLE_BINDING = DTL_AST_CLASS_TABLE_BINDING,
     DTL_AST_ALIASED_TABLE_BINDING,
 
+    DTL_AST_DISTINCT_CLAUSE = DTL_AST_CLASS_DISTINCT_CLAUSE,
+    DTL_AST_DISTINCT_CONSECUTIVE_CLAUSE,
+
     DTL_AST_JOIN_ON_CONSTRAINT = DTL_AST_CLASS_JOIN_CONSTRAINT,
     DTL_AST_JOIN_USING_CONSTRAINT,
 
@@ -62,11 +67,10 @@ enum dtl_ast_node_type {
     DTL_AST_TABLE_REFERENCE_EXPRESSION,
 
     DTL_AST_ASSIGNMENT_STATEMENT = DTL_AST_CLASS_STATEMENT,
-    DTL_AST_UPDATE_STATEMENT,
-    DTL_AST_DELETE_STATEMENT,
-    DTL_AST_INSERT_STATEMENT,
+    //    DTL_AST_UPDATE_STATEMENT,  // TODO
+    //    DTL_AST_DELETE_STATEMENT,  // TODO
+    //    DTL_AST_INSERT_STATEMENT,  // TODO
     DTL_AST_EXPORT_STATEMENT,
-    DTL_AST_BEGIN_STATEMENT,
 };
 
 struct dtl_ast_node {
@@ -85,6 +89,8 @@ dtl_ast_node_create(enum dtl_ast_node_type type);
 struct dtl_ast_node *
 dtl_ast_node_append(struct dtl_ast_node *container, struct dtl_ast_node *child);
 
+struct dtl_ast_node *
+dtl_ast_node_get_child(struct dtl_ast_node *container, size_t child_index);
+
 void
 dtl_ast_node_destroy(struct dtl_ast_node *node);
-

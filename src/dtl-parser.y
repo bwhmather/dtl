@@ -470,7 +470,7 @@ distinct_clause
         $$->end = $1.end;
     }
     | DISTINCT CONSECUTIVE {
-        $$ = dtl_ast_node_create(DTL_AST_DISTINCT_CLAUSE);
+        $$ = dtl_ast_node_create(DTL_AST_DISTINCT_CONSECUTIVE_CLAUSE);
         $$->start = $1.start;
         $$->end = $2.end;
     }
@@ -607,7 +607,7 @@ join_clause
 join_clause_list
     : join_clause_list[prev] join_clause[next] {
         if ($prev == NULL) {
-            $$ = dtl_ast_node_create(DTL_AST_JOIN_CLAUSE);
+            $$ = dtl_ast_node_create(DTL_AST_JOIN_CLAUSE_LIST);
         }
         $$ = dtl_ast_node_append($$, $next);
     }
@@ -635,7 +635,9 @@ group_by_clause
         $$ = dtl_ast_node_create(DTL_AST_GROUP_CONSECUTIVE_BY_CLAUSE);
         $$ = dtl_ast_node_append($$, $pattern);
     }
-    | %empty {}
+    | %empty {
+        $$ = NULL;
+    }
     ;
 
 table_expression
@@ -658,19 +660,27 @@ select_expression
         join_clause_list[joins]
         where_clause[where]
         group_by_clause[group_by] {
-            $$ = NULL;
+            $$ = dtl_ast_node_create(DTL_AST_SELECT_EXPRESSION);
+            $$ = dtl_ast_node_append($$, $distinct);
+            $$ = dtl_ast_node_append($$, $columns);
+            $$ = dtl_ast_node_append($$, $source);
+            $$ = dtl_ast_node_append($$, $joins);
+            $$ = dtl_ast_node_append($$, $where);
+            $$ = dtl_ast_node_append($$, $group_by);
         }
     ;
 
 import_expression
     : IMPORT string {
         $$ = dtl_ast_node_create(DTL_AST_IMPORT_EXPRESSION);
+        $$ = dtl_ast_node_append($$, $string);
     }
     ;
 
 table_reference_expression
     : name {
-        $$ = NULL;
+        $$ = dtl_ast_node_create(DTL_AST_TABLE_REFERENCE_EXPRESSION);
+        $$ = dtl_ast_node_append($$, $name);
     }
     ;
 
@@ -694,26 +704,37 @@ statement
 
 assignment_statement
     : WITH table_name AS table_expression SEMICOLON {
-        $$ = NULL;
+        $$ = dtl_ast_node_create(DTL_AST_ASSIGNMENT_STATEMENT);
+        $$ = dtl_ast_node_append($$, $table_expression);
+        $$ = dtl_ast_node_append($$, $table_name);  // Note that alias goes last to match convention everwhere else.
     }
     ;
 
 export_statement
     : EXPORT table_expression TO string SEMICOLON {
-        $$ = NULL;
+        $$ = dtl_ast_node_create(DTL_AST_EXPORT_STATEMENT);
+        $$ = dtl_ast_node_append($$, $table_expression);
+        $$ = dtl_ast_node_append($$, $string);
     }
     ;
 
 statement_list
-    : %empty {}
-    | statement_list[prev] statement[next] {
+    : %empty {
         $$ = NULL;
+    }
+    | statement_list[prev] statement[next] {
+        if ($prev == NULL) {
+            $$ = dtl_ast_node_create(DTL_AST_STATEMENT_LIST);
+            $$ = dtl_ast_node_append($$, $prev);
+        }
+        $$ = dtl_ast_node_append($$, $next);
     }
     ;
 
 script
     : statement_list {
-        $$ = NULL;
+        $$ = dtl_ast_node_create(DTL_AST_SCRIPT);
+        $$ = dtl_ast_node_append($$, $statement_list);
     }
     ;
 

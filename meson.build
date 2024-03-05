@@ -25,7 +25,9 @@ parser_source = custom_target(
 )
 
 lib_sources = [
+  'src/dtl-ast.c',
   'src/dtl-ast.cpp',
+  'src/dtl-ast-find-imports.c',
   'src/dtl-ast-find-imports.cpp',
   'src/dtl-ast-to-ir.cpp',
   'src/dtl-cmd.cpp',
