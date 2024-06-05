@@ -172,22 +172,22 @@ dtl_ir_graph_create(size_t expressions_capacity, size_t dependencies_capacity) {
     uint32_t *relocations = NULL;
     uint32_t *dependencies = NULL;
 
-    expressions = calloc(sizeof(struct dtl_ir_expression), expressions_capacity);
+    expressions = calloc(expressions_capacity, sizeof(struct dtl_ir_expression));
     if (expressions == NULL) {
         goto error;
     }
 
-    marks = calloc(sizeof(uint64_t), (expressions_capacity + 63) / 64);
+    marks = calloc((expressions_capacity + 63) / 64, sizeof(uint64_t));
     if (marks == NULL) {
         goto error;
     }
 
-    relocations = calloc(sizeof(uint32_t), expressions_capacity);
+    relocations = calloc(expressions_capacity, sizeof(uint32_t));
     if (relocations == NULL) {
         goto error;
     }
 
-    dependencies = calloc(sizeof(uint32_t), dependencies_capacity);
+    dependencies = calloc(dependencies_capacity, sizeof(uint32_t));
     if (dependencies == NULL) {
         goto error;
     }
@@ -1060,7 +1060,7 @@ dtl_ir_table_destroy(struct dtl_ir_table *table) {
 
 struct dtl_ir_table *
 dtl_ir_table_create(void) {
-    struct dtl_ir_table *table = calloc(sizeof(struct dtl_ir_table), 1);
+    struct dtl_ir_table *table = calloc(1, sizeof(struct dtl_ir_table));
     return table;
 }
 
