@@ -1,9 +1,7 @@
 #include "dtl-ir-to-cmd.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <functional>
-#include <iterator>
 #include <memory>
 #include <unordered_set>
 #include <utility>
