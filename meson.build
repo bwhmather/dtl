@@ -21,7 +21,7 @@ bison = find_program('bison')
 parser_source = custom_target(
     'parser',
     input: ['src/dtl-parser.y'], output: ['dtl-parser.cpp'],
-    command: [bison, '-o', '@OUTPUT@', '@INPUT@'],
+    command: [bison, '-Wcounterexamples', '-o', '@OUTPUT@', '@INPUT@'],
 )
 
 lib_sources = [

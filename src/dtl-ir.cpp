@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "dtl-variant.tpp"
+
 namespace dtl {
 namespace ir {
 
