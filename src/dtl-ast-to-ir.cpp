@@ -71,7 +71,8 @@ class Context {
 
         for (auto&& column : scope->columns) {
             table->columns.push_back(std::move(dtl::ir::Column{
-                .name = column.name, .expression = column.expression}));
+                .name = column.name, .expression = column.expression
+            }));
         }
 
         m_tables.push_back(std::move(table));
@@ -89,7 +90,8 @@ class Context {
 
         for (auto&& column : scope->columns) {
             table->columns.push_back(std::move(dtl::ir::Column{
-                .name = column.name, .expression = column.expression}));
+                .name = column.name, .expression = column.expression
+            }));
         }
 
         m_tables.push_back(std::move(table));
@@ -107,7 +109,8 @@ class Context {
 
         for (auto&& column : scope->columns) {
             table->columns.push_back(std::move(dtl::ir::Column{
-                .name = column.name, .expression = column.expression}));
+                .name = column.name, .expression = column.expression
+            }));
         }
 
         m_tables.push_back(std::move(table));
@@ -125,7 +128,8 @@ class Context {
 
         for (auto&& column : scope->columns) {
             table->columns.push_back(std::move(dtl::ir::Column{
-                .name = column.name, .expression = column.expression}));
+                .name = column.name, .expression = column.expression
+            }));
         }
 
         m_tables.push_back(std::move(table));
@@ -149,7 +153,8 @@ class Context {
 
         for (auto&& column : scope->columns) {
             table->columns.push_back(std::move(dtl::ir::Column{
-                .name = column.name, .expression = column.expression}));
+                .name = column.name, .expression = column.expression
+            }));
         }
 
         m_tables.push_back(std::move(table));
@@ -517,7 +522,8 @@ compile_table_expression(
             ScopeColumn column{
                 .name = src_column.name,
                 .namespaces = std::move(namespaces),
-                .expression = src_column.expression};
+                .expression = src_column.expression
+            };
             src_columns.push_back(std::move(column));
         }
 
@@ -533,7 +539,6 @@ compile_table_expression(
             auto where_shape_expression = std::make_shared<dtl::ir::WhereShapeExpression>();
             where_shape_expression->mask = predicate_expression;
             auto shape_expression = dtl::shared_variant_ptr<const dtl::ir::ShapeExpression>(where_shape_expression);
-
 
             std::vector<ScopeColumn> filtered_columns;
             for (auto& src_column : src_scope->columns) {
@@ -595,7 +600,8 @@ strip_namespaces(std::shared_ptr<Scope> input) {
         ScopeColumn output_column{
             .name = input_column.name,
             .namespaces = {{}},
-            .expression = input_column.expression};
+            .expression = input_column.expression
+        };
 
         output->columns.push_back(std::move(output_column));
     }
@@ -664,7 +670,8 @@ compile_input_table(
         ScopeColumn column{
             .name = field->name(),
             .namespaces = {{}},
-            .expression = expression};
+            .expression = expression
+        };
         scope->columns.push_back(std::move(column));
     }
 

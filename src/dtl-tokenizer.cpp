@@ -315,12 +315,14 @@ Tokenizer::next_type() {
 dtl::tokens::Token
 Tokenizer::next_token() {
     dtl::Location start = {
-        .offset = m_next, .lineno = m_lineno, .column = m_column};
+        .offset = m_next, .lineno = m_lineno, .column = m_column
+    };
 
     dtl::tokens::TokenType type = next_type();
 
     dtl::Location end = {
-        .offset = m_next, .lineno = m_lineno, .column = m_column};
+        .offset = m_next, .lineno = m_lineno, .column = m_column
+    };
 
     dtl::tokens::Token token = {.type = type, .start = start, .end = end};
 
