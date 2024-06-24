@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "dtl-dtype.h"
+
 struct dtl_ir_expression;
 struct dtl_ir_graph;
 
@@ -101,19 +103,10 @@ dtl_ir_join_shape_expression_get_right(struct dtl_ir_graph *graph, struct dtl_ir
 
 /* === Array Expressions ======================================================================== */
 
-enum dtl_ir_dtype {
-    DTL_DTYPE_BOOL,
-    DTL_DTYPE_INT,
-    DTL_DTYPE_DOUBLE,
-    DTL_DTYPE_TEXT,
-    DTL_DTYPE_BYTES,
-    DTL_DTYPE_INDEX,
-};
-
 bool
 dtl_ir_is_array_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
-enum dtl_ir_dtype
+enum dtl_dtype
 dtl_ir_array_expression_get_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 struct dtl_ir_ref
@@ -143,7 +136,7 @@ dtl_ir_int_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_
 struct dtl_ir_ref
 dtl_ir_import_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype, struct dtl_ir_ref shape,
+    enum dtl_dtype dtype, struct dtl_ir_ref shape,
     const char *address
 );
 
@@ -164,7 +157,7 @@ dtl_ir_import_expression_get_column_name(struct dtl_ir_graph *graph, struct dtl_
 struct dtl_ir_ref
 dtl_ir_where_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype,
+    enum dtl_dtype dtype,
     struct dtl_ir_ref shape,
     struct dtl_ir_ref source,
     struct dtl_ir_ref mask
@@ -185,7 +178,7 @@ dtl_ir_where_expression_get_mask(struct dtl_ir_graph *graph, struct dtl_ir_ref r
 struct dtl_ir_ref
 dtl_ir_pick_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype,
+    enum dtl_dtype dtype,
     struct dtl_ir_ref shape,
     struct dtl_ir_ref source,
     struct dtl_ir_ref indexes
@@ -259,7 +252,7 @@ dtl_ir_join_right_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref
 struct dtl_ir_ref
 dtl_ir_add_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype, struct dtl_ir_ref shape,
+    enum dtl_dtype dtype, struct dtl_ir_ref shape,
     struct dtl_ir_ref left, struct dtl_ir_ref right
 );
 
@@ -277,7 +270,7 @@ dtl_ir_add_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 struct dtl_ir_ref
 dtl_ir_subtract_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype, struct dtl_ir_ref shape,
+    enum dtl_dtype dtype, struct dtl_ir_ref shape,
     struct dtl_ir_ref left, struct dtl_ir_ref right
 );
 
@@ -295,7 +288,7 @@ dtl_ir_subtract_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref r
 struct dtl_ir_ref
 dtl_ir_multiply_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype, struct dtl_ir_ref shape,
+    enum dtl_dtype dtype, struct dtl_ir_ref shape,
     struct dtl_ir_ref left, struct dtl_ir_ref right
 );
 
@@ -313,7 +306,7 @@ dtl_ir_multiply_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref r
 struct dtl_ir_ref
 dtl_ir_divide_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype, struct dtl_ir_ref shape,
+    enum dtl_dtype dtype, struct dtl_ir_ref shape,
     struct dtl_ir_ref left, struct dtl_ir_ref right
 );
 

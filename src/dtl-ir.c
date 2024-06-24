@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "dtl-dtype.h"
+
 struct dtl_ir_expression {
     uint32_t tag;
     uint32_t dependencies_end;
@@ -659,7 +661,7 @@ enum dtl_ir_array_expression_type {
 };
 
 static uint32_t
-dtl_ir_array_expression_tag(enum dtl_ir_array_expression_type type, enum dtl_ir_dtype dtype) {
+dtl_ir_array_expression_tag(enum dtl_ir_array_expression_type type, enum dtl_dtype dtype) {
     uint32_t tag = 1 << 31;
     tag &= type << 4;
     tag &= dtype;
@@ -685,7 +687,7 @@ dtl_ir_is_array_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref express
     return (tag & (1 << 31)) != 0;
 }
 
-enum dtl_ir_dtype
+enum dtl_dtype
 dtl_ir_array_expression_get_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     uint32_t tag = dtl_ir_expression_get_tag(graph, expression);
     return tag & ((1 << 5) - 1);
@@ -728,7 +730,7 @@ dtl_ir_is_int_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref 
         return false;
     }
 
-    enum dtl_ir_dtype dtype = dtl_ir_array_expression_get_dtype(graph, expression);
+    enum dtl_dtype dtype = dtl_ir_array_expression_get_dtype(graph, expression);
     if (dtype != DTL_DTYPE_INT) {
         return false;
     }
@@ -772,7 +774,7 @@ dtl_ir_is_double_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_r
         return false;
     }
 
-    enum dtl_ir_dtype dtype = dtl_ir_array_expression_get_dtype(graph, expression);
+    enum dtl_dtype dtype = dtl_ir_array_expression_get_dtype(graph, expression);
     if (dtype != DTL_DTYPE_DOUBLE) {
         return false;
     }
@@ -793,7 +795,7 @@ dtl_ir_double_constant_expression_get_value(struct dtl_ir_graph *graph, struct d
 struct dtl_ir_ref
 dtl_ir_import_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype,
+    enum dtl_dtype dtype,
     struct dtl_ir_ref shape,
     const char *address
 ) {
@@ -849,7 +851,7 @@ dtl_ir_import_expression_get_column_name(struct dtl_ir_graph *graph, struct dtl_
 struct dtl_ir_ref
 dtl_ir_where_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype,
+    enum dtl_dtype dtype,
     struct dtl_ir_ref shape,
     struct dtl_ir_ref source,
     struct dtl_ir_ref mask
@@ -903,7 +905,7 @@ dtl_ir_where_expression_get_mask(struct dtl_ir_graph *graph, struct dtl_ir_ref e
 struct dtl_ir_ref
 dtl_ir_pick_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype,
+    enum dtl_dtype dtype,
     struct dtl_ir_ref shape,
     struct dtl_ir_ref source,
     struct dtl_ir_ref indexes
@@ -1090,7 +1092,7 @@ dtl_ir_join_right_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref
 struct dtl_ir_ref
 dtl_ir_add_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype,
+    enum dtl_dtype dtype,
     struct dtl_ir_ref shape,
     struct dtl_ir_ref left,
     struct dtl_ir_ref right
@@ -1145,7 +1147,7 @@ dtl_ir_add_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expres
 struct dtl_ir_ref
 dtl_ir_subtract_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype, struct dtl_ir_ref shape,
+    enum dtl_dtype dtype, struct dtl_ir_ref shape,
     struct dtl_ir_ref left, struct dtl_ir_ref right
 ) {
     assert(graph != NULL);
@@ -1198,7 +1200,7 @@ dtl_ir_subtract_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref e
 struct dtl_ir_ref
 dtl_ir_multiply_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype, struct dtl_ir_ref shape,
+    enum dtl_dtype dtype, struct dtl_ir_ref shape,
     struct dtl_ir_ref left, struct dtl_ir_ref right
 ) {
     assert(graph != NULL);
@@ -1251,7 +1253,7 @@ dtl_ir_multiply_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref e
 struct dtl_ir_ref
 dtl_ir_divide_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_ir_dtype dtype,
+    enum dtl_dtype dtype,
     struct dtl_ir_ref shape,
     struct dtl_ir_ref left,
     struct dtl_ir_ref right
