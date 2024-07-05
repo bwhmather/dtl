@@ -32,6 +32,7 @@ lib_sources = [
   'src/dtl-ast-to-ir.cpp',
   'src/dtl-cmd.cpp',
   'src/dtl-array.c',
+  'src/dtl-string-interner.c',
   'src/dtl-eval.cpp',
   'src/dtl-io.c',
   'src/dtl-io-filesystem.cpp',
