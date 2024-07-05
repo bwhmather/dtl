@@ -1,12 +1,13 @@
 #include "dtl-string-interner.h"
 
+#include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <xxhash.h>
 
-static const size_t DEFAULT_CAPACITY = 1024;
+static const size_t DEFAULT_CAPACITY = 128;
 
 struct dtl_string_interner {
     int seed;
@@ -116,9 +117,10 @@ dtl_string_interner_destroy(struct dtl_string_interner *self) {
 }
 
 char const *
-dtl_intern(struct dtl_string_interner *self, char const *input_string) {
+dtl_string_interner_intern(struct dtl_string_interner *self, char const *input_string) {
     char **old_strings;
     size_t old_capacity;
+    size_t old_cursor;
     size_t cursor;
     char *displaced_string = NULL;
     size_t displaced_target = 0;
@@ -137,30 +139,31 @@ dtl_intern(struct dtl_string_interner *self, char const *input_string) {
     }
 
     // Resize (if necessary).
-    if (self->size > (self->capacity / 7) * 10) {
+    if (self->size > (self->capacity / 10) * 7) {
         old_strings = self->strings;
         old_capacity = self->capacity;
 
         self->capacity *= 2;
         self->strings = calloc(self->capacity, sizeof(char *));
 
-        for (cursor = 0; cursor < old_capacity; cursor++) {
-            displaced_string = old_strings[cursor];
+        for (old_cursor = 0; old_cursor < old_capacity; old_cursor++) {
+            displaced_string = old_strings[old_cursor];
             if (displaced_string == NULL) {
                 continue;
             }
             displaced_target = dtl_string_interner_target(self, displaced_string);
 
+            cursor = displaced_target;
             while (displaced_string != NULL) {
                 candidate_string = self->strings[cursor];
                 candidate_target = cursor;
                 if (candidate_string != NULL) {
-                    dtl_string_interner_target(self, candidate_string);
+                    candidate_target = dtl_string_interner_target(self, candidate_string);
                 }
 
                 candidate_diff = dtl_string_interner_diff(self, candidate_target, cursor);
                 displaced_diff = dtl_string_interner_diff(self, displaced_target, cursor);
-                if (displaced_diff > candidate_diff) {
+                if (displaced_diff >= candidate_diff) {
                     self->strings[cursor] = displaced_string;
                     displaced_string = candidate_string;
                     displaced_target = candidate_target;

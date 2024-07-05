@@ -8,11 +8,11 @@ m_dep = cc.find_library('m', required : false)
 arrow_dep = dependency('arrow')
 parquet_dep = dependency('parquet')
 uuid_dep = dependency('uuid')
+xxhash_dep = dependency('libxxhash')
 
-dependencies = [m_dep, arrow_dep, parquet_dep, uuid_dep]
+dependencies = [m_dep, arrow_dep, parquet_dep, uuid_dep, xxhash_dep]
 
 includes = include_directories('src')
-
 
 ### Library ###
 
@@ -59,6 +59,10 @@ exe = executable(
 test_includes = include_directories('src', 'tests')
 
 test_suites = {
+  'string-interner': [
+    'intern',
+    'reallocate',
+  ],
 }
 
 foreach suite, tests : test_suites
