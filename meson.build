@@ -63,6 +63,14 @@ test_suites = {
     'intern',
     'reallocate',
   ],
+  'tokenizer': [
+    'all-keywords',
+    'basic',
+    'concatenated-keyword',
+    'empty',
+    'keyword',
+    'linebreak',
+  ],
 }
 
 foreach suite, tests : test_suites
