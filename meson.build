@@ -31,7 +31,7 @@ lib_sources = [
   'src/dtl-ast-find-imports.cpp',
   'src/dtl-ast-to-ir.cpp',
   'src/dtl-cmd.cpp',
-  'src/dtl-dtype.c',
+  'src/dtl-array.c',
   'src/dtl-eval.cpp',
   'src/dtl-io.c',
   'src/dtl-io-filesystem.cpp',

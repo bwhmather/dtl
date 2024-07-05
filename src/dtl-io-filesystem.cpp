@@ -16,6 +16,7 @@ extern "C" {
 
 extern "C" {
 #include "dtl-io.h"
+#include "dtl-array.h"
 }
 
 /* === Importer ================================================================================= */
@@ -226,7 +227,7 @@ dtl_io_filesystem_exporter_export_table(
             dtl_io_table_get_column_data(table, col, col_data, 0, num_rows);
 
             for (row = 0; row < num_rows; row++) {
-                status = builder.Append(dtl_get_bool(col_data, row));
+                status = builder.Append(dtl_array_get_bool(col_data, row));
                 assert(status.ok());
             }
 
@@ -242,7 +243,7 @@ dtl_io_filesystem_exporter_export_table(
             assert(status.ok()); // TODO
 
             for (row = 0; row < num_rows; row++) {
-                status = builder.Append(dtl_get_int(col_data, row));
+                status = builder.Append(dtl_array_get_int(col_data, row));
                 assert(status.ok());
             }
 
