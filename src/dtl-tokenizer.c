@@ -1,5 +1,6 @@
 #include "dtl-tokenizer.h"
 
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
@@ -8,12 +9,25 @@
 #include "dtl-tokens.h"
 
 struct dtl_tokenizer {
-    const char *input;
-    const char *next;
+    char const *input;
+    char const *next;
 
     size_t lineno;
     size_t column;
 };
+
+struct dtl_tokenizer *
+dtl_tokenizer_create(char const *input) {
+    struct dtl_tokenizer *tokenizer = calloc(1, sizeof(struct dtl_tokenizer));
+    tokenizer->input = input;
+    tokenizer->next = input;
+    return tokenizer;
+}
+
+void
+dtl_tokenizer_destroy(struct dtl_tokenizer *tokenizer) {
+    free(tokenizer);
+}
 
 static bool
 dtl_tokenizer_is_whitespace(char c) {
@@ -190,7 +204,7 @@ dtl_tokenizer_next_type(struct dtl_tokenizer *tokenizer) {
 
         // Yes, I know this is slower than memcmp, but it's still nice to do things in one pass.
         size_t offset = 0;
-        while (dtl_tokenizer_is_id_continue(curr)) {
+        while (true) {
             for (size_t i = 0; i < sizeof(patterns) / sizeof(patterns[0]); i++) {
                 if (offset > strlen(patterns[i].pattern)) {
                     patterns[i].matched = false;
@@ -201,6 +215,9 @@ dtl_tokenizer_next_type(struct dtl_tokenizer *tokenizer) {
                     continue;
                 }
             }
+            if (!dtl_tokenizer_is_id_continue(dtl_tokenizer_peek(tokenizer))) {
+                break;
+            }
             curr = dtl_tokenizer_bump(tokenizer);
             offset++;
         }
@@ -208,7 +225,7 @@ dtl_tokenizer_next_type(struct dtl_tokenizer *tokenizer) {
             if (!patterns[i].matched) {
                 continue;
             }
-            if (offset != strlen(patterns[i].pattern)) {
+            if (offset + 1 != strlen(patterns[i].pattern)) {
                 continue;
             }
             return patterns[i].type;
