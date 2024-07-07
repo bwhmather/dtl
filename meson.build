@@ -59,6 +59,9 @@ exe = executable(
 test_includes = include_directories('src', 'tests')
 
 test_suites = {
+  'ast': [
+    'find-imports',
+  ],
   'string-interner': [
     'intern',
     'reallocate',

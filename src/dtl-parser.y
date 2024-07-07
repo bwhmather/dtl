@@ -91,7 +91,6 @@
 %token <token> BLOCK_COMMENT
 %token <token> WHITESPACE
 
-
 %code {
     static int
     yylex(YYSTYPE *lvalp, YYLTYPE *llocp, struct dtl_tokenizer *tokenizer) {
@@ -725,7 +724,6 @@ statement_list
     | statement_list[prev] statement[next] {
         if ($prev == NULL) {
             $$ = dtl_ast_node_create(DTL_AST_STATEMENT_LIST);
-            $$ = dtl_ast_node_append($$, $prev);
         }
         $$ = dtl_ast_node_append($$, $next);
     }

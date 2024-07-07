@@ -4,6 +4,10 @@
 
 void
 dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_node *, void *), void *user_data) {
+    if (node == NULL) {
+        return;
+    }
+
     switch (node->type) {
     case DTL_AST_NAME:
         // Intentionally left blank.
