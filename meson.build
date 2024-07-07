@@ -28,6 +28,7 @@ lib_sources = [
   'src/dtl-array.c',
   'src/dtl-ast.c',
   'src/dtl-ast-find-imports.c',
+  'src/dtl-dtype.c',
   'src/dtl-io.c',
   'src/dtl-io-filesystem.cpp',
   'src/dtl-ir.c',

@@ -1,7 +1,7 @@
 #include "dtl-ast.h"
 
 #include <assert.h>
-#include <stdarg.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 

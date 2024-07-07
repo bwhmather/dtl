@@ -1,8 +1,8 @@
 #include "dtl-tokenizer.h"
 
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "dtl-location.h"

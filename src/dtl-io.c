@@ -1,10 +1,10 @@
 #include "dtl-io.h"
 
 #include <assert.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include "dtl-dtype.h"
-#include "dtl-location.h"
 
 /* === Tables =================================================================================== */
 

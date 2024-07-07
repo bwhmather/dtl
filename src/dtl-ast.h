@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 #include "dtl-location.h"
 
 #define DTL_AST_CLASS_MASK 0x78000000

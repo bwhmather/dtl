@@ -1,5 +1,7 @@
 #include "dtl-ast-find-imports.h"
 
+#include <stddef.h>
+
 #include "dtl-ast.h"
 
 void
