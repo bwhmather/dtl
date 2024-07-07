@@ -32,7 +32,7 @@ _DEFAULT_INCLUDE_DIRS = [
     for match in re.finditer(
         "^ (.*)$",
         subprocess.run(
-            ["clang++", "-xc++", "/dev/null", "-E", "-Wp,-v"],
+            ["clang", "-xc", "/dev/null", "-E", "-Wp,-v"],
             capture_output=True,
             encoding="utf-8",
         ).stderr,
@@ -44,12 +44,12 @@ _INDEX = clang.cindex.Index.create()
 
 
 def enumerate_source_paths():
-    paths = [source_path for source_path in SOURCE_ROOT.glob("**/*.cpp")]
+    paths = [source_path for source_path in SOURCE_ROOT.glob("**/*.c")]
     yield from sorted(paths)
 
 
 def enumerate_header_paths():
-    paths = [header_path for header_path in INCLUDE_ROOT.glob("**/*.[th]pp")]
+    paths = [header_path for header_path in INCLUDE_ROOT.glob("**/*.h")]
     yield from sorted(paths)
 
 
@@ -61,13 +61,13 @@ def enumerate_object_paths():
 def is_source_path(path, /):
     assert path.is_absolute()
 
-    return path.suffix == ".cpp"
+    return path.suffix == ".c"
 
 
 def is_header_path(path, /):
     assert path.is_absolute()
 
-    return path.suffix != ".cpp"
+    return path.suffix == ".h"
 
 
 def is_object_path(path, /):
@@ -119,7 +119,7 @@ def header_path_for_source_path(source_path, /):
     header_path = (
         INCLUDE_ROOT
         / source_path.relative_to(SOURCE_ROOT).parent
-        / (source_path.stem + ".hpp")
+        / (source_path.stem + ".h")
     )
 
     if not header_path.exists():
@@ -135,7 +135,7 @@ def source_path_for_header_path(header_path, /):
     source_path = (
         SOURCE_ROOT
         / header_path.relative_to(INCLUDE_ROOT).parent
-        / (header_path.stem + ".cpp")
+        / (header_path.stem + ".c")
     )
 
     if not source_path.exists():
@@ -183,7 +183,7 @@ def get_args(path, /):
     if is_header_path(path):
         source_path = source_path_for_header_path(path)
         if source_path is None:
-            source_path = SOURCE_ROOT / "main.cpp"
+            source_path = SOURCE_ROOT / "main.c"
         args = CPP_ARGS[source_path]
     else:
         args = CPP_ARGS[path]
@@ -222,7 +222,7 @@ def include_dirs(source_path):
 @functools.lru_cache(maxsize=None)
 def resolve_include_path(include_path, /, *, source_path=None):
     if source_path is None:
-        source_path = SOURCE_ROOT / "main.cpp"
+        source_path = SOURCE_ROOT / "main.c"
 
     assert source_path.is_absolute()
     assert isinstance(include_path, str)
@@ -242,7 +242,7 @@ def derive_include_from_path(include_path, /):
 
     best_include = str(include_path)
 
-    for candidate_dir in include_dirs(SOURCE_ROOT / "main.cpp"):
+    for candidate_dir in include_dirs(SOURCE_ROOT / "main.c"):
         if not include_path.is_relative_to(candidate_dir):
             continue
 

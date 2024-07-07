@@ -16,14 +16,6 @@ def test():
     passed = True
 
     for source_path in itertools.chain(enumerate_source_paths()):
-        if source_path.match("hayward/src/commands.c"):
-            # TODO Command modules share a single header.
-            continue
-
-        if source_path.is_relative_to("hayward/src/commands"):
-            # TODO Command modules share a single header.
-            continue
-
         header_path = header_path_for_source_path(source_path)
         if header_path is None:
             continue
