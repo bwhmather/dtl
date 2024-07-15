@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 struct dtl_location {
     /* Byte offset of the beginning character in the string. */

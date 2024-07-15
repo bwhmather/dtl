@@ -319,7 +319,7 @@
 
 name
     : QUOTED_NAME {
-        $$ = dtl_ast_node_create_empty(DTL_AST_NAME);  // TODO
+        $$ = dtl_ast_name_node_create("TODO");  // TODO
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
 
     }
@@ -329,10 +329,12 @@ name
         size_t length = start - end;
         char const *input = dtl_tokenizer_get_input(tokenizer);
 
-        $$ = dtl_ast_node_create_with_data(DTL_AST_NAME, length + 1);
+        char *buffer = calloc(1, length + 1);
+        memcpy(buffer, &input[start], length);
+
+        $$ = dtl_ast_name_node_create(buffer);
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
 
-        memcpy(dtl_ast_node_get_data($$), &input[start], length);
     }
     ;
 
@@ -344,7 +346,7 @@ literal
 
 string
     : STRING {
-        $$ = dtl_ast_node_create_empty(DTL_AST_STRING_LITERAL);  // TODO
+        $$ = dtl_ast_string_literal_node_create("TODO");  // TODO
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
     }
     ;
@@ -360,16 +362,13 @@ column_name
 
 unqualified_column_name
     : name {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_UNQUALIFIED_COLUMN_NAME);
-        $$ = dtl_ast_node_append_child($$, $name);
+        $$ = dtl_ast_unqualified_column_name_node_create($name);
     }
     ;
 
 qualified_column_name
     : name[table_name] DOT name[column_name] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_QUALIFIED_COLUMN_NAME);
-        $$ = dtl_ast_node_append_child($$, $table_name);
-        $$ = dtl_ast_node_append_child($$, $column_name);
+        $$ = dtl_ast_qualified_column_name_node_create($table_name, $column_name);
     }
     ;
 
@@ -399,82 +398,68 @@ expression
 
 column_reference_expression
     : column_name[name] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_COLUMN_REFERENCE_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $name);
+        $$ = dtl_ast_column_reference_expression_node_create($name);
     }
     ;
 
 literal_expression
     : literal[value] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_LITERAL_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $value);
+        $$ = dtl_ast_literal_expression_node_create($value);
     }
     ;
 
 expression_list
     : expression[head] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_EXPRESSION_LIST);
-        $$ = dtl_ast_node_append_child($$, $head);
+        $$ = dtl_ast_expression_list_node_create($head);
     }
     | expression_list[prev] COMMA expression[next] {
-        $$ = dtl_ast_node_append_child($prev, $next);
+        $$ = dtl_ast_expression_list_node_append($prev, $next);
     }
     ;
 
 function_call_expression
     : name OPEN_PARENTHESIS expression_list[arguments] CLOSE_PARENTHESIS {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_FUNCTION_CALL_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $name);
-        $$ = dtl_ast_node_append_child($$, $arguments);
+        $$ = dtl_ast_function_call_expression_node_create($name, $arguments);
     }
     ;
 
 add_expression
     : expression[left] PLUS expression[right] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_ADD_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $left);
-        $$ = dtl_ast_node_append_child($$, $right);
+        $$ = dtl_ast_add_expression_node_create($left, $right);
     }
     ;
 
 subtract_expression
     : expression[left] MINUS expression[right] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_SUBTRACT_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $left);
-        $$ = dtl_ast_node_append_child($$, $right);
+        $$ = dtl_ast_subtract_expression_node_create($left, $right);
     }
     ;
 
 multiply_expression
     : expression[left] STAR expression[right] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_MULTIPLY_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $left);
-        $$ = dtl_ast_node_append_child($$, $right);
+        $$ = dtl_ast_multiply_expression_node_create($left, $right);
     }
     ;
 
 divide_expression
     : expression[left] SLASH expression[right] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_DIVIDE_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $left);
-        $$ = dtl_ast_node_append_child($$, $right);
+        $$ = dtl_ast_divide_expression_node_create($left, $right);
     }
     ;
 
 table_name
     : name {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_TABLE_NAME);
-        $$ = dtl_ast_node_append_child($$, $name);
+        $$ = dtl_ast_table_name_node_create($name);
     }
     ;
 
 distinct_clause
     : DISTINCT {
-        $$ = dtl_ast_node_create_empty(DTL_AST_DISTINCT_CLAUSE);
+        $$ = dtl_ast_distinct_clause_node_create();
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
     }
     | DISTINCT CONSECUTIVE {
-        $$ = dtl_ast_node_create_empty(DTL_AST_DISTINCT_CONSECUTIVE_CLAUSE);
+        $$ = dtl_ast_distinct_consecutive_clause_node_create();
         dtl_ast_node_update_bounds($$, $1.start, $2.end);
     }
     | %empty {
@@ -496,33 +481,30 @@ column_binding
 
 wildcard_column_binding
     : STAR {
-        $$ = dtl_ast_node_create_empty(DTL_AST_WILDCARD_COLUMN_BINDING);
+        $$ = dtl_ast_wildcard_column_binding_node_create();
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
     }
     ;
 
 implicit_column_binding
     : expression {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_IMPLICIT_COLUMN_BINDING);
-        $$ = dtl_ast_node_append_child($$, $expression);
+        $$ = dtl_ast_implicit_column_binding_node_create($expression);
     }
     ;
 
 aliased_column_binding
     : expression AS name[alias] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_ALIASED_COLUMN_BINDING);
-        $$ = dtl_ast_node_append_child($$, $expression);
-        $$ = dtl_ast_node_append_child($$, $alias);
+        $$ = dtl_ast_aliased_column_binding_node_create($expression, $alias);
     }
     ;
 
 column_binding_list
     : column_binding[head] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_COLUMN_BINDING_LIST);
-        $$ = dtl_ast_node_append_child($$, $head);
+        $$ = dtl_ast_column_binding_list_node_create();
+        $$ = dtl_ast_column_binding_list_node_append($$, $head);
     }
     | column_binding_list[prev] COMMA column_binding[next] {
-        $$ = dtl_ast_node_append_child($prev, $next);
+        $$ = dtl_ast_column_binding_list_node_append($prev, $next);
     }
     ;
 
@@ -537,32 +519,25 @@ table_binding
 
 implicit_table_binding
     : OPEN_PARENTHESIS table_expression[expression] CLOSE_PARENTHESIS {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_IMPLICIT_TABLE_BINDING);
-        $$ = dtl_ast_node_append_child($$, $expression);
+        $$ = dtl_ast_implicit_table_binding_node_create($expression);
     }
     | table_reference_expression[expression] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_IMPLICIT_TABLE_BINDING);
-        $$ = dtl_ast_node_append_child($$, $expression);
+        $$ = dtl_ast_implicit_table_binding_node_create($expression);
     }
     ;
 
 aliased_table_binding
     : OPEN_PARENTHESIS table_expression[expression] CLOSE_PARENTHESIS AS name[alias] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_ALIASED_TABLE_BINDING);
-        $$ = dtl_ast_node_append_child($$, $expression);
-        $$ = dtl_ast_node_append_child($$, $alias);
+        $$ = dtl_ast_aliased_table_binding_node_create($expression, $alias);
     }
     | table_reference_expression[expression] AS name[alias] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_ALIASED_TABLE_BINDING);
-        $$ = dtl_ast_node_append_child($$, $expression);
-        $$ = dtl_ast_node_append_child($$, $alias);
+        $$ = dtl_ast_aliased_table_binding_node_create($expression, $alias);
     }
     ;
 
 from_clause
     : FROM table_binding {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_FROM_CLAUSE);
-        $$ = dtl_ast_node_append_child($$, $table_binding);
+        $$ = dtl_ast_from_clause_node_create($table_binding);
     }
     ;
 
@@ -577,18 +552,16 @@ join_constraint
 
 join_on_constraint
     : ON expression[predicate] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_JOIN_ON_CONSTRAINT);
-        $$ = dtl_ast_node_append_child($$, $predicate);
+        $$ = dtl_ast_join_on_constraint_node_create($predicate);
     }
     ;
 
 join_using_constraint_name_list
     : unqualified_column_name[head] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_JOIN_USING_CONSTRAINT);
-        $$ = dtl_ast_node_append_child($$, $head);
+        $$ = dtl_ast_join_using_constraint_node_create($head);
     }
     | join_using_constraint_name_list[prev] COMMA unqualified_column_name[next] {
-        $$ = dtl_ast_node_append_child($prev, $next);
+        $$ = dtl_ast_join_using_constraint_node_append($prev, $next);
     }
     ;
 
@@ -600,18 +573,17 @@ join_using_constraint
 
 join_clause
     : JOIN table_binding join_constraint {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_JOIN_CLAUSE);
-        $$ = dtl_ast_node_append_child($$, $table_binding);
-        $$ = dtl_ast_node_append_child($$, $join_constraint);
+        $$ = dtl_ast_join_clause_node_create($table_binding, $join_constraint);
     }
     ;
 
 join_clause_list
     : join_clause_list[prev] join_clause[next] {
         if ($prev == NULL) {
-            $$ = dtl_ast_node_create_with_children(DTL_AST_JOIN_CLAUSE_LIST);
+            $$ = dtl_ast_join_clause_list_node_create($next);
+        } else {
+            $$ = dtl_ast_join_clause_list_node_append($$, $next);
         }
-        $$ = dtl_ast_node_append_child($$, $next);
     }
     | %empty {
         $$ = NULL;
@@ -620,8 +592,7 @@ join_clause_list
 
 where_clause
     : WHERE expression {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_WHERE_CLAUSE);
-        $$ = dtl_ast_node_append_child($$, $expression);
+        $$ = dtl_ast_where_clause_node_create($expression);
     }
     | %empty {
         $$ = NULL;
@@ -630,12 +601,10 @@ where_clause
 
 group_by_clause
     : GROUP BY expression_list[pattern] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_GROUP_BY_CLAUSE);
-        $$ = dtl_ast_node_append_child($$, $pattern);
+        $$ = dtl_ast_group_by_clause_node_create($pattern);
     }
     | GROUP CONSECUTIVE BY expression_list[pattern] {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_GROUP_CONSECUTIVE_BY_CLAUSE);
-        $$ = dtl_ast_node_append_child($$, $pattern);
+        $$ = dtl_ast_group_consecutive_by_clause_node_create($pattern);
     }
     | %empty {
         $$ = NULL;
@@ -662,27 +631,26 @@ select_expression
         join_clause_list[joins]
         where_clause[where]
         group_by_clause[group_by] {
-            $$ = dtl_ast_node_create_with_children(DTL_AST_SELECT_EXPRESSION);
-            $$ = dtl_ast_node_append_child($$, $distinct);
-            $$ = dtl_ast_node_append_child($$, $columns);
-            $$ = dtl_ast_node_append_child($$, $source);
-            $$ = dtl_ast_node_append_child($$, $joins);
-            $$ = dtl_ast_node_append_child($$, $where);
-            $$ = dtl_ast_node_append_child($$, $group_by);
+            $$ = dtl_ast_select_expression_node_create(
+                $distinct,
+                $columns,
+                $source,
+                $joins,
+                $where,
+                $group_by
+            );
         }
     ;
 
 import_expression
     : IMPORT string {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_IMPORT_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $string);
+        $$ = dtl_ast_import_expression_node_create($string);
     }
     ;
 
 table_reference_expression
     : name {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_TABLE_REFERENCE_EXPRESSION);
-        $$ = dtl_ast_node_append_child($$, $name);
+        $$ = dtl_ast_table_reference_expression_node_create($name);
     }
     ;
 
@@ -706,17 +674,14 @@ statement
 
 assignment_statement
     : WITH table_name AS table_expression SEMICOLON {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_ASSIGNMENT_STATEMENT);
-        $$ = dtl_ast_node_append_child($$, $table_expression);
-        $$ = dtl_ast_node_append_child($$, $table_name);  // Note that alias goes last to match convention everwhere else.
+        // Note that alias goes last to match convention everwhere else.
+        $$ = dtl_ast_assignment_statement_node_create($table_expression, $table_name);
     }
     ;
 
 export_statement
     : EXPORT table_expression TO string SEMICOLON {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_EXPORT_STATEMENT);
-        $$ = dtl_ast_node_append_child($$, $table_expression);
-        $$ = dtl_ast_node_append_child($$, $string);
+        $$ = dtl_ast_export_statement_node_create($table_expression, $string);
     }
     ;
 
@@ -734,8 +699,7 @@ statement_list
 
 script
     : statement_list {
-        $$ = dtl_ast_node_create_with_children(DTL_AST_SCRIPT);
-        $$ = dtl_ast_node_append_child($$, $statement_list);
+        $$ = dtl_ast_script_node_create($statement_list);
     }
     ;
 
