@@ -1,11 +1,15 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
+#include "dtl-ast-node.h"
 #include "dtl-location.h"
 
 #define DTL_AST_CLASS_MASK 0x78000000
 
+#define DTL_AST_CLASS_NONE 0
 #define DTL_AST_CLASS_LITERAL (1 << 27)
 #define DTL_AST_CLASS_COLUMN_NAME (2 << 27)
 #define DTL_AST_CLASS_EXPRESSION (3 << 27)
@@ -18,7 +22,6 @@
 
 enum dtl_ast_node_type {
     DTL_AST_NAME = 1,
-    DTL_AST_STRING,
 
     DTL_AST_TABLE_NAME,
     DTL_AST_COLUMN_BINDING_LIST,
@@ -75,24 +78,8 @@ enum dtl_ast_node_type {
     DTL_AST_EXPORT_STATEMENT,
 };
 
-struct dtl_ast_node {
-    enum dtl_ast_node_type type;
+enum dtl_ast_node_type
+dtl_ast_node_get_type(struct dtl_ast_node *);
 
-    struct dtl_location start;
-    struct dtl_location end;
-
-    size_t children_length;
-    struct dtl_ast_node *children[];
-};
-
-struct dtl_ast_node *
-dtl_ast_node_create(enum dtl_ast_node_type type);
-
-struct dtl_ast_node *
-dtl_ast_node_append(struct dtl_ast_node *container, struct dtl_ast_node *child);
-
-struct dtl_ast_node *
-dtl_ast_node_get_child(struct dtl_ast_node *container, size_t child_index);
-
-void
-dtl_ast_node_destroy(struct dtl_ast_node *node);
+int
+dtl_ast_node_get_class(struct dtl_ast_node *);
