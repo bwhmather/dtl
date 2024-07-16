@@ -4,8 +4,9 @@ IndentWidth: 4
 ---
 Language: Cpp
 ColumnLimit: 0
-DerivePointerAlignment: false
-PointerAlignment: Left
+AlignOperands: DontAlign
+BreakBeforeTernaryOperators: true
+PointerAlignment: Right
 AlignAfterOpenBracket: BlockIndent
 AlwaysBreakTemplateDeclarations: Yes
 AlwaysBreakAfterReturnType: All
