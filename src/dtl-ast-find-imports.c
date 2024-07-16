@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+#include "dtl-ast-node.h"
 #include "dtl-ast.h"
 
 void
@@ -10,12 +11,8 @@ dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_
         return;
     }
 
-    switch (node->type) {
+    switch (dtl_ast_node_get_type(node)) {
     case DTL_AST_NAME:
-        // Intentionally left blank.
-        break;
-
-    case DTL_AST_STRING:
         // Intentionally left blank.
         break;
 
@@ -32,7 +29,7 @@ dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_
         break;
 
     case DTL_AST_COLUMN_BINDING_LIST:
-        for (size_t i = 0; i < node->children_length; i++) {
+        for (size_t i = 0; i < dtl_ast_node_get_num_children(node); i++) {
             dtl_ast_find_imports(dtl_ast_node_get_child(node, i), callback, user_data);
         }
         break;
@@ -47,7 +44,7 @@ dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_
         break;
 
     case DTL_AST_JOIN_CLAUSE_LIST:
-        for (size_t i = 0; i < node->children_length; i++) {
+        for (size_t i = 0; i < dtl_ast_node_get_num_children(node); i++) {
             dtl_ast_find_imports(dtl_ast_node_get_child(node, i), callback, user_data);
         }
         break;
@@ -65,13 +62,13 @@ dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_
         break;
 
     case DTL_AST_EXPRESSION_LIST:
-        for (size_t i = 0; i < node->children_length; i++) {
+        for (size_t i = 0; i < dtl_ast_node_get_num_children(node); i++) {
             dtl_ast_find_imports(dtl_ast_node_get_child(node, i), callback, user_data);
         }
         break;
 
     case DTL_AST_STATEMENT_LIST:
-        for (size_t i = 0; i < node->children_length; i++) {
+        for (size_t i = 0; i < dtl_ast_node_get_num_children(node); i++) {
             dtl_ast_find_imports(dtl_ast_node_get_child(node, i), callback, user_data);
         }
         break;

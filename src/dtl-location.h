@@ -16,6 +16,4 @@ struct dtl_location {
 };
 
 bool
-dtl_location_is_null(struct dtl_location location) {
-    return location.offset == SIZE_MAX;
-}
+dtl_location_is_null(struct dtl_location location);

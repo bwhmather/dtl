@@ -33,6 +33,7 @@ lib_sources = [
   'src/dtl-io.c',
   'src/dtl-io-filesystem.cpp',
   'src/dtl-ir.c',
+  'src/dtl-location.c',
   'src/dtl-string-interner.c',
   'src/dtl-tokenizer.c',
   parser_source,
