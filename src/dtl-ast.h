@@ -1,11 +1,6 @@
 #pragma once
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
 #include "dtl-ast-node.h"
-#include "dtl-location.h"
 
 #define DTL_AST_CLASS_MASK 0x78000000
 
