@@ -30,6 +30,11 @@ dtl_ir_graph_create(size_t nodes_capacity, size_t deps_capacity);
 void
 dtl_ir_graph_destroy(struct dtl_ir_graph *graph);
 
+/* --- Generic ---------------------------------------------------------------------------------- */
+
+enum dtl_dtype
+dtl_ir_expression_get_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
 /* --- Garbage Collection ----------------------------------------------------------------------- */
 
 /**
@@ -65,16 +70,16 @@ dtl_ir_graph_for_each_expression(struct dtl_ir_graph *graph, void (*callback)(st
 bool
 dtl_ir_is_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
-/* --- Import Shape Expressions ----------------------------------------------------------------- */
+/* --- Table Shape Expressions ------------------------------------------------------------------ */
 
 struct dtl_ir_ref
-dtl_ir_import_shape_expression_create(struct dtl_ir_graph *graph, const char *location);
+dtl_ir_table_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_ref table);
 
 bool
-dtl_ir_is_import_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_is_table_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
-const char *
-dtl_ir_import_shape_expression_get_location(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+struct dtl_ir_ref
+dtl_ir_table_shape_expression_get_table(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 /* --- Where Shape Expression ------------------------------------------------------------------- */
 
@@ -107,7 +112,7 @@ bool
 dtl_ir_is_array_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 enum dtl_dtype
-dtl_ir_array_expression_get_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_array_expression_get_element_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 struct dtl_ir_ref
 dtl_ir_array_expression_get_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
@@ -127,30 +132,36 @@ dtl_ir_is_int_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref 
 uint64_t
 dtl_ir_int_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
-/* --- Import Expressions ----------------------------------------------------------------------- */
-// Address is a pointer to a null terminated location identifier followed immediately by a null
-// terminated column name.  The location identifier is specific to the importer.
-// The expression does not copy or take ownership of the address.  The caller is responsible for
-// keeping it alive for the lifetime of the expression and freeing it once finished.
+/* --- Open Table Expressions ------------------------------------------------------------------- */
 
 struct dtl_ir_ref
-dtl_ir_import_expression_create(
+dtl_ir_open_table_expression_create(struct dtl_ir_graph *graph, const char *path);
+
+bool
+dtl_ir_is_open_table_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+char const *
+dtl_ir_open_table_expression_get_path(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+/* --- Read Column Expressions ------------------------------------------------------------------ */
+
+struct dtl_ir_ref
+dtl_ir_read_column_expression_create(
     struct dtl_ir_graph *graph,
-    enum dtl_dtype dtype, struct dtl_ir_ref shape,
-    const char *address
+    enum dtl_dtype dtype,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref table,
+    const char *column_name
 );
 
 bool
-dtl_ir_is_import_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_read_column_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_read_column_expression_get_table(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 const char *
-dtl_ir_import_expression_get_address(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
-
-const char *
-dtl_ir_import_expression_get_location(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
-
-const char *
-dtl_ir_import_expression_get_column_name(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_read_column_expression_get_column_name(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 /* --- Where Expressions ------------------------------------------------------------------------ */
 

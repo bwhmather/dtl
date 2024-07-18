@@ -9,8 +9,28 @@
 
 #include "dtl-dtype.h"
 
+enum dtl_ir_op {
+    DTL_IR_OP_TABLE_SHAPE = 1,
+    DTL_IR_OP_WHERE_SHAPE,
+    DTL_IR_OP_JOIN_SHAPE,
+    DTL_IR_OP_CONSTANT,
+    DTL_IR_OP_OPEN_TABLE,
+    DTL_IR_OP_READ_COLUMN,
+    DTL_IR_OP_WHERE,
+    DTL_IR_OP_PICK,
+    DTL_IR_OP_INDEX,
+    DTL_IR_OP_JOIN_LEFT,
+    DTL_IR_OP_JOIN_RIGHT,
+    DTL_IR_OP_ADD,
+    DTL_IR_OP_SUBTRACT,
+    DTL_IR_OP_MULTIPLY,
+    DTL_IR_OP_DIVIDE,
+};
+
 struct dtl_ir_expression {
-    uint32_t tag;
+    enum dtl_ir_op op : 16;
+    enum dtl_dtype dtype : 16;
+
     uint32_t dependencies_end;
 
     union {
@@ -67,31 +87,23 @@ dtl_ir_ref_equal(struct dtl_ir_graph *graph, struct dtl_ir_ref a, struct dtl_ir_
 /* --- Internal --------------------------------------------------------------------------------- */
 
 static void
-dtl_ir_scratch_begin(struct dtl_ir_graph *graph) {
+dtl_ir_scratch_begin(struct dtl_ir_graph *graph, enum dtl_ir_op op, enum dtl_dtype dtype) {
     struct dtl_ir_expression *expression;
 
     assert(graph != NULL);
     assert(!graph->writing);
+    assert(op != 0);
+    assert(dtype != 0);
 
     assert(graph->to_space.expressions_length < graph->to_space.expressions_capacity); // TODO runtime error.
 
     expression = &graph->to_space.expressions[graph->to_space.expressions_length];
     memset(expression, 0, sizeof(struct dtl_ir_expression));
 
+    expression->op = op;
+    expression->dtype = dtype;
+
     graph->writing = true;
-}
-
-static void
-dtl_ir_scratch_set_tag(struct dtl_ir_graph *graph, uint32_t tag) {
-    struct dtl_ir_expression *expression;
-
-    assert(graph != NULL);
-    assert(graph->writing);
-
-    expression = &graph->to_space.expressions[graph->to_space.expressions_length];
-    assert(expression->tag == 0);
-
-    expression->tag = tag;
 }
 
 static void
@@ -164,26 +176,48 @@ dtl_ir_scratch_end(struct dtl_ir_graph *graph) {
     return result;
 }
 
-static uint32_t
-dtl_ir_space_get_expression_tag(
+static enum dtl_ir_op
+dtl_ir_space_get_expression_op(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
     assert(expression.space == space->id);
     assert(expression.offset < space->expressions_length);
 
-    return space->expressions[expression.offset].tag;
+    return space->expressions[expression.offset].op;
 }
 
-static uint32_t
-dtl_ir_expression_get_tag(
+static enum dtl_ir_op
+dtl_ir_expression_get_op(
     struct dtl_ir_graph *graph,
     struct dtl_ir_ref expression
 ) {
     if (graph->transforming) {
         dtl_ir_graph_remap_ref(graph, &expression);
     }
-    return dtl_ir_space_get_expression_tag(&graph->to_space, expression);
+    return dtl_ir_space_get_expression_op(&graph->to_space, expression);
+}
+
+enum dtl_dtype
+dtl_ir_space_get_expression_dtype(
+    struct dtl_ir_space *space,
+    struct dtl_ir_ref expression
+) {
+    assert(expression.space == space->id);
+    assert(expression.offset < space->expressions_length);
+
+    return space->expressions[expression.offset].dtype;
+}
+
+enum dtl_dtype
+dtl_ir_expression_get_dtype(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref expression
+) {
+    if (graph->transforming) {
+        dtl_ir_graph_remap_ref(graph, &expression);
+    }
+    return dtl_ir_space_get_expression_dtype(&graph->to_space, expression);
 }
 
 static int64_t
@@ -450,8 +484,11 @@ dtl_ir_graph_transform(
         new_ref = callback(graph, old_ref, data);
 
         if (memcmp(&old_ref, &new_ref, sizeof(struct dtl_ir_ref)) == 0) {
-            dtl_ir_scratch_begin(graph);
-            dtl_ir_scratch_set_tag(graph, dtl_ir_space_get_expression_tag(&graph->from_space, old_ref));
+            dtl_ir_scratch_begin(
+                graph,
+                dtl_ir_space_get_expression_op(&graph->from_space, old_ref),
+                dtl_ir_space_get_expression_dtype(&graph->from_space, old_ref)
+            );
             for (j = 0; j < dtl_ir_space_get_expression_num_dependencies(&graph->from_space, old_ref); j++) {
                 dep_ref = dtl_ir_space_get_expression_dependency(&graph->from_space, old_ref, j);
                 dtl_ir_graph_remap_ref(graph, &dep_ref);
@@ -496,76 +533,38 @@ dtl_ir_graph_remap_ref(struct dtl_ir_graph *graph, struct dtl_ir_ref *ref) {
     assert(ref->space == graph->to_space.id);
 }
 
-/* === Shape Expressions ======================================================================== */
-
-enum dtl_ir_shape_expression_type {
-    DTL_IMPORT_SHAPE_EXPRESSION = 1,
-    DTL_WHERE_SHAPE_EXPRESSION,
-    DTL_JOIN_SHAPE_EXPRESSION,
-};
-
-static uint32_t
-dtl_ir_shape_expression_tag(enum dtl_ir_shape_expression_type type) {
-    return (uint32_t)type;
-}
-
-static enum dtl_ir_shape_expression_type
-dtl_ir_shape_expression_get_type(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
-    uint32_t tag;
-
-    assert(graph != NULL);
-    assert(dtl_ir_is_shape_expression(graph, expression));
-
-    tag = dtl_ir_expression_get_tag(graph, expression);
-
-    return (enum dtl_ir_shape_expression_type)tag;
-}
+/* === Expressions ============================================================================== */
 
 bool
 dtl_ir_is_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
-    uint32_t tag;
-
     assert(graph != NULL);
-
-    tag = dtl_ir_expression_get_tag(graph, expression);
-
-    return (tag & (1 << 31)) == 0;
+    return dtl_ir_expression_get_dtype(graph, expression) == DTL_DTYPE_INDEX;
 }
 
-/* --- Import Shape Expressions ----------------------------------------------------------------- */
+/* --- Table Shape Expressions ------------------------------------------------------------------ */
 
 struct dtl_ir_ref
-dtl_ir_import_shape_expression_create(struct dtl_ir_graph *graph, const char *location) {
+dtl_ir_table_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_ref table) {
     assert(graph != NULL);
+    assert(dtl_ir_expression_get_dtype(graph, table) == DTL_DTYPE_TABLE);
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_shape_expression_tag(DTL_IMPORT_SHAPE_EXPRESSION));
-    dtl_ir_scratch_set_pointer(graph, location);
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_TABLE_SHAPE, DTL_DTYPE_INDEX);
+    dtl_ir_scratch_add_dependency(graph, table);
     return dtl_ir_scratch_end(graph);
 }
 
 bool
-dtl_ir_is_import_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+dtl_ir_is_table_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-
-    if (!dtl_ir_is_shape_expression(graph, expression)) {
-        return false;
-    }
-
-    enum dtl_ir_shape_expression_type type = dtl_ir_shape_expression_get_type(graph, expression);
-    if (type != DTL_IMPORT_SHAPE_EXPRESSION) {
-        return false;
-    }
-
-    return true;
+    return dtl_ir_expression_get_dtype(graph, expression) == DTL_DTYPE_INDEX;
 }
 
-const char *
-dtl_ir_import_shape_expression_get_location(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+struct dtl_ir_ref
+dtl_ir_table_shape_expression_get_table(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_import_shape_expression(graph, expression));
+    assert(dtl_ir_is_table_shape_expression(graph, expression));
 
-    return dtl_ir_expression_get_value_as_pointer(graph, expression);
+    return dtl_ir_expression_get_dependency(graph, expression, 0);
 }
 
 /* --- Where Shape Expression ------------------------------------------------------------------- */
@@ -574,8 +573,7 @@ struct dtl_ir_ref
 dtl_ir_where_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_ref mask) {
     assert(graph != NULL);
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_shape_expression_tag(DTL_WHERE_SHAPE_EXPRESSION));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_WHERE_SHAPE, DTL_DTYPE_INDEX);
     dtl_ir_scratch_add_dependency(graph, mask);
     return dtl_ir_scratch_end(graph);
 }
@@ -583,17 +581,7 @@ dtl_ir_where_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_r
 bool
 dtl_ir_is_where_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-
-    if (!dtl_ir_is_shape_expression(graph, expression)) {
-        return false;
-    }
-
-    enum dtl_ir_shape_expression_type type = dtl_ir_shape_expression_get_type(graph, expression);
-    if (type != DTL_WHERE_SHAPE_EXPRESSION) {
-        return false;
-    }
-
-    return true;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_WHERE_SHAPE;
 }
 
 struct dtl_ir_ref
@@ -613,17 +601,7 @@ dtl_ir_join_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_re
 bool
 dtl_ir_is_join_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-
-    if (!dtl_ir_is_shape_expression(graph, expression)) {
-        return false;
-    }
-
-    enum dtl_ir_shape_expression_type type = dtl_ir_shape_expression_get_type(graph, expression);
-    if (type != DTL_JOIN_SHAPE_EXPRESSION) {
-        return false;
-    }
-
-    return true;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_JOIN_SHAPE;
 }
 
 struct dtl_ir_ref
@@ -646,60 +624,31 @@ dtl_ir_join_shape_expression_get_right(struct dtl_ir_graph *graph, struct dtl_ir
 
 /* === Array Expressions ======================================================================== */
 
-enum dtl_ir_array_expression_type {
-    DTL_CONSTANT_EXPRESSION,
-    DTL_IMPORT_EXPRESSION,
-    DTL_WHERE_EXPRESSION,
-    DTL_PICK_EXPRESSION,
-    DTL_INDEX_EXPRESSION,
-    DTL_JOIN_LEFT_EXPRESSION,
-    DTL_JOIN_RIGHT_EXPRESSION,
-    DTL_ADD_EXPRESSION,
-    DTL_SUBTRACT_EXPRESSION,
-    DTL_MULTIPLY_EXPRESSION,
-    DTL_DIVIDE_EXPRESSION,
-};
-
-static uint32_t
-dtl_ir_array_expression_tag(enum dtl_ir_array_expression_type type, enum dtl_dtype dtype) {
-    uint32_t tag = 1 << 31;
-    tag &= type << 4;
-    tag &= dtype;
-    return tag;
-}
-
-static enum dtl_ir_array_expression_type
-dtl_ir_array_expression_get_type(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
-    uint32_t tag;
-
-    assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
-    tag = dtl_ir_expression_get_tag(graph, expression);
-    tag &= ((uint32_t)1 << 31) - 1;
-    tag >>= 4;
-    return (enum dtl_ir_array_expression_type)tag;
-}
-
 bool
 dtl_ir_is_array_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
-    uint32_t tag = dtl_ir_expression_get_tag(graph, expression);
-    return (tag & (1 << 31)) != 0;
+    assert(graph != NULL);
+    return dtl_dtype_is_array_type(dtl_ir_expression_get_dtype(graph, expression));
 }
 
 enum dtl_dtype
-dtl_ir_array_expression_get_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
-    uint32_t tag = dtl_ir_expression_get_tag(graph, expression);
-    return tag & ((1 << 5) - 1);
+dtl_ir_array_expression_get_element_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_array_expression(graph, expression));
+    return dtl_dtype_get_scalar_type(dtl_ir_expression_get_dtype(graph, expression));
 }
 
 struct dtl_ir_ref
 dtl_ir_array_expression_get_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    struct dtl_ir_ref shape;
+
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
     assert(dtl_ir_expression_get_num_dependencies(graph, expression) > 0);
 
-    return dtl_ir_expression_get_dependency(graph, expression, 0);
+    shape = dtl_ir_expression_get_dependency(graph, expression, 0);
+    assert(dtl_ir_is_shape_expression(graph, shape));
+
+    return shape;
 }
 
 /* --- Integer Constant Expressions ------------------------------------------------------------- */
@@ -713,8 +662,7 @@ dtl_ir_int_constant_expression_create(
     assert(graph != NULL);
     assert(dtl_ir_is_shape_expression(graph, shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_CONSTANT_EXPRESSION, DTL_DTYPE_INT));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_CONSTANT, DTL_DTYPE_INT);
     dtl_ir_scratch_set_int(graph, value);
     dtl_ir_scratch_add_dependency(graph, shape);
     return dtl_ir_scratch_end(graph);
@@ -722,15 +670,18 @@ dtl_ir_int_constant_expression_create(
 
 bool
 dtl_ir_is_int_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    enum dtl_ir_op op;
+    enum dtl_dtype dtype;
+
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    if (type != DTL_WHERE_EXPRESSION) {
+    op = dtl_ir_expression_get_op(graph, expression);
+    if (op != DTL_IR_OP_CONSTANT) {
         return false;
     }
 
-    enum dtl_dtype dtype = dtl_ir_array_expression_get_dtype(graph, expression);
+    dtype = dtl_ir_expression_get_dtype(graph, expression);
     if (dtype != DTL_DTYPE_INT) {
         return false;
     }
@@ -757,8 +708,7 @@ dtl_ir_double_constant_expression_create(
     assert(graph != NULL);
     assert(dtl_ir_is_shape_expression(graph, shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_CONSTANT_EXPRESSION, DTL_DTYPE_INT));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_CONSTANT, DTL_DTYPE_INT);
     dtl_ir_scratch_set_double(graph, value);
     dtl_ir_scratch_add_dependency(graph, shape);
     return dtl_ir_scratch_end(graph);
@@ -766,15 +716,18 @@ dtl_ir_double_constant_expression_create(
 
 bool
 dtl_ir_is_double_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    enum dtl_ir_op op;
+    enum dtl_dtype dtype;
+
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    if (type != DTL_WHERE_EXPRESSION) {
+    op = dtl_ir_expression_get_op(graph, expression);
+    if (op != DTL_IR_OP_CONSTANT) {
         return false;
     }
 
-    enum dtl_dtype dtype = dtl_ir_array_expression_get_dtype(graph, expression);
+    dtype = dtl_ir_expression_get_dtype(graph, expression);
     if (dtype != DTL_DTYPE_DOUBLE) {
         return false;
     }
@@ -790,61 +743,71 @@ dtl_ir_double_constant_expression_get_value(struct dtl_ir_graph *graph, struct d
     return dtl_ir_expression_get_value_as_double(graph, expression);
 }
 
-/* --- Import Expressions ----------------------------------------------------------------------- */
+/* --- Open Table Expressions ------------------------------------------------------------------- */
 
 struct dtl_ir_ref
-dtl_ir_import_expression_create(
-    struct dtl_ir_graph *graph,
-    enum dtl_dtype dtype,
-    struct dtl_ir_ref shape,
-    const char *address
-) {
+dtl_ir_open_table_expression_create(struct dtl_ir_graph *graph, const char *path) {
     assert(graph != NULL);
-    assert(dtl_ir_is_import_shape_expression(graph, shape));
-    assert(strcmp(dtl_ir_import_shape_expression_get_location(graph, shape), address) == 0);
+    assert(path != NULL);
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_IMPORT_EXPRESSION, dtype));
-    dtl_ir_scratch_set_pointer(graph, address);
-    dtl_ir_scratch_add_dependency(graph, shape);
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_OPEN_TABLE, DTL_DTYPE_TABLE);
+    dtl_ir_scratch_set_pointer(graph, path);
     return dtl_ir_scratch_end(graph);
 }
 
 bool
-dtl_ir_is_import_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+dtl_ir_is_open_table_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_OPEN_TABLE;
+}
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_IMPORT_EXPRESSION;
+char const *
+dtl_ir_open_table_expression_get_path(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_open_table_expression(graph, expression));
+
+    return dtl_ir_expression_get_value_as_pointer(graph, expression);
+}
+
+/* --- Read Column Expressions ------------------------------------------------------------------ */
+
+struct dtl_ir_ref
+dtl_ir_read_column_expression_create(
+    struct dtl_ir_graph *graph,
+    enum dtl_dtype dtype,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref table,
+    const char *column_name
+) {
+    assert(graph != NULL);
+    assert(dtl_dtype_is_array_type(dtype));
+    assert(dtl_ir_is_shape_expression(graph, shape));
+    assert(dtl_ir_expression_get_dtype(graph, table) == DTL_DTYPE_TABLE);
+    assert(column_name != NULL);
+
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_READ_COLUMN, dtype);
+    dtl_ir_scratch_set_pointer(graph, column_name);
+    dtl_ir_scratch_add_dependency(graph, shape);
+    dtl_ir_scratch_add_dependency(graph, table);
+    return dtl_ir_scratch_end(graph);
+}
+
+bool
+dtl_ir_is_read_column_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_READ_COLUMN;
+}
+
+struct dtl_ir_ref
+dtl_ir_read_column_expression_get_table(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_read_column_expression(graph, expression));
+
+    return dtl_ir_expression_get_dependency(graph, expression, 1);
 }
 
 const char *
-dtl_ir_import_expression_get_address(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
-    assert(graph != NULL);
-    assert(dtl_ir_is_import_expression(graph, expression));
-
-    const char *address = dtl_ir_expression_get_value_as_pointer(graph, expression);
-    return address;
-}
-
-const char *
-dtl_ir_import_expression_get_location(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
-    assert(graph != NULL);
-    assert(dtl_ir_is_import_expression(graph, expression));
-
-    const char *address = dtl_ir_expression_get_value_as_pointer(graph, expression);
-    return address;
-}
-
-const char *
-dtl_ir_import_expression_get_column_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
-    assert(graph != NULL);
-    assert(dtl_ir_is_import_expression(graph, expression));
-
-    const char *address = dtl_ir_expression_get_value_as_pointer(graph, expression);
-    return address + strlen(address) + 1;
-}
+dtl_ir_read_column_expression_get_column_name(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 /* --- Where Expressions ------------------------------------------------------------------------ */
 
@@ -860,13 +823,12 @@ dtl_ir_where_expression_create(
     assert(dtl_ir_is_where_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, source));
     assert(dtl_ir_is_array_expression(graph, mask));
-    assert(dtl_ir_array_expression_get_dtype(graph, mask) == DTL_DTYPE_BOOL);
+    assert(dtl_ir_expression_get_dtype(graph, mask) == DTL_DTYPE_BOOL_ARRAY);
     assert(dtl_ir_ref_equal(graph, dtl_ir_where_shape_expression_get_mask(graph, shape), mask));
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, source), dtl_ir_array_expression_get_shape(graph, mask)));
-    assert(dtl_ir_array_expression_get_dtype(graph, source) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, source) == dtype);
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_WHERE_EXPRESSION, dtype));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_WHERE, dtype);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, source);
     dtl_ir_scratch_add_dependency(graph, mask);
@@ -878,8 +840,7 @@ dtl_ir_is_where_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref express
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_WHERE_EXPRESSION;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_WHERE;
 }
 
 struct dtl_ir_ref
@@ -913,13 +874,12 @@ dtl_ir_pick_expression_create(
     assert(graph != NULL);
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, source));
-    assert(dtl_ir_array_expression_get_dtype(graph, source) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, source) == dtype);
     assert(dtl_ir_is_array_expression(graph, indexes));
-    assert(dtl_ir_array_expression_get_dtype(graph, indexes) == DTL_DTYPE_INDEX);
+    assert(dtl_ir_expression_get_dtype(graph, indexes) == DTL_DTYPE_INDEX_ARRAY);
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, indexes), shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_PICK_EXPRESSION, dtype));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_PICK, dtype);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, source);
     dtl_ir_scratch_add_dependency(graph, indexes);
@@ -931,8 +891,7 @@ dtl_ir_is_pick_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expressi
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_PICK_EXPRESSION;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_PICK;
 }
 
 struct dtl_ir_ref
@@ -966,8 +925,7 @@ dtl_ir_index_expression_create(
     assert(dtl_ir_is_array_expression(graph, source));
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, source), shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_INDEX_EXPRESSION, DTL_DTYPE_INDEX));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_INDEX, DTL_DTYPE_INDEX);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, source);
     return dtl_ir_scratch_end(graph);
@@ -978,8 +936,7 @@ dtl_ir_is_index_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref express
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_INDEX_EXPRESSION;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_INDEX;
 }
 
 struct dtl_ir_ref
@@ -1007,8 +964,7 @@ dtl_ir_join_left_expression_create(
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_JOIN_LEFT_EXPRESSION, DTL_DTYPE_INDEX));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_JOIN_LEFT, DTL_DTYPE_INDEX);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, left);
     dtl_ir_scratch_add_dependency(graph, right);
@@ -1017,9 +973,10 @@ dtl_ir_join_left_expression_create(
 
 bool
 dtl_ir_is_join_left_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_JOIN_LEFT_EXPRESSION;
+
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_JOIN_LEFT;
 }
 
 struct dtl_ir_ref
@@ -1052,8 +1009,7 @@ dtl_ir_join_right_expression_create(
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_JOIN_RIGHT_EXPRESSION, DTL_DTYPE_INDEX));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_JOIN_RIGHT, DTL_DTYPE_INDEX);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, left);
     dtl_ir_scratch_add_dependency(graph, right);
@@ -1065,8 +1021,7 @@ dtl_ir_is_join_right_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ex
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_JOIN_RIGHT_EXPRESSION;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_JOIN_RIGHT;
 }
 
 struct dtl_ir_ref
@@ -1102,13 +1057,12 @@ dtl_ir_add_expression_create(
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));
-    assert(dtl_ir_array_expression_get_dtype(graph, left) == dtype);
-    assert(dtl_ir_array_expression_get_dtype(graph, right) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, left) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, right) == dtype);
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_ADD_EXPRESSION, dtype));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_ADD, dtype);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, left);
     dtl_ir_scratch_add_dependency(graph, right);
@@ -1120,8 +1074,7 @@ dtl_ir_is_add_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expressio
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_ADD_EXPRESSION;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_ADD;
 }
 
 struct dtl_ir_ref
@@ -1155,13 +1108,12 @@ dtl_ir_subtract_expression_create(
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));
-    assert(dtl_ir_array_expression_get_dtype(graph, left) == dtype);
-    assert(dtl_ir_array_expression_get_dtype(graph, right) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, left) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, right) == dtype);
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_SUBTRACT_EXPRESSION, dtype));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_SUBTRACT, dtype);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, left);
     dtl_ir_scratch_add_dependency(graph, right);
@@ -1173,8 +1125,7 @@ dtl_ir_is_subtract_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expr
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_SUBTRACT_EXPRESSION;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_SUBTRACT;
 }
 
 struct dtl_ir_ref
@@ -1208,13 +1159,12 @@ dtl_ir_multiply_expression_create(
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));
-    assert(dtl_ir_array_expression_get_dtype(graph, left) == dtype);
-    assert(dtl_ir_array_expression_get_dtype(graph, right) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, left) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, right) == dtype);
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_MULTIPLY_EXPRESSION, dtype));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_MULTIPLY, dtype);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, left);
     dtl_ir_scratch_add_dependency(graph, right);
@@ -1226,8 +1176,7 @@ dtl_ir_is_multiply_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expr
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_MULTIPLY_EXPRESSION;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_MULTIPLY;
 }
 
 struct dtl_ir_ref
@@ -1263,13 +1212,12 @@ dtl_ir_divide_expression_create(
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));
-    assert(dtl_ir_array_expression_get_dtype(graph, left) == dtype);
-    assert(dtl_ir_array_expression_get_dtype(graph, right) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, left) == dtype);
+    assert(dtl_ir_expression_get_dtype(graph, right) == dtype);
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
 
-    dtl_ir_scratch_begin(graph);
-    dtl_ir_scratch_set_tag(graph, dtl_ir_array_expression_tag(DTL_DIVIDE_EXPRESSION, dtype));
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_DIVIDE, dtype);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, left);
     dtl_ir_scratch_add_dependency(graph, right);
@@ -1281,8 +1229,7 @@ dtl_ir_is_divide_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expres
     assert(graph != NULL);
     assert(dtl_ir_is_array_expression(graph, expression));
 
-    enum dtl_ir_array_expression_type type = dtl_ir_array_expression_get_type(graph, expression);
-    return type == DTL_DIVIDE_EXPRESSION;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_DIVIDE;
 }
 
 struct dtl_ir_ref
