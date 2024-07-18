@@ -1,5 +1,6 @@
 #include "dtl-tokenizer.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -376,4 +377,10 @@ dtl_tokenizer_next_token(struct dtl_tokenizer *tokenizer) {
     };
 
     return token;
+}
+
+char const *
+dtl_tokenizer_get_input(struct dtl_tokenizer *tokenizer) {
+    assert(tokenizer != NULL);
+    return tokenizer->input;
 }

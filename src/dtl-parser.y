@@ -13,6 +13,7 @@
 
     #include <stdbool.h>
     #include <stdlib.h>
+    #include <string.h>
 
     #include "dtl-ast.h"
     #include "dtl-ast-node.h"
@@ -323,8 +324,15 @@ name
 
     }
     | NAME {
-        $$ = dtl_ast_node_create_empty(DTL_AST_NAME);  // TODO
+        size_t start = $1.start.offset;
+        size_t end = $1.end.offset;
+        size_t length = start - end;
+        char const *input = dtl_tokenizer_get_input(tokenizer);
+
+        $$ = dtl_ast_node_create_with_data(DTL_AST_NAME, length + 1);
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
+
+        memcpy(dtl_ast_node_get_data($$), &input[start], length);
     }
     ;
 
@@ -462,11 +470,11 @@ table_name
 
 distinct_clause
     : DISTINCT {
-        $$ = dtl_ast_node_create_empty(DTL_AST_DISTINCT_CLAUSE);  // TODO
+        $$ = dtl_ast_node_create_empty(DTL_AST_DISTINCT_CLAUSE);
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
     }
     | DISTINCT CONSECUTIVE {
-        $$ = dtl_ast_node_create_empty(DTL_AST_DISTINCT_CONSECUTIVE_CLAUSE);  // TODO
+        $$ = dtl_ast_node_create_empty(DTL_AST_DISTINCT_CONSECUTIVE_CLAUSE);
         dtl_ast_node_update_bounds($$, $1.start, $2.end);
     }
     | %empty {
@@ -488,7 +496,7 @@ column_binding
 
 wildcard_column_binding
     : STAR {
-        $$ = dtl_ast_node_create_empty(DTL_AST_WILDCARD_COLUMN_BINDING);  // TODO
+        $$ = dtl_ast_node_create_empty(DTL_AST_WILDCARD_COLUMN_BINDING);
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
     }
     ;
