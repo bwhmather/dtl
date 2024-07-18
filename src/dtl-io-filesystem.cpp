@@ -256,6 +256,9 @@ dtl_io_filesystem_exporter_export_table(
         case DTL_DTYPE_TEXT:
         case DTL_DTYPE_BYTES:
         case DTL_DTYPE_INDEX:
+            assert(false); // TODO
+
+        default:
             assert(false);
         }
 
