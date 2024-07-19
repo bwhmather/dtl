@@ -1,5 +1,7 @@
 #include "dtl-dtype.h"
 
+#include <stdbool.h>
+
 bool
 dtl_dtype_is_scalar_type(enum dtl_dtype type) {
     return !(type & DTL_DTYPE_ARRAY_BIT);

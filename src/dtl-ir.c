@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "dtl-dtype.h"
+#include "dtl-string-interner.h"
 
 enum dtl_ir_op {
     DTL_IR_OP_TABLE_SHAPE = 1,
@@ -37,6 +38,7 @@ struct dtl_ir_expression {
         int64_t as_int;
         double as_double;
         void const *as_pointer;
+        char const *as_string;
     } value;
 };
 
@@ -58,6 +60,8 @@ struct dtl_ir_graph {
 
     uint64_t *marks;
     struct dtl_ir_ref *relocations;
+
+    struct dtl_string_interner *interner;
 
     bool transforming : 1;
     bool writing : 1;
@@ -130,6 +134,7 @@ dtl_ir_scratch_set_double(struct dtl_ir_graph *graph, double value) {
     expression->value.as_double = value;
 }
 
+/*
 static void
 dtl_ir_scratch_set_pointer(struct dtl_ir_graph *graph, void const *value) {
     struct dtl_ir_expression *expression;
@@ -140,6 +145,19 @@ dtl_ir_scratch_set_pointer(struct dtl_ir_graph *graph, void const *value) {
     expression = &graph->to_space.expressions[graph->to_space.expressions_length];
 
     expression->value.as_pointer = value;
+}
+*/
+
+static void
+dtl_ir_scratch_set_string(struct dtl_ir_graph *graph, char const *value) {
+    struct dtl_ir_expression *expression;
+
+    assert(graph != NULL);
+    assert(graph->writing);
+
+    expression = &graph->to_space.expressions[graph->to_space.expressions_length];
+
+    expression->value.as_string = dtl_string_interner_intern(graph->interner, value);
 }
 
 static void
@@ -264,6 +282,7 @@ dtl_ir_expression_get_value_as_double(
     return dtl_ir_space_get_expression_value_as_double(&graph->to_space, expression);
 }
 
+/*
 static void const *
 dtl_ir_space_get_expression_value_as_pointer(
     struct dtl_ir_space *space,
@@ -284,6 +303,29 @@ dtl_ir_expression_get_value_as_pointer(
         dtl_ir_graph_remap_ref(graph, &expression);
     }
     return dtl_ir_space_get_expression_value_as_pointer(&graph->to_space, expression);
+}
+*/
+
+static void const *
+dtl_ir_space_get_expression_value_as_string(
+    struct dtl_ir_space *space,
+    struct dtl_ir_ref expression
+) {
+    assert(expression.space == space->id);
+    assert(expression.offset < space->expressions_length);
+
+    return space->expressions[expression.offset].value.as_string;
+}
+
+static void const *
+dtl_ir_expression_get_value_as_string(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref expression
+) {
+    if (graph->transforming) {
+        dtl_ir_graph_remap_ref(graph, &expression);
+    }
+    return dtl_ir_space_get_expression_value_as_string(&graph->to_space, expression);
 }
 
 static size_t
@@ -412,6 +454,9 @@ dtl_ir_graph_create(size_t expressions_capacity, size_t dependencies_capacity) {
     if (graph == NULL) {
         goto error;
     }
+
+    graph->interner = dtl_string_interner_create();
+
     graph->to_space.id = 1;
     graph->to_space.expressions = to_expressions;
     graph->to_space.expressions_capacity = expressions_capacity;
@@ -449,6 +494,7 @@ dtl_ir_graph_destroy(struct dtl_ir_graph *graph) {
     free(graph->from_space.dependencies);
     free(graph->relocations);
     free(graph->marks);
+    dtl_string_interner_destroy(graph->interner);
     free(graph);
 }
 
@@ -751,7 +797,7 @@ dtl_ir_open_table_expression_create(struct dtl_ir_graph *graph, const char *path
     assert(path != NULL);
 
     dtl_ir_scratch_begin(graph, DTL_IR_OP_OPEN_TABLE, DTL_DTYPE_TABLE);
-    dtl_ir_scratch_set_pointer(graph, path);
+    dtl_ir_scratch_set_string(graph, path);
     return dtl_ir_scratch_end(graph);
 }
 
@@ -766,7 +812,7 @@ dtl_ir_open_table_expression_get_path(struct dtl_ir_graph *graph, struct dtl_ir_
     assert(graph != NULL);
     assert(dtl_ir_is_open_table_expression(graph, expression));
 
-    return dtl_ir_expression_get_value_as_pointer(graph, expression);
+    return dtl_ir_expression_get_value_as_string(graph, expression);
 }
 
 /* --- Read Column Expressions ------------------------------------------------------------------ */
@@ -786,7 +832,7 @@ dtl_ir_read_column_expression_create(
     assert(column_name != NULL);
 
     dtl_ir_scratch_begin(graph, DTL_IR_OP_READ_COLUMN, dtype);
-    dtl_ir_scratch_set_pointer(graph, column_name);
+    dtl_ir_scratch_set_string(graph, column_name);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, table);
     return dtl_ir_scratch_end(graph);
@@ -807,7 +853,12 @@ dtl_ir_read_column_expression_get_table(struct dtl_ir_graph *graph, struct dtl_i
 }
 
 const char *
-dtl_ir_read_column_expression_get_column_name(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_read_column_expression_get_column_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_read_column_expression(graph, expression));
+
+    return dtl_ir_expression_get_value_as_string(graph, expression);
+}
 
 /* --- Where Expressions ------------------------------------------------------------------------ */
 
@@ -1249,59 +1300,3 @@ dtl_ir_divide_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref exp
 
     return dtl_ir_expression_get_dependency(graph, expression, 2);
 }
-
-/* === Tables =================================================================================== */
-
-struct dtl_ir_column {
-    char *name;
-    struct dtl_ir_ref expression;
-};
-
-struct dtl_ir_table {
-    struct dtl_ir_column *columns;
-    size_t columns_length;
-};
-
-void
-dtl_ir_table_destroy(struct dtl_ir_table *table) {
-    assert(table != NULL);
-
-    for (size_t i = 0; i < table->columns_length; i++) {
-        free(table->columns[i].name);
-    }
-    free(table->columns);
-    free(table);
-}
-
-struct dtl_ir_table *
-dtl_ir_table_create(void) {
-    struct dtl_ir_table *table = calloc(1, sizeof(struct dtl_ir_table));
-    return table;
-}
-
-void
-dtl_ir_table_add_column(struct dtl_ir_table *table, const char *name, struct dtl_ir_ref expression) {
-    assert(table != NULL);
-
-    table->columns = realloc(table->columns, table->columns_length + 1);
-    assert(table->columns != NULL);
-
-    struct dtl_ir_column *column = &table->columns[table->columns_length];
-
-    column->name = strdup(name);
-    assert(column->name != NULL);
-
-    column->expression = expression;
-}
-
-size_t
-dtl_ir_table_get_num_columns(struct dtl_ir_table *table) {
-    assert(table != NULL);
-    return table->columns_length;
-}
-
-struct dtl_ir_ref
-dtl_ir_table_get_column_expression(struct dtl_ir_table *table, size_t column);
-
-const char *
-dtl_ir_table_get_column_name(struct dtl_ir_table *table, size_t column);

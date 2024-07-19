@@ -17,6 +17,7 @@ extern "C" {
 extern "C" {
 #include "dtl-io.h"
 #include "dtl-array.h"
+#include "dtl-dtype.h"
 }
 
 /* === Importer ================================================================================= */
@@ -77,7 +78,7 @@ dtl_io_filesystem_table_get_column_dtype(struct dtl_io_table* table, size_t inde
     assert(table->get_column_dtype == dtl_io_filesystem_table_get_column_dtype);
 
     (void)index;
-    return DTL_DTYPE_BOOL; // TODO
+    return DTL_DTYPE_BOOL_ARRAY; // TODO
 }
 
 static void
@@ -218,7 +219,7 @@ dtl_io_filesystem_exporter_export_table(
         col_name = dtl_io_table_get_column_name(table, col);
 
         switch (col_dtype) {
-        case DTL_DTYPE_BOOL: {
+        case DTL_DTYPE_BOOL_ARRAY: {
             arrow::BooleanBuilder builder(pool);
             status = builder.Resize(num_rows);
             assert(status.ok()); // TODO
@@ -236,7 +237,7 @@ dtl_io_filesystem_exporter_export_table(
 
             break;
         }
-        case DTL_DTYPE_INT: {
+        case DTL_DTYPE_INT_ARRAY: {
             arrow::Int64Builder builder(pool);
 
             status = builder.Resize(num_rows);
@@ -252,10 +253,10 @@ dtl_io_filesystem_exporter_export_table(
 
             break;
         }
-        case DTL_DTYPE_DOUBLE:
-        case DTL_DTYPE_TEXT:
-        case DTL_DTYPE_BYTES:
-        case DTL_DTYPE_INDEX:
+        case DTL_DTYPE_DOUBLE_ARRAY:
+        case DTL_DTYPE_TEXT_ARRAY:
+        case DTL_DTYPE_BYTES_ARRAY:
+        case DTL_DTYPE_INDEX_ARRAY:
             assert(false); // TODO
 
         default:
