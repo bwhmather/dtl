@@ -165,7 +165,7 @@ dtl_ast_to_ir_compile_select_expression(
 ) {
     assert(context != NULL);
     assert(expression != NULL);
-    assert(dtl_ast_node_get_type(expression) == DTL_AST_SELECT_EXPRESSION);
+    assert(dtl_ast_node_is_select_expression(expression));
 
     assert(false);
 }
@@ -228,7 +228,7 @@ dtl_ast_to_ir_compile_table_reference_expression(
 ) {
     assert(context != NULL);
     assert(expression != NULL);
-    assert(dtl_ast_node_get_type(expression) == DTL_AST_TABLE_REFERENCE_EXPRESSION);
+    assert(dtl_ast_node_is_table_reference_expression(expression));
 
     assert(false);
 }
@@ -239,18 +239,21 @@ dtl_ast_to_ir_compile_table_expression(
 ) {
     assert(context != NULL);
     assert(expression != NULL);
-    assert(dtl_ast_node_get_class(expression) == DTL_AST_CLASS_TABLE_EXPRESSION);
+    assert(dtl_ast_node_is_table_expression(expression));
 
-    switch (dtl_ast_node_get_type(expression)) {
-    case DTL_AST_SELECT_EXPRESSION:
+    if (dtl_ast_node_is_select_expression(expression)) {
         return dtl_ast_to_ir_compile_select_expression(context, expression);
-    case DTL_AST_IMPORT_EXPRESSION:
-        return dtl_ast_to_ir_compile_import_expression(context, expression);
-    case DTL_AST_TABLE_REFERENCE_EXPRESSION:
-        return dtl_ast_to_ir_compile_table_reference_expression(context, expression);
-    default:
-        assert(false);
     }
+
+    if (dtl_ast_node_is_import_expression(expression)) {
+        return dtl_ast_to_ir_compile_import_expression(context, expression);
+    }
+
+    if (dtl_ast_node_is_table_reference_expression(expression)) {
+        return dtl_ast_to_ir_compile_table_reference_expression(context, expression);
+    }
+
+    assert(false);
 }
 
 static void
@@ -263,13 +266,13 @@ dtl_ast_to_ir_compile_assignment_statement(
 
     assert(context != NULL);
     assert(statement != NULL);
-    assert(dtl_ast_node_get_type(statement) == DTL_AST_ASSIGNMENT_STATEMENT);
+    assert(dtl_ast_node_is_assignment_statement(statement));
 
     expression = dtl_ast_node_get_child(statement, 0);
-    assert(dtl_ast_node_get_class(expression) == DTL_AST_CLASS_TABLE_EXPRESSION);
+    assert(dtl_ast_node_is_table_expression(expression));
 
     name = dtl_ast_node_get_child(statement, 1);
-    assert(dtl_ast_node_get_type(name) == DTL_AST_TABLE_NAME);
+    assert(dtl_ast_node_is_table_name(name));
 
     expression_scope = dtl_ast_to_ir_compile_table_expression(context, expression);
     expression_scope = dtl_ast_to_ir_scope_strip_namespaces(expression_scope);
@@ -294,13 +297,13 @@ dtl_ast_to_ir_compile_export_statement(
 
     assert(context != NULL);
     assert(statement != NULL);
-    assert(dtl_ast_node_get_type(statement) == DTL_AST_EXPORT_STATEMENT);
+    assert(dtl_ast_node_is_export_statement(statement));
 
     expression = dtl_ast_node_get_child(statement, 0);
-    assert(dtl_ast_node_get_class(expression) == DTL_AST_CLASS_TABLE_EXPRESSION);
+    assert(dtl_ast_node_is_table_expression(expression));
 
     path = dtl_ast_node_get_child(statement, 1);
-    assert(dtl_ast_node_get_type(path) == DTL_AST_STRING_LITERAL);
+    assert(dtl_ast_node_is_string_literal(path));
 
     expression_scope = dtl_ast_to_ir_compile_table_expression(context, expression);
     expression_scope = dtl_ast_to_ir_scope_strip_namespaces(expression_scope);
@@ -316,36 +319,38 @@ static void
 dtl_ast_to_ir_compile_statement(struct dtl_ast_to_ir_context *context, struct dtl_ast_node *statement) {
     assert(context != NULL);
     assert(statement != NULL);
-    assert(dtl_ast_node_get_class(statement) == DTL_AST_CLASS_STATEMENT);
+    assert(dtl_ast_node_is_statement(statement));
 
-    switch (dtl_ast_node_get_type(statement)) {
-    case DTL_AST_ASSIGNMENT_STATEMENT:
+    if (dtl_ast_node_is_assignment_statement(statement)) {
         dtl_ast_to_ir_compile_assignment_statement(context, statement);
         return;
+    }
 
-        //    case DTL_AST_UPDATE_STATEMENT:
-        //        dtl_ast_to_ir_compile_update_statement(context, statement);
-        //        return;
-        //
-        //    case DTL_AST_DELETE_STATEMENT:
-        //        dtl_ast_to_ir_compile_delete_statement(context, statement);
-        //        return;
-        //
-        //    case DTL_AST_INSERT_STATEMENT:
-        //        dtl_ast_to_ir_compile_insert_statement(context, statement);
-        //        return;
-        //
-    case DTL_AST_EXPORT_STATEMENT:
+    //    if (dtl_ast_node_is_update_statement(statement)) {
+    //        dtl_ast_to_ir_compile_update_statement(context, statement);
+    //        return;
+    //    }
+    //
+    //    if (dtl_ast_node_is_delete_statement(statement)) {
+    //        dtl_ast_to_ir_compile_delete_statement(context, statement);
+    //        return;
+    //    }
+    //
+    //    if (dtl_ast_node_is_insert_statement(statement)) {
+    //        dtl_ast_to_ir_compile_insert_statement(context, statement);
+    //        return;
+    //    }
+
+    if (dtl_ast_node_is_export_statement(statement)) {
         dtl_ast_to_ir_compile_export_statement(context, statement);
         return;
-
-        //    case DTL_AST_BEGIN_STATEMENT:
-        //        dtl_ast_to_ir_compile_begin_statement(context, statement);
-        //        return;
-
-    default:
-        assert(false);
     }
+    //    if (dtl_ast_node_is_begin_statement(statement)) {
+    //        dtl_ast_to_ir_compile_begin_statement(context, statement);
+    //        return;
+    //    }
+
+    assert(false);
 }
 
 void

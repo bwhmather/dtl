@@ -691,9 +691,9 @@ statement_list
     }
     | statement_list[prev] statement[next] {
         if ($prev == NULL) {
-            $$ = dtl_ast_node_create_with_children(DTL_AST_STATEMENT_LIST);
+            $$ = dtl_ast_statement_list_node_create();
         }
-        $$ = dtl_ast_node_append_child($$, $next);
+        $$ = dtl_ast_statement_list_node_append($$, $next);
     }
     ;
 
