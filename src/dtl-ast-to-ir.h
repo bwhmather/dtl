@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dtl-ast-node.h"
+#include "dtl-ast.h"
 #include "dtl-io.h"
 #include "dtl-ir.h"
 #include "dtl-location.h"

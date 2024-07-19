@@ -2,7 +2,6 @@
 
 #include <stddef.h>
 
-#include "dtl-ast-node.h"
 #include "dtl-ast.h"
 
 void

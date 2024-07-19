@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "dtl-ast-find-imports.h"
-#include "dtl-ast-node.h"
 #include "dtl-ast.h"
 #include "dtl-dtype.h"
 #include "dtl-io.h"

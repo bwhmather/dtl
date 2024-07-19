@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "dtl-ast-node.h"
 #include "dtl-location.h"
 
 struct dtl_ast_node;
@@ -12,16 +11,40 @@ struct dtl_ast_node;
 /* === Generic ================================================================================== */
 
 void
-dtl_ast_node_include_range(struct dtl_ast_node *, struct dtl_location start, struct dtl_location end);
+dtl_ast_node_update_bounds(struct dtl_ast_node *, struct dtl_location start, struct dtl_location end);
 
 struct dtl_location
-dtl_ast_node_get_start(struct dtl_ast_node *node);
+dtl_ast_node_get_start(struct dtl_ast_node *);
 
 struct dtl_location
-dtl_ast_node_get_end(struct dtl_ast_node *node);
+dtl_ast_node_get_end(struct dtl_ast_node *);
 
 void
 dtl_ast_node_destroy(struct dtl_ast_node *node);
+
+/* --- Container Nodes -------------------------------------------------------------------------- */
+
+bool
+dtl_ast_node_has_children(struct dtl_ast_node *);
+
+size_t
+dtl_ast_node_get_num_children(struct dtl_ast_node *node);
+
+struct dtl_ast_node *
+dtl_ast_node_get_child(struct dtl_ast_node *node, size_t index);
+
+/* --- Data Nodes ------------------------------------------------------------------------------- */
+
+bool
+dtl_ast_node_has_data(struct dtl_ast_node *);
+
+size_t
+dtl_ast_node_get_data_size(struct dtl_ast_node *);
+
+void *
+dtl_ast_node_get_data(struct dtl_ast_node *);
+
+/* === Type Spectific =========================================================================== */
 
 /* --- Names ------------------------------------------------------------------------------------ */
 

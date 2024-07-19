@@ -16,7 +16,6 @@
     #include <string.h>
 
     #include "dtl-ast.h"
-    #include "dtl-ast-node.h"
     #include "dtl-tokenizer.h"
 }
 
