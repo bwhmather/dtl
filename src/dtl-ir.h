@@ -46,7 +46,7 @@ dtl_ir_graph_gc_mark_root(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 /**
  * Compacts the expression heap, removing any expression that is not reachable from a marked root.
- * After calling this, external references to nodes must be updated using `dtl_ir_graph_gc_remap`.
+ * After calling this, external references to nodes must be updated using `dtl_ir_graph_remap_ref`.
  * Clears the set of marked roots.
  */
 void
