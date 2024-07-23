@@ -30,6 +30,15 @@ dtl_ir_graph_create(size_t nodes_capacity, size_t deps_capacity);
 void
 dtl_ir_graph_destroy(struct dtl_ir_graph *graph);
 
+/* --- Strings ---------------------------------------------------------------------------------- */
+
+/**
+ * Intern a string using the graph's embedded string interner.  The returned string will be valid
+ * for the lifetime of the graph and can be compared by pointer to other strings from the same graph.
+ */
+char const *
+dtl_ir_graph_intern(struct dtl_ir_graph *graph, char const *input);
+
 /* --- Generic ---------------------------------------------------------------------------------- */
 
 enum dtl_dtype

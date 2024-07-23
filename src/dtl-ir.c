@@ -498,7 +498,16 @@ dtl_ir_graph_destroy(struct dtl_ir_graph *graph) {
     free(graph);
 }
 
+/* --- Strings ---------------------------------------------------------------------------------- */
+
+char const *
+dtl_ir_graph_intern(struct dtl_ir_graph *graph, char const *input) {
+    assert(graph != NULL);
+    return dtl_string_interner_intern(graph->interner, input);
+}
+
 /* --- Transformation --------------------------------------------------------------------------- */
+
 void
 dtl_ir_graph_transform(
     struct dtl_ir_graph *graph,
