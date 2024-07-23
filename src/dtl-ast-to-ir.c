@@ -50,6 +50,31 @@ dtl_ast_to_ir_scope_dup(struct dtl_ast_to_ir_scope *src) {
 }
 
 static struct dtl_ast_to_ir_scope *
+dtl_ast_to_ir_scope_add_unsafe(
+    struct dtl_ast_to_ir_scope *scope,
+    char const *name,
+    char const *namespace,
+    struct dtl_ir_ref expression
+) {
+    assert(scope != NULL);
+    assert(name != NULL);
+
+    scope->num_columns += 1;
+    scope = realloc(
+        scope,
+        sizeof(struct dtl_ast_to_ir_scope) +
+            sizeof(struct dtl_ast_to_ir_scope_column) * (scope->num_columns)
+    );
+    scope->columns[scope->num_columns - 1] = (struct dtl_ast_to_ir_scope_column){
+        .name = name,
+        .namespace = namespace,
+        .expression = expression,
+    };
+
+    return scope;
+}
+
+static struct dtl_ast_to_ir_scope *
 dtl_ast_to_ir_scope_add(
     struct dtl_ast_to_ir_scope *scope,
     char const *name,
@@ -73,19 +98,7 @@ dtl_ast_to_ir_scope_add(
         return scope;
     }
 
-    scope->num_columns += 1;
-    scope = realloc(
-        scope,
-        sizeof(struct dtl_ast_to_ir_scope) +
-            sizeof(struct dtl_ast_to_ir_scope_column) * (scope->num_columns)
-    );
-    scope->columns[scope->num_columns - 1] = (struct dtl_ast_to_ir_scope_column){
-        .name = name,
-        .namespace = namespace,
-        .expression = expression,
-    };
-
-    return scope;
+    return dtl_ast_to_ir_scope_add_unsafe(scope, name, namespace, expression);
 }
 
 static struct dtl_ir_ref
@@ -101,7 +114,11 @@ dtl_ast_to_ir_scope_lookup(
 }
 
 static struct dtl_ast_to_ir_scope *
-dtl_ast_to_ir_scope_strip_namespaces(struct dtl_ast_to_ir_scope *scope) {
+dtl_ast_to_ir_scope_filter(
+    struct dtl_ast_to_ir_scope *scope,
+    bool (*should_filter)(char const *name, char const *namespace, struct dtl_ir_ref, void *),
+    void *user_data
+) {
     size_t read_index;
     size_t write_index;
     struct dtl_ast_to_ir_scope_column column;
@@ -111,7 +128,7 @@ dtl_ast_to_ir_scope_strip_namespaces(struct dtl_ast_to_ir_scope *scope) {
     write_index = 0;
     for (read_index = 0; read_index < scope->num_columns; read_index++) {
         column = scope->columns[read_index];
-        if (column.namespace != NULL) {
+        if (should_filter(column.name, column.namespace, column.expression, user_data)) {
             continue;
         }
         scope->columns[write_index] = column;
@@ -119,6 +136,48 @@ dtl_ast_to_ir_scope_strip_namespaces(struct dtl_ast_to_ir_scope *scope) {
     }
     scope->num_columns = write_index;
     return scope;
+}
+
+static bool
+dtl_ast_to_ir_scope_filter_namespace_predicate(
+    char const *name, char const *namespace, struct dtl_ir_ref expression, void *user_data
+) {
+    char const *target_namespace;
+
+    (void)name;
+    (void)expression;
+
+    target_namespace = (char const *)user_data;
+
+    // We assume that all strings have been interned.
+    return namespace == target_namespace;
+}
+
+static struct dtl_ast_to_ir_scope *
+dtl_ast_to_ir_scope_filter_namespace(struct dtl_ast_to_ir_scope *scope, char const *namespace) {
+    assert(scope != NULL);
+
+    return dtl_ast_to_ir_scope_filter(
+        scope, dtl_ast_to_ir_scope_filter_namespace_predicate, (void *)namespace
+    );
+}
+
+static bool
+dtl_ast_to_ir_scope_strip_namespaces_predicate(
+    char const *name, char const *namespace, struct dtl_ir_ref expression, void *user_data
+) {
+    (void)name;
+    (void)expression;
+    (void)user_data;
+
+    return namespace != NULL;
+}
+
+static struct dtl_ast_to_ir_scope *
+dtl_ast_to_ir_scope_strip_namespaces(struct dtl_ast_to_ir_scope *scope) {
+    assert(scope != NULL);
+
+    return dtl_ast_to_ir_scope_filter(scope, dtl_ast_to_ir_scope_filter_namespace_predicate, NULL);
 }
 
 /* === Contexts ================================================================================= */
@@ -129,9 +188,11 @@ struct dtl_ast_to_ir_context {
     void (*table_callback)(char const *, char const *, struct dtl_ir_ref, void *);
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *);
     void *user_data;
+
+    struct dtl_ast_to_ir_scope *globals;
 };
 
-void
+static void
 dtl_ast_to_ir_context_trace_statement(
     struct dtl_ast_to_ir_context *context,
     struct dtl_location start,
@@ -145,15 +206,26 @@ dtl_ast_to_ir_context_trace_statement(
     (void)table;
 }
 
-void
+static void
 dtl_ast_to_ir_context_export_table(
     struct dtl_ast_to_ir_context *context,
     char const *path,
     struct dtl_ast_to_ir_scope *table
 ) {
-    (void)context;
-    (void)path;
-    (void)table;
+    size_t i;
+    char const *column_name;
+    char const *column_namespace;
+    struct dtl_ir_ref column_expression;
+
+    for (i = 0; i < table->num_columns; i++) {
+        column_name = table->columns[i].name;
+        column_namespace = table->columns[i].namespace;
+        column_expression = table->columns[i].expression;
+
+        assert(column_namespace == NULL); // TODO might be safe to skip if not NULL.
+
+        context->table_callback(path, column_name, column_expression, context->user_data);
+    }
 }
 
 /* === Compilation ============================================================================== */
@@ -192,6 +264,8 @@ dtl_ast_to_ir_compile_import_expression(
     assert(dtl_ast_node_is_string_literal(path_expression));
 
     path = dtl_ast_string_literal_node_get_value(path_expression);
+    path = dtl_ir_graph_intern(context->graph, path);
+    assert(path != NULL);
 
     io_table = dtl_io_importer_import_table(context->importer, path);
 
@@ -259,31 +333,48 @@ static void
 dtl_ast_to_ir_compile_assignment_statement(
     struct dtl_ast_to_ir_context *context, struct dtl_ast_node *statement
 ) {
-    struct dtl_ast_node *expression;
-    struct dtl_ast_node *name;
+    struct dtl_ast_node *table_expression;
+    struct dtl_ast_node *table_name_node;
+    struct dtl_ast_node *name_node;
+    char const *table_name;
     struct dtl_ast_to_ir_scope *expression_scope;
+    size_t i;
+    char const *column_name;
+    struct dtl_ir_ref column_expression;
 
     assert(context != NULL);
     assert(statement != NULL);
     assert(dtl_ast_node_is_assignment_statement(statement));
 
-    expression = dtl_ast_node_get_child(statement, 0);
-    assert(dtl_ast_node_is_table_expression(expression));
+    table_expression = dtl_ast_node_get_child(statement, 0);
+    assert(dtl_ast_node_is_table_expression(table_expression));
 
-    name = dtl_ast_node_get_child(statement, 1);
-    assert(dtl_ast_node_is_table_name(name));
+    table_name_node = dtl_ast_assignment_statement_node_get_name(statement);
+    assert(dtl_ast_node_is_table_name(table_name_node));
 
-    expression_scope = dtl_ast_to_ir_compile_table_expression(context, expression);
+    name_node = dtl_ast_table_name_node_get_value(table_name_node);
+    assert(dtl_ast_node_is_name(name_node));
+
+    table_name = dtl_ast_name_node_get_value(name_node);
+    table_name = dtl_ir_graph_intern(context->graph, table_name);
+    assert(table_name != NULL);
+
+    expression_scope = dtl_ast_to_ir_compile_table_expression(context, table_expression);
     expression_scope = dtl_ast_to_ir_scope_strip_namespaces(expression_scope);
 
     dtl_ast_to_ir_context_trace_statement(
         context, dtl_ast_node_get_start(statement), dtl_ast_node_get_end(statement), expression_scope
     );
 
-    // Add to globals.
-    // Filter out old values with matching namespace.
-    // Set num columns to end.
-    // Append columns from result scope.
+    context->globals = dtl_ast_to_ir_scope_filter_namespace(context->globals, table_name);
+    for (i = 0; i < expression_scope->num_columns; i++) {
+        column_name = expression_scope->columns[i].name;
+        column_expression = expression_scope->columns[i].expression;
+
+        context->globals = dtl_ast_to_ir_scope_add_unsafe(
+            context->globals, column_name, table_name, column_expression
+        );
+    }
 }
 
 static void
@@ -291,7 +382,8 @@ dtl_ast_to_ir_compile_export_statement(
     struct dtl_ast_to_ir_context *context, struct dtl_ast_node *statement
 ) {
     struct dtl_ast_node *expression;
-    struct dtl_ast_node *path;
+    struct dtl_ast_node *path_expression;
+    char const *path;
     struct dtl_ast_to_ir_scope *expression_scope;
 
     assert(context != NULL);
@@ -301,8 +393,12 @@ dtl_ast_to_ir_compile_export_statement(
     expression = dtl_ast_node_get_child(statement, 0);
     assert(dtl_ast_node_is_table_expression(expression));
 
-    path = dtl_ast_node_get_child(statement, 1);
-    assert(dtl_ast_node_is_string_literal(path));
+    path_expression = dtl_ast_node_get_child(statement, 1);
+    assert(dtl_ast_node_is_string_literal(path_expression));
+
+    path = dtl_ast_string_literal_node_get_value(path_expression);
+    path = dtl_ir_graph_intern(context->graph, path);
+    assert(path != NULL);
 
     expression_scope = dtl_ast_to_ir_compile_table_expression(context, expression);
     expression_scope = dtl_ast_to_ir_scope_strip_namespaces(expression_scope);
@@ -311,7 +407,7 @@ dtl_ast_to_ir_compile_export_statement(
         context, dtl_ast_node_get_start(statement), dtl_ast_node_get_end(statement), expression_scope
     );
 
-    // TODO export_table()
+    dtl_ast_to_ir_context_export_table(context, path, expression_scope);
 }
 
 static void
