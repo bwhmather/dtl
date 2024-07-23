@@ -216,7 +216,7 @@ dtl_ir_expression_get_op(
     return dtl_ir_space_get_expression_op(&graph->to_space, expression);
 }
 
-enum dtl_dtype
+static enum dtl_dtype
 dtl_ir_space_get_expression_dtype(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
