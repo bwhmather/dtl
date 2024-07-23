@@ -9,6 +9,7 @@
 
 #include "dtl-dtype.h"
 #include "dtl-string-interner.h"
+#include "dtl-value.h"
 
 enum dtl_ir_op {
     DTL_IR_OP_TABLE_SHAPE = 1,
@@ -34,12 +35,7 @@ struct dtl_ir_expression {
 
     uint32_t dependencies_end;
 
-    union {
-        int64_t as_int;
-        double as_double;
-        void const *as_pointer;
-        char const *as_string;
-    } value;
+    union dtl_value value;
 };
 
 struct dtl_ir_space {

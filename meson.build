@@ -36,6 +36,7 @@ lib_sources = [
   'src/dtl-location.c',
   'src/dtl-string-interner.c',
   'src/dtl-tokenizer.c',
+  'src/dtl-value.c',
   parser_source,
 ]
 
