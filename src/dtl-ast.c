@@ -186,7 +186,7 @@ dtl_ast_node_create_empty(int tag) {
 
 /* --- Container Nodes -------------------------------------------------------------------------- */
 
-struct dtl_ast_node *
+static struct dtl_ast_node *
 dtl_ast_node_create_with_children(int tag) {
     struct dtl_ast_container_node *container_node;
 
@@ -197,7 +197,7 @@ dtl_ast_node_create_with_children(int tag) {
     return &container_node->base;
 }
 
-struct dtl_ast_node *
+static struct dtl_ast_node *
 dtl_ast_node_append_child(struct dtl_ast_node *node, struct dtl_ast_node *child) {
     struct dtl_ast_container_node *container_node;
 
@@ -256,7 +256,7 @@ dtl_ast_node_get_child(struct dtl_ast_node *node, size_t index) {
 
 /* --- Data Nodes ------------------------------------------------------------------------------- */
 
-struct dtl_ast_node *
+static struct dtl_ast_node *
 dtl_ast_node_create_with_data(int tag, size_t size) {
     struct dtl_ast_data_node *data_node;
 
