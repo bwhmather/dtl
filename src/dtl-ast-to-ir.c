@@ -163,21 +163,24 @@ dtl_ast_to_ir_scope_filter_namespace(struct dtl_ast_to_ir_scope *scope, char con
 }
 
 static bool
-dtl_ast_to_ir_scope_strip_namespaces_predicate(
+dtl_ast_to_ir_scope_pick_namespace_predicate(
     char const *name, char const *namespace, struct dtl_ir_ref expression, void *user_data
 ) {
+    char const *target_namespace;
+
     (void)name;
     (void)expression;
-    (void)user_data;
 
-    return namespace != NULL;
+    target_namespace = (char const *)user_data;
+
+    return namespace != target_namespace;
 }
 
 static struct dtl_ast_to_ir_scope *
-dtl_ast_to_ir_scope_strip_namespaces(struct dtl_ast_to_ir_scope *scope) {
+dtl_ast_to_ir_scope_pick_namespace(struct dtl_ast_to_ir_scope *scope, char const *namespace) {
     assert(scope != NULL);
 
-    return dtl_ast_to_ir_scope_filter(scope, dtl_ast_to_ir_scope_filter_namespace_predicate, NULL);
+    return dtl_ast_to_ir_scope_filter(scope, dtl_ast_to_ir_scope_pick_namespace_predicate, (void *)namespace);
 }
 
 /* === Contexts ================================================================================= */
@@ -360,7 +363,7 @@ dtl_ast_to_ir_compile_assignment_statement(
     assert(table_name != NULL);
 
     expression_scope = dtl_ast_to_ir_compile_table_expression(context, table_expression);
-    expression_scope = dtl_ast_to_ir_scope_strip_namespaces(expression_scope);
+    expression_scope = dtl_ast_to_ir_scope_pick_namespace(expression_scope, NULL);
 
     dtl_ast_to_ir_context_trace_statement(
         context, dtl_ast_node_get_start(statement), dtl_ast_node_get_end(statement), expression_scope
@@ -401,7 +404,7 @@ dtl_ast_to_ir_compile_export_statement(
     assert(path != NULL);
 
     expression_scope = dtl_ast_to_ir_compile_table_expression(context, expression);
-    expression_scope = dtl_ast_to_ir_scope_strip_namespaces(expression_scope);
+    expression_scope = dtl_ast_to_ir_scope_pick_namespace(expression_scope, NULL);
 
     dtl_ast_to_ir_context_trace_statement(
         context, dtl_ast_node_get_start(statement), dtl_ast_node_get_end(statement), expression_scope
