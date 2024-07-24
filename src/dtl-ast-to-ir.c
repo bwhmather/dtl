@@ -188,7 +188,7 @@ dtl_ast_to_ir_scope_pick_namespace(struct dtl_ast_to_ir_scope *scope, char const
 struct dtl_ast_to_ir_context {
     struct dtl_ir_graph *graph;
     struct dtl_io_importer *importer;
-    void (*table_callback)(char const *, char const *, struct dtl_ir_ref, void *);
+    void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *);
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *);
     void *user_data;
 
@@ -227,7 +227,7 @@ dtl_ast_to_ir_context_export_table(
 
         assert(column_namespace == NULL); // TODO might be safe to skip if not NULL.
 
-        context->table_callback(path, column_name, column_expression, context->user_data);
+        context->column_callback(path, column_name, column_expression, context->user_data);
     }
 }
 
@@ -456,7 +456,7 @@ dtl_ast_to_ir(
     struct dtl_ast_node *root,
     struct dtl_ir_graph *graph,
     struct dtl_io_importer *importer,
-    void (*table_callback)(char const *, char const *, struct dtl_ir_ref, void *),
+    void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *),
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *),
     void *user_data
 ) {
@@ -467,7 +467,7 @@ dtl_ast_to_ir(
     context = calloc(1, sizeof(struct dtl_ast_to_ir_context));
     context->graph = graph;
     context->importer = importer;
-    context->table_callback = table_callback;
+    context->column_callback = column_callback;
     context->trace_callback = trace_callback;
     context->user_data = user_data;
 
