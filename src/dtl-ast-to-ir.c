@@ -302,11 +302,25 @@ static struct dtl_ast_to_ir_scope *
 dtl_ast_to_ir_compile_table_reference_expression(
     struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression
 ) {
+    struct dtl_ast_node *name_node;
+    char const *table_name;
+    struct dtl_ast_to_ir_scope *result;
+
     assert(context != NULL);
     assert(expression != NULL);
     assert(dtl_ast_node_is_table_reference_expression(expression));
 
-    assert(false);
+    name_node = dtl_ast_table_reference_expression_node_get_name(expression);
+    assert(dtl_ast_node_is_name(name_node));
+
+    table_name = dtl_ast_name_node_get_value(name_node);
+    table_name = dtl_ir_graph_intern(context->graph, table_name);
+    assert(table_name != NULL);
+
+    result = dtl_ast_to_ir_scope_dup(context->globals);
+    result = dtl_ast_to_ir_scope_pick_namespace(result, table_name);
+
+    return result;
 }
 
 static struct dtl_ast_to_ir_scope *
