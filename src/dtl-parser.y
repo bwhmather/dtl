@@ -318,7 +318,7 @@
 
 name
     : QUOTED_NAME {
-        $$ = dtl_ast_name_node_create("TODO");  // TODO
+        $$ = dtl_ast_name_node_create("not-implemented-in-parser");  // TODO
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
 
     }
