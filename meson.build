@@ -30,6 +30,7 @@ lib_sources = [
   'src/dtl-ast-find-imports.c',
   'src/dtl-ast-to-ir.c',
   'src/dtl-dtype.c',
+  'src/dtl-eval.c',
   'src/dtl-io.c',
   'src/dtl-io-filesystem.cpp',
   'src/dtl-ir.c',
