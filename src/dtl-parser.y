@@ -344,7 +344,25 @@ literal
 
 string
     : STRING {
-        $$ = dtl_ast_string_literal_node_create("TODO");  // TODO
+        size_t start = $1.start.offset;
+        size_t end = $1.end.offset;
+        char const *input = dtl_tokenizer_get_input(tokenizer);
+
+        size_t length = 0;
+        for (size_t i = start + 1; i < end - 1; i++) {
+            // TODO unescape
+            length += 1;
+        }
+
+        char *buffer = calloc(1, length + 1);
+        size_t cursor = 0;
+        for (size_t i = start + 1; i < end - 1; i++) {
+            // TODO unescape.
+            buffer[cursor] = input[i];
+            cursor += 1;
+        }
+
+        $$ = dtl_ast_string_literal_node_create(buffer);
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
     }
     ;
