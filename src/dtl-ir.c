@@ -190,15 +190,24 @@ dtl_ir_scratch_end(struct dtl_ir_graph *graph) {
     return result;
 }
 
+static struct dtl_ir_expression *
+dtl_ir_space_get_expression_pointer(
+    struct dtl_ir_space *space,
+    struct dtl_ir_ref expression
+) {
+    assert(expression.space == space->id);
+    assert(expression.offset > 0);
+    assert(expression.offset <= space->expressions_length);
+
+    return &space->expressions[expression.offset - 1];
+}
+
 static enum dtl_ir_op
 dtl_ir_space_get_expression_op(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    assert(expression.space == space->id);
-    assert(expression.offset < space->expressions_length);
-
-    return space->expressions[expression.offset].op;
+    return dtl_ir_space_get_expression_pointer(space, expression)->op;
 }
 
 static enum dtl_ir_op
@@ -217,10 +226,7 @@ dtl_ir_space_get_expression_dtype(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    assert(expression.space == space->id);
-    assert(expression.offset < space->expressions_length);
-
-    return space->expressions[expression.offset].dtype;
+    return dtl_ir_space_get_expression_pointer(space, expression)->dtype;
 }
 
 enum dtl_dtype
@@ -239,10 +245,7 @@ dtl_ir_space_get_expression_value_as_int(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    assert(expression.space == space->id);
-    assert(expression.offset < space->expressions_length);
-
-    return space->expressions[expression.offset].value.as_int;
+    return dtl_ir_space_get_expression_pointer(space, expression)->value.as_int;
 }
 
 static int64_t
@@ -261,10 +264,7 @@ dtl_ir_space_get_expression_value_as_double(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    assert(expression.space == space->id);
-    assert(expression.offset < space->expressions_length);
-
-    return space->expressions[expression.offset].value.as_double;
+    return dtl_ir_space_get_expression_pointer(space, expression)->value.as_double;
 }
 
 static double
@@ -287,7 +287,7 @@ dtl_ir_space_get_expression_value_as_pointer(
     assert(expression.space == space->id);
     assert(expression.offset < space->expressions_length);
 
-    return space->expressions[expression.offset].value.as_pointer;
+    return dtl_ir_space_get_expression_pointer(space, expression)->alue.as_pointer;
 }
 
 static void const *
@@ -307,10 +307,7 @@ dtl_ir_space_get_expression_value_as_string(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    assert(expression.space == space->id);
-    assert(expression.offset < space->expressions_length);
-
-    return space->expressions[expression.offset].value.as_string;
+    return dtl_ir_space_get_expression_pointer(space, expression)->value.as_string;
 }
 
 static void const *
@@ -334,8 +331,10 @@ dtl_ir_space_get_expression_num_dependencies(
     uint32_t end;
 
     assert(expression.space == space->id);
+    assert(expression.offset > 0);
+    assert(expression.offset <= space->expressions_length);
 
-    expression_index = expression.offset;
+    expression_index = expression.offset - 1;
     assert(expression_index <= space->expressions_length);
 
     start = 0;
@@ -371,8 +370,10 @@ dtl_ir_space_get_expression_dependency(
     uint32_t end;
 
     assert(expression.space == space->id);
+    assert(expression.offset > 0);
+    assert(expression.offset <= space->expressions_length);
 
-    expression_index = expression.offset;
+    expression_index = expression.offset + 1;
     assert(expression_index <= space->expressions_length);
 
     start = 0;
