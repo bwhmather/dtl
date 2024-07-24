@@ -476,6 +476,7 @@ dtl_ast_to_ir(
 ) {
     struct dtl_ast_to_ir_context *context;
     size_t i;
+    struct dtl_ast_node *statements;
     struct dtl_ast_node *statement;
 
     context = calloc(1, sizeof(struct dtl_ast_to_ir_context));
@@ -484,12 +485,14 @@ dtl_ast_to_ir(
     context->column_callback = column_callback;
     context->trace_callback = trace_callback;
     context->user_data = user_data;
+    context->globals = dtl_ast_to_ir_scope_create();
 
     //    dtl_ast_find_imports();
     //    dtl_ast_find_imports(root, void (*callback)(struct dtl_ast_node *, void *), void *user_data) {
 
-    for (i = 0; i < dtl_ast_node_get_num_children(root); i++) {
-        statement = dtl_ast_node_get_child(root, i);
+    statements = dtl_ast_script_node_get_statements(root);
+    for (i = 0; i < dtl_ast_statement_list_node_get_num_statements(statements); i++) {
+        statement = dtl_ast_statement_list_node_get_statement(statements, i);
         dtl_ast_to_ir_compile_statement(context, statement);
     }
 }
