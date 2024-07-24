@@ -325,7 +325,7 @@ name
     | NAME {
         size_t start = $1.start.offset;
         size_t end = $1.end.offset;
-        size_t length = start - end;
+        size_t length = end - start;
         char const *input = dtl_tokenizer_get_input(tokenizer);
 
         char *buffer = calloc(1, length + 1);
@@ -333,7 +333,6 @@ name
 
         $$ = dtl_ast_name_node_create(buffer);
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
-
     }
     ;
 
