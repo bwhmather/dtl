@@ -14,7 +14,7 @@ struct dtl_eval_context {
     struct dtl_ir_graph *graph;
 };
 
-void
+static void
 dtl_eval_ast_to_ir_column_callback(
     char const *table_name,
     char const *column_name,
@@ -27,7 +27,7 @@ dtl_eval_ast_to_ir_column_callback(
     (void)user_data;
 }
 
-void
+static void
 dtl_eval_ast_to_ir_trace_callback(
     struct dtl_location start,
     struct dtl_location end,

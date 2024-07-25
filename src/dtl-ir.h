@@ -22,6 +22,11 @@ dtl_ir_ref_is_null(struct dtl_ir_ref ref);
 bool
 dtl_ir_ref_equal(struct dtl_ir_graph *graph, struct dtl_ir_ref a, struct dtl_ir_ref b);
 
+/* --- Generic ---------------------------------------------------------------------------------- */
+
+enum dtl_dtype
+dtl_ir_expression_get_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
 /* --- Lifecycle -------------------------------------------------------------------------------- */
 
 struct dtl_ir_graph *
@@ -39,10 +44,14 @@ dtl_ir_graph_destroy(struct dtl_ir_graph *graph);
 char const *
 dtl_ir_graph_intern(struct dtl_ir_graph *graph, char const *input);
 
-/* --- Generic ---------------------------------------------------------------------------------- */
+/* --- Transformation --------------------------------------------------------------------------- */
 
-enum dtl_dtype
-dtl_ir_expression_get_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+void
+dtl_ir_graph_transform(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref (*callback)(struct dtl_ir_graph *graph, struct dtl_ir_ref, void *),
+    void *data
+);
 
 /* --- Garbage Collection ----------------------------------------------------------------------- */
 
@@ -68,11 +77,6 @@ dtl_ir_graph_gc_collect(struct dtl_ir_graph *graph);
  */
 void
 dtl_ir_graph_remap_ref(struct dtl_ir_graph *graph, struct dtl_ir_ref *ref);
-
-/* --- Iteration -------------------------------------------------------------------------------- */
-
-void
-dtl_ir_graph_for_each_expression(struct dtl_ir_graph *graph, void (*callback)(struct dtl_ir_ref, void *), void *data);
 
 /* === Shape Expressions ======================================================================== */
 
@@ -141,6 +145,21 @@ dtl_ir_is_int_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref 
 uint64_t
 dtl_ir_int_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
+/* --- Double Constant Expressions ------------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_double_constant_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    double value
+);
+
+bool
+dtl_ir_is_double_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression);
+
+uint64_t
+dtl_ir_double_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref expression);
+
 /* --- Open Table Expressions ------------------------------------------------------------------- */
 
 struct dtl_ir_ref
@@ -164,7 +183,7 @@ dtl_ir_read_column_expression_create(
 );
 
 bool
-dtl_ir_read_column_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_is_read_column_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 struct dtl_ir_ref
 dtl_ir_read_column_expression_get_table(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);

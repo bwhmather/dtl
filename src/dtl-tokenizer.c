@@ -88,12 +88,12 @@ dtl_tokenizer_bump(struct dtl_tokenizer *tokenizer) {
     return *tokenizer->next++;
 }
 
-char
+static char
 dtl_tokenizer_peek(struct dtl_tokenizer *tokenizer) {
     return *tokenizer->next;
 }
 
-enum dtl_token_type
+static enum dtl_token_type
 dtl_tokenizer_next_type(struct dtl_tokenizer *tokenizer) {
     char curr = dtl_tokenizer_bump(tokenizer);
 

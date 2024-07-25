@@ -174,7 +174,7 @@ dtl_ast_node_destroy(struct dtl_ast_node *node) {
 
 /* --- Empty Nodes ------------------------------------------------------------------------------ */
 
-struct dtl_ast_node *
+static struct dtl_ast_node *
 dtl_ast_node_create_empty(int tag) {
     struct dtl_ast_node *node;
 

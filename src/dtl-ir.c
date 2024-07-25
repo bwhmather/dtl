@@ -648,7 +648,16 @@ dtl_ir_where_shape_expression_get_mask(struct dtl_ir_graph *graph, struct dtl_ir
 /* --- Join Shape Expressions ------------------------------------------------------------------- */
 
 struct dtl_ir_ref
-dtl_ir_join_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_ref left, struct dtl_ir_ref right);
+dtl_ir_join_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_ref left, struct dtl_ir_ref right) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_shape_expression(graph, left));
+    assert(dtl_ir_is_shape_expression(graph, right));
+
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_JOIN_SHAPE, DTL_DTYPE_INDEX);
+    dtl_ir_scratch_add_dependency(graph, left);
+    dtl_ir_scratch_add_dependency(graph, right);
+    return dtl_ir_scratch_end(graph);
+}
 
 bool
 dtl_ir_is_join_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
