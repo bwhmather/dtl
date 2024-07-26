@@ -22,10 +22,25 @@ dtl_ir_ref_is_null(struct dtl_ir_ref ref);
 bool
 dtl_ir_ref_equal(struct dtl_ir_graph *graph, struct dtl_ir_ref a, struct dtl_ir_ref b);
 
+size_t
+dtl_ir_ref_to_index(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_index_to_ref(struct dtl_ir_graph *graph, size_t index);
+
 /* --- Generic ---------------------------------------------------------------------------------- */
 
 enum dtl_dtype
 dtl_ir_expression_get_dtype(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+size_t
+dtl_ir_expression_get_num_dependencies(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_expression_get_dependency(struct dtl_ir_graph *graph, struct dtl_ir_ref ref, size_t);
+
+size_t
+dtl_ir_graph_get_size(struct dtl_ir_graph *graph);
 
 /* --- Lifecycle -------------------------------------------------------------------------------- */
 

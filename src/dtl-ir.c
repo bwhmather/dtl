@@ -84,6 +84,28 @@ dtl_ir_ref_equal(struct dtl_ir_graph *graph, struct dtl_ir_ref a, struct dtl_ir_
     return a.offset == b.offset;
 }
 
+size_t
+dtl_ir_ref_to_index(struct dtl_ir_graph *graph, struct dtl_ir_ref ref) {
+    assert(graph != NULL);
+    assert(!graph->transforming);
+    assert(ref.space == graph->to_space.id);
+    assert(ref.offset > 0);
+    assert(ref.offset <= graph->to_space.expressions_length);
+
+    return ref.offset - 1;
+}
+
+struct dtl_ir_ref
+dtl_ir_index_to_ref(struct dtl_ir_graph *graph, size_t index) {
+    assert(graph != NULL);
+    assert(index < graph->to_space.expressions_length);
+
+    return (struct dtl_ir_ref){
+        .space = graph->to_space.id,
+        .offset = index + 1,
+    };
+}
+
 /* --- Internal --------------------------------------------------------------------------------- */
 
 static void
@@ -348,7 +370,7 @@ dtl_ir_space_get_expression_num_dependencies(
     return end - start;
 }
 
-static size_t
+size_t
 dtl_ir_expression_get_num_dependencies(
     struct dtl_ir_graph *graph,
     struct dtl_ir_ref expression
@@ -373,8 +395,8 @@ dtl_ir_space_get_expression_dependency(
     assert(expression.offset > 0);
     assert(expression.offset <= space->expressions_length);
 
-    expression_index = expression.offset + 1;
-    assert(expression_index <= space->expressions_length);
+    expression_index = expression.offset - 1;
+    assert(expression_index < space->expressions_length);
 
     start = 0;
     if (expression_index > 0) {
@@ -390,7 +412,7 @@ dtl_ir_space_get_expression_dependency(
     return space->dependencies[start + dependency_index];
 }
 
-static struct dtl_ir_ref
+struct dtl_ir_ref
 dtl_ir_expression_get_dependency(
     struct dtl_ir_graph *graph,
     struct dtl_ir_ref expression,
@@ -400,6 +422,12 @@ dtl_ir_expression_get_dependency(
         dtl_ir_graph_remap_ref(graph, &expression);
     }
     return dtl_ir_space_get_expression_dependency(&graph->to_space, expression, dependency_index);
+}
+
+size_t
+dtl_ir_graph_get_size(struct dtl_ir_graph *graph) {
+    assert(graph != NULL);
+    return graph->to_space.expressions_length;
 }
 
 /* --- Lifecycle -------------------------------------------------------------------------------- */
@@ -735,7 +763,6 @@ dtl_ir_is_int_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref 
     enum dtl_dtype dtype;
 
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
 
     op = dtl_ir_expression_get_op(graph, expression);
     if (op != DTL_IR_OP_CONSTANT) {
@@ -781,7 +808,6 @@ dtl_ir_is_double_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_r
     enum dtl_dtype dtype;
 
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
 
     op = dtl_ir_expression_get_op(graph, expression);
     if (op != DTL_IR_OP_CONSTANT) {

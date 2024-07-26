@@ -1,10 +1,12 @@
 #include "dtl-eval.h"
 
 #include <assert.h>
+#include <stdio.h>
 
 #include "dtl-ast-to-ir.h"
 #include "dtl-ast.h"
 #include "dtl-io.h"
+#include "dtl-ir-viz.h"
 #include "dtl-ir.h"
 #include "dtl-location.h"
 #include "dtl-parser.h"
@@ -77,6 +79,8 @@ dtl_eval(
         dtl_eval_ast_to_ir_trace_callback,
         &context
     );
+
+    dtl_ir_viz(stderr, graph);
 
     // === Optimise IR =============================================================================
 
