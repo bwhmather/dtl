@@ -81,9 +81,9 @@ dtl_io_filesystem_table_get_column_dtype(struct dtl_io_table* table, size_t inde
     return DTL_DTYPE_BOOL_ARRAY; // TODO
 }
 
-static void
+static enum dtl_status
 dtl_io_filesystem_table_get_column_data(
-    struct dtl_io_table* table, size_t col, void *dest, size_t offset, size_t size
+    struct dtl_io_table* table, size_t col, void *dest, size_t offset, size_t size, struct dtl_error **error
 ) {
     assert(table != NULL);
     assert(table->get_column_data == dtl_io_filesystem_table_get_column_data);
@@ -92,6 +92,9 @@ dtl_io_filesystem_table_get_column_data(
     (void) dest;
     (void) offset;
     (void) size;
+    (void) error;
+
+    return DTL_STATUS_OK;
 }
 
 static void
@@ -109,7 +112,8 @@ dtl_io_filesystem_table_destroy(struct dtl_io_table* table) {
 struct dtl_io_table*
 dtl_io_filesystem_importer_import_table(
     struct dtl_io_importer* importer,
-    char const* name
+    char const* name,
+    struct dtl_error **error
 ) {
     struct dtl_io_filesystem_importer* fs_importer;
     arrow::Status status;
@@ -117,6 +121,8 @@ dtl_io_filesystem_importer_import_table(
     std::unique_ptr<parquet::arrow::FileReader> arrow_reader;
     std::shared_ptr<arrow::Table> arrow_table;
     struct dtl_io_filesystem_table* fs_table;
+
+    (void) error;
 
     fs_importer = (struct dtl_io_filesystem_importer*)importer;
 
@@ -179,11 +185,12 @@ struct dtl_io_filesystem_exporter {
     std::filesystem::path root;
 };
 
-static void
+static enum dtl_status
 dtl_io_filesystem_exporter_export_table(
     struct dtl_io_exporter* exporter,
     char const* table_name,
-    struct dtl_io_table* table
+    struct dtl_io_table* table,
+    struct dtl_error **error
 ) {
     struct dtl_io_filesystem_exporter* fs_exporter;
     size_t num_rows;
@@ -193,12 +200,15 @@ dtl_io_filesystem_exporter_export_table(
     char const* col_name;
     void* col_data = NULL;
     arrow::MemoryPool* pool;
-    arrow::Status status;
+    arrow::Status arrow_status;
     std::shared_ptr<arrow::Array> arrow_array;
     std::shared_ptr<arrow::Schema> arrow_schema;
     std::shared_ptr<arrow::Table> arrow_table;
     std::filesystem::path output_path;
     std::shared_ptr<arrow::io::FileOutputStream> outfile;
+    enum dtl_status status;
+
+    (void) error;
 
     assert(exporter != NULL);
     assert(exporter->export_table == dtl_io_filesystem_exporter_export_table);
@@ -221,35 +231,38 @@ dtl_io_filesystem_exporter_export_table(
         switch (col_dtype) {
         case DTL_DTYPE_BOOL_ARRAY: {
             arrow::BooleanBuilder builder(pool);
-            status = builder.Resize(num_rows);
-            assert(status.ok()); // TODO
+            arrow_status = builder.Resize(num_rows);
+            assert(arrow_status.ok()); // TODO
 
             col_data = realloc(col_data, ((num_rows + 1) / 8) + 1);
-            dtl_io_table_get_column_data(table, col, col_data, 0, num_rows);
-
-            for (row = 0; row < num_rows; row++) {
-                status = builder.Append(dtl_array_get_bool(col_data, row));
-                assert(status.ok());
+            status = dtl_io_table_get_column_data(table, col, col_data, 0, num_rows, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
             }
 
-            status = builder.Finish(&arrow_array);
-            assert(status.ok()); // TODO
+            for (row = 0; row < num_rows; row++) {
+                arrow_status = builder.Append(dtl_array_get_bool(col_data, row));
+                assert(arrow_status.ok());
+            }
+
+            arrow_status = builder.Finish(&arrow_array);
+            assert(arrow_status.ok()); // TODO
 
             break;
         }
         case DTL_DTYPE_INT_ARRAY: {
             arrow::Int64Builder builder(pool);
 
-            status = builder.Resize(num_rows);
-            assert(status.ok()); // TODO
+            arrow_status = builder.Resize(num_rows);
+            assert(arrow_status.ok()); // TODO
 
             for (row = 0; row < num_rows; row++) {
-                status = builder.Append(dtl_array_get_int(col_data, row));
-                assert(status.ok());
+                arrow_status = builder.Append(dtl_array_get_int(col_data, row));
+                assert(arrow_status.ok());
             }
 
-            status = builder.Finish(&arrow_array);
-            assert(status.ok()); // TODO
+            arrow_status = builder.Finish(&arrow_array);
+            assert(arrow_status.ok()); // TODO
 
             break;
         }
@@ -275,8 +288,10 @@ dtl_io_filesystem_exporter_export_table(
     assert(outfile_result.ok());
     outfile = outfile_result.ValueUnsafe();
 
-    status = parquet::arrow::WriteTable(*arrow_table, arrow::default_memory_pool(), outfile, 65535);
-    assert(status.ok());
+    arrow_status = parquet::arrow::WriteTable(*arrow_table, arrow::default_memory_pool(), outfile, 65535);
+    assert(arrow_status.ok());
+
+    return DTL_STATUS_OK;
 }
 
 struct dtl_io_exporter*

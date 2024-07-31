@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "dtl-dtype.h"
+#include "dtl-error.h"
 #include "dtl-location.h"
 
 /* === Tables =================================================================================== */
@@ -13,7 +14,7 @@ struct dtl_io_table {
     size_t (*get_num_columns)(struct dtl_io_table *);
     char const *(*get_column_name)(struct dtl_io_table *, size_t);
     enum dtl_dtype (*get_column_dtype)(struct dtl_io_table *, size_t);
-    void (*get_column_data)(struct dtl_io_table *, size_t, void *, size_t, size_t);
+    enum dtl_status (*get_column_data)(struct dtl_io_table *, size_t, void *, size_t, size_t, struct dtl_error **);
     void (*destroy)(struct dtl_io_table *);
 };
 
@@ -29,8 +30,8 @@ dtl_io_table_get_column_name(struct dtl_io_table *, size_t);
 enum dtl_dtype
 dtl_io_table_get_column_dtype(struct dtl_io_table *, size_t);
 
-void
-dtl_io_table_get_column_data(struct dtl_io_table *, size_t col, void *dest, size_t offset, size_t size);
+enum dtl_status
+dtl_io_table_get_column_data(struct dtl_io_table *, size_t col, void *dest, size_t offset, size_t size, struct dtl_error **);
 
 void
 dtl_io_table_destroy(struct dtl_io_table *);
@@ -38,20 +39,20 @@ dtl_io_table_destroy(struct dtl_io_table *);
 /* === Importers ================================================================================ */
 
 struct dtl_io_importer {
-    struct dtl_io_table *(*import_table)(struct dtl_io_importer *, char const *);
+    struct dtl_io_table *(*import_table)(struct dtl_io_importer *, char const *, struct dtl_error **);
 };
 
 struct dtl_io_table *
-dtl_io_importer_import_table(struct dtl_io_importer *, char const *);
+dtl_io_importer_import_table(struct dtl_io_importer *, char const *, struct dtl_error **);
 
 /* === Exporters ================================================================================ */
 
 struct dtl_io_exporter {
-    void (*export_table)(struct dtl_io_exporter *, char const *, struct dtl_io_table *);
+    enum dtl_status (*export_table)(struct dtl_io_exporter *, char const *, struct dtl_io_table *, struct dtl_error **);
 };
 
-void
-dtl_io_exporter_export_table(struct dtl_io_exporter *, char const *, struct dtl_io_table *);
+enum dtl_status
+dtl_io_exporter_export_table(struct dtl_io_exporter *, char const *, struct dtl_io_table *, struct dtl_error **);
 
 /* === Tracers ================================================================================== */
 

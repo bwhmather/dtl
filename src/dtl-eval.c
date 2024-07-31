@@ -5,6 +5,7 @@
 
 #include "dtl-ast-to-ir.h"
 #include "dtl-ast.h"
+#include "dtl-error.h"
 #include "dtl-io.h"
 #include "dtl-ir-viz.h"
 #include "dtl-ir.h"
@@ -56,6 +57,7 @@ dtl_eval(
     struct dtl_ast_node *root;
     struct dtl_ir_graph *graph;
     struct dtl_eval_context context;
+    struct dtl_error *error;
 
     (void)exporter;
     (void)tracer;
@@ -77,7 +79,8 @@ dtl_eval(
         root, graph, importer,
         dtl_eval_ast_to_ir_column_callback,
         dtl_eval_ast_to_ir_trace_callback,
-        &context
+        &context,
+        &error
     );
 
     dtl_ir_viz(stderr, graph);

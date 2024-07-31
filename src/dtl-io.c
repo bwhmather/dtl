@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "dtl-dtype.h"
+#include "dtl-error.h"
 
 /* === Tables =================================================================================== */
 
@@ -40,14 +41,14 @@ dtl_io_table_get_column_dtype(struct dtl_io_table *table, size_t col) {
     return table->get_column_dtype(table, col);
 }
 
-void
+enum dtl_status
 dtl_io_table_get_column_data(
-    struct dtl_io_table *table, size_t col, void *dest, size_t offset, size_t size
+    struct dtl_io_table *table, size_t col, void *dest, size_t offset, size_t size, struct dtl_error **error
 ) {
     assert(table != NULL);
     assert(table->get_column_data != NULL);
 
-    table->get_column_data(table, col, dest, offset, size);
+    return table->get_column_data(table, col, dest, offset, size, error);
 }
 
 void
@@ -61,24 +62,24 @@ dtl_io_table_destroy(struct dtl_io_table *table) {
 /* === Importers ================================================================================ */
 
 struct dtl_io_table *
-dtl_io_importer_import_table(struct dtl_io_importer *importer, char const *name) {
+dtl_io_importer_import_table(struct dtl_io_importer *importer, char const *name, struct dtl_error **error) {
     assert(importer != NULL);
     assert(importer->import_table != NULL);
     assert(name != NULL);
 
-    return importer->import_table(importer, name);
+    return importer->import_table(importer, name, error);
 }
 
 /* === Exporters ================================================================================ */
 
-void
-dtl_io_exporter_export_table(struct dtl_io_exporter *exporter, char const *name, struct dtl_io_table *table) {
+enum dtl_status
+dtl_io_exporter_export_table(struct dtl_io_exporter *exporter, char const *name, struct dtl_io_table *table, struct dtl_error **error) {
     assert(exporter != NULL);
     assert(exporter->export_table != NULL);
     assert(name != NULL);
     assert(table != NULL);
 
-    exporter->export_table(exporter, name, table);
+    return exporter->export_table(exporter, name, table, error);
 }
 
 /* === Tracers ================================================================================== */

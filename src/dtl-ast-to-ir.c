@@ -9,6 +9,7 @@
 #include "dtl-ast.h"
 #include "dtl-dtype.h"
 #include "dtl-io.h"
+#include "dtl-error.h"
 #include "dtl-ir.h"
 #include "dtl-location.h"
 
@@ -234,18 +235,22 @@ dtl_ast_to_ir_context_export_table(
 
 static struct dtl_ast_to_ir_scope *
 dtl_ast_to_ir_compile_select_expression(
-    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression
+    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression, struct dtl_error **error
 ) {
     assert(context != NULL);
     assert(expression != NULL);
     assert(dtl_ast_node_is_select_expression(expression));
+
+    (void)error;
 
     assert(false);
 }
 
 static struct dtl_ast_to_ir_scope *
 dtl_ast_to_ir_compile_import_expression(
-    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_node *expression,
+    struct dtl_error **error
 ) {
     struct dtl_ast_node *path_expression;
     char const *path;
@@ -269,7 +274,10 @@ dtl_ast_to_ir_compile_import_expression(
     path = dtl_ir_graph_intern(context->graph, path);
     assert(path != NULL);
 
-    io_table = dtl_io_importer_import_table(context->importer, path);
+    io_table = dtl_io_importer_import_table(context->importer, path, error);
+    if (io_table == NULL) {
+        return NULL;
+    }
 
     table = dtl_ir_open_table_expression_create(context->graph, path);
     table_shape = dtl_ir_table_shape_expression_create(context->graph, table);
@@ -299,11 +307,13 @@ dtl_ast_to_ir_compile_import_expression(
 
 static struct dtl_ast_to_ir_scope *
 dtl_ast_to_ir_compile_table_reference_expression(
-    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression
+    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression, struct dtl_error **error
 ) {
     struct dtl_ast_node *name_node;
     char const *table_name;
     struct dtl_ast_to_ir_scope *result;
+
+    (void)error;
 
     assert(context != NULL);
     assert(expression != NULL);
@@ -324,30 +334,30 @@ dtl_ast_to_ir_compile_table_reference_expression(
 
 static struct dtl_ast_to_ir_scope *
 dtl_ast_to_ir_compile_table_expression(
-    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression
+    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression, struct dtl_error **error
 ) {
     assert(context != NULL);
     assert(expression != NULL);
     assert(dtl_ast_node_is_table_expression(expression));
 
     if (dtl_ast_node_is_select_expression(expression)) {
-        return dtl_ast_to_ir_compile_select_expression(context, expression);
+        return dtl_ast_to_ir_compile_select_expression(context, expression, error);
     }
 
     if (dtl_ast_node_is_import_expression(expression)) {
-        return dtl_ast_to_ir_compile_import_expression(context, expression);
+        return dtl_ast_to_ir_compile_import_expression(context, expression, error);
     }
 
     if (dtl_ast_node_is_table_reference_expression(expression)) {
-        return dtl_ast_to_ir_compile_table_reference_expression(context, expression);
+        return dtl_ast_to_ir_compile_table_reference_expression(context, expression, error);
     }
 
     assert(false);
 }
 
-static void
+static enum dtl_status
 dtl_ast_to_ir_compile_assignment_statement(
-    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *statement
+    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *statement, struct dtl_error **error
 ) {
     struct dtl_ast_node *table_expression;
     struct dtl_ast_node *table_name_node;
@@ -375,7 +385,11 @@ dtl_ast_to_ir_compile_assignment_statement(
     table_name = dtl_ir_graph_intern(context->graph, table_name);
     assert(table_name != NULL);
 
-    expression_scope = dtl_ast_to_ir_compile_table_expression(context, table_expression);
+    expression_scope = dtl_ast_to_ir_compile_table_expression(context, table_expression, error);
+    if (expression_scope == NULL) {
+        return DTL_STATUS_ERROR;
+    }
+
     expression_scope = dtl_ast_to_ir_scope_pick_namespace(expression_scope, NULL);
 
     dtl_ast_to_ir_context_trace_statement(
@@ -391,11 +405,13 @@ dtl_ast_to_ir_compile_assignment_statement(
             context->globals, column_name, table_name, column_expression
         );
     }
+
+    return DTL_STATUS_OK;
 }
 
-static void
+static enum dtl_status
 dtl_ast_to_ir_compile_export_statement(
-    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *statement
+    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *statement, struct dtl_error **error
 ) {
     struct dtl_ast_node *expression;
     struct dtl_ast_node *path_expression;
@@ -416,7 +432,10 @@ dtl_ast_to_ir_compile_export_statement(
     path = dtl_ir_graph_intern(context->graph, path);
     assert(path != NULL);
 
-    expression_scope = dtl_ast_to_ir_compile_table_expression(context, expression);
+    expression_scope = dtl_ast_to_ir_compile_table_expression(context, expression, error);
+    if (expression_scope == NULL) {
+        return DTL_STATUS_ERROR;
+    }
     expression_scope = dtl_ast_to_ir_scope_pick_namespace(expression_scope, NULL);
 
     dtl_ast_to_ir_context_trace_statement(
@@ -424,17 +443,22 @@ dtl_ast_to_ir_compile_export_statement(
     );
 
     dtl_ast_to_ir_context_export_table(context, path, expression_scope);
+
+    return DTL_STATUS_OK;
 }
 
-static void
-dtl_ast_to_ir_compile_statement(struct dtl_ast_to_ir_context *context, struct dtl_ast_node *statement) {
+static enum dtl_status
+dtl_ast_to_ir_compile_statement(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_node *statement,
+    struct dtl_error **error
+) {
     assert(context != NULL);
     assert(statement != NULL);
     assert(dtl_ast_node_is_statement(statement));
 
     if (dtl_ast_node_is_assignment_statement(statement)) {
-        dtl_ast_to_ir_compile_assignment_statement(context, statement);
-        return;
+        return dtl_ast_to_ir_compile_assignment_statement(context, statement, error);
     }
 
     //    if (dtl_ast_node_is_update_statement(statement)) {
@@ -453,8 +477,7 @@ dtl_ast_to_ir_compile_statement(struct dtl_ast_to_ir_context *context, struct dt
     //    }
 
     if (dtl_ast_node_is_export_statement(statement)) {
-        dtl_ast_to_ir_compile_export_statement(context, statement);
-        return;
+        return dtl_ast_to_ir_compile_export_statement(context, statement, error);
     }
     //    if (dtl_ast_node_is_begin_statement(statement)) {
     //        dtl_ast_to_ir_compile_begin_statement(context, statement);
@@ -464,19 +487,21 @@ dtl_ast_to_ir_compile_statement(struct dtl_ast_to_ir_context *context, struct dt
     assert(false);
 }
 
-void
+enum dtl_status
 dtl_ast_to_ir(
     struct dtl_ast_node *root,
     struct dtl_ir_graph *graph,
     struct dtl_io_importer *importer,
     void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *),
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *),
-    void *user_data
+    void *user_data,
+    struct dtl_error **error
 ) {
     struct dtl_ast_to_ir_context *context;
     size_t i;
     struct dtl_ast_node *statements;
     struct dtl_ast_node *statement;
+    enum dtl_status status;
 
     context = calloc(1, sizeof(struct dtl_ast_to_ir_context));
     context->graph = graph;
@@ -492,6 +517,11 @@ dtl_ast_to_ir(
     statements = dtl_ast_script_node_get_statements(root);
     for (i = 0; i < dtl_ast_statement_list_node_get_num_statements(statements); i++) {
         statement = dtl_ast_statement_list_node_get_statement(statements, i);
-        dtl_ast_to_ir_compile_statement(context, statement);
+        status = dtl_ast_to_ir_compile_statement(context, statement, error);
+        if (status != DTL_STATUS_OK) {
+            return status;
+        }
     }
+
+    return DTL_STATUS_ERROR;
 }
