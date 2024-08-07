@@ -20,6 +20,14 @@ extern "C" {
 #include "dtl-dtype.h"
 }
 
+
+void
+dtl_io_filesystem_set_error_from_arrow_status(struct dtl_error **error, arrow::Status status) {
+    // TODO
+    (void) error;
+    (void) status;
+}
+
 /* === Importer ================================================================================= */
 
 struct dtl_io_filesystem_column {
@@ -65,20 +73,28 @@ dtl_io_filesystem_table_get_num_columns(struct dtl_io_table* table) {
 
 static char const*
 dtl_io_filesystem_table_get_column_name(struct dtl_io_table* table, size_t index) {
+    struct dtl_io_filesystem_table *fs_table;
+
     assert(table != NULL);
     assert(table->get_column_name == dtl_io_filesystem_table_get_column_name);
 
-    (void)index;
-    return ""; // TODO
+    fs_table = (struct dtl_io_filesystem_table *) table;
+    assert(index < fs_table->columns.size());
+
+    return fs_table->columns[index].name.c_str();
 }
 
 static enum dtl_dtype
 dtl_io_filesystem_table_get_column_dtype(struct dtl_io_table* table, size_t index) {
+    struct dtl_io_filesystem_table *fs_table;
+
     assert(table != NULL);
     assert(table->get_column_dtype == dtl_io_filesystem_table_get_column_dtype);
 
-    (void)index;
-    return DTL_DTYPE_BOOL_ARRAY; // TODO
+    fs_table = (struct dtl_io_filesystem_table *) table;
+    assert(index < fs_table->columns.size());
+
+    return fs_table->columns[index].dtype;
 }
 
 static enum dtl_status
@@ -105,7 +121,6 @@ dtl_io_filesystem_table_destroy(struct dtl_io_table* table) {
     assert(table->destroy == dtl_io_filesystem_table_destroy);
 
     fs_table = (struct dtl_io_filesystem_table*)table;
-    fs_table->~dtl_io_filesystem_table();
     delete fs_table;
 }
 
@@ -133,7 +148,10 @@ dtl_io_filesystem_importer_import_table(
     input_file = input_file_result.ValueUnsafe();
 
     status = parquet::arrow::OpenFile(input_file, arrow::default_memory_pool(), &arrow_reader);
-    assert(status.ok()); // TODO
+    if (!status.ok()) {
+        dtl_io_filesystem_set_error_from_arrow_status(error, status);
+        return NULL;
+    }
 
     status = arrow_reader->ReadTable(&arrow_table);
     assert(status.ok()); // TODO
@@ -146,7 +164,22 @@ dtl_io_filesystem_importer_import_table(
     fs_table->base.get_column_dtype = dtl_io_filesystem_table_get_column_dtype;
     fs_table->base.get_column_data = dtl_io_filesystem_table_get_column_data;
     fs_table->base.destroy = dtl_io_filesystem_table_destroy;
+
     fs_table->arrow_table = arrow_table;
+
+
+    auto arrow_schema = arrow_table->schema();
+    for (int i = 0; i < arrow_schema->num_fields(); i++) {
+        auto arrow_field = arrow_schema->field(i);
+        struct dtl_io_filesystem_column column;
+        column.name = arrow_field->name().c_str();
+        // TODO arrow_field->type()) {
+
+        column.dtype = DTL_DTYPE_INT_ARRAY;
+        column.arrow_index = i;
+
+        fs_table->columns.push_back(column);
+    }
 
     return &fs_table->base;
 }
@@ -173,7 +206,6 @@ dtl_io_filesystem_importer_destroy(struct dtl_io_importer* importer) {
     assert(importer->import_table == dtl_io_filesystem_importer_import_table);
 
     fs_importer = (struct dtl_io_filesystem_importer*)importer;
-    fs_importer->~dtl_io_filesystem_importer();
     delete fs_importer;
 }
 
@@ -349,6 +381,5 @@ dtl_io_filesystem_tracer_destroy(struct dtl_io_tracer* tracer) {
     //    assert(tracer->write_array == dtl_io_filesystem_tracer_write_array); TODO
 
     fs_tracer = (struct dtl_io_filesystem_tracer*)tracer;
-    fs_tracer->~dtl_io_filesystem_tracer();
     delete fs_tracer;
 }
