@@ -8,8 +8,8 @@
 
 #include "dtl-ast.h"
 #include "dtl-dtype.h"
-#include "dtl-io.h"
 #include "dtl-error.h"
+#include "dtl-io.h"
 #include "dtl-ir.h"
 #include "dtl-location.h"
 
