@@ -360,5 +360,77 @@ dtl_eval(
     // TODO
 
     // === Evaluate the Command List ===============================================================
-    // TODO
+    size_t num_expressions = dtl_ir_graph_get_size(graph);
+
+    context.values = calloc(num_expressions, sizeof(union dtl_value));
+    for (size_t i = 0; i < num_expressions; i++) {
+        struct dtl_ir_ref expression = dtl_ir_index_to_ref(graph, i);
+
+        if (dtl_ir_is_table_shape_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_where_shape_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_join_shape_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_array_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_int_constant_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_double_constant_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_open_table_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_read_column_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_where_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_pick_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_index_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_join_left_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_join_right_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_add_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_subtract_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+
+        if (dtl_ir_is_multiply_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+        if (dtl_ir_is_divide_expression(graph, expression)) {
+            assert(false); // Not implemented.
+        }
+    }
 }
