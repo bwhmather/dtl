@@ -930,8 +930,6 @@ dtl_ir_where_expression_create(
 bool
 dtl_ir_is_where_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_WHERE;
 }
 
@@ -981,8 +979,6 @@ dtl_ir_pick_expression_create(
 bool
 dtl_ir_is_pick_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_PICK;
 }
 
@@ -1026,8 +1022,6 @@ dtl_ir_index_expression_create(
 bool
 dtl_ir_is_index_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_INDEX;
 }
 
@@ -1066,8 +1060,6 @@ dtl_ir_join_left_expression_create(
 bool
 dtl_ir_is_join_left_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_JOIN_LEFT;
 }
 
@@ -1111,8 +1103,6 @@ dtl_ir_join_right_expression_create(
 bool
 dtl_ir_is_join_right_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_JOIN_RIGHT;
 }
 
@@ -1164,8 +1154,6 @@ dtl_ir_add_expression_create(
 bool
 dtl_ir_is_add_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_ADD;
 }
 
@@ -1215,8 +1203,6 @@ dtl_ir_subtract_expression_create(
 bool
 dtl_ir_is_subtract_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_SUBTRACT;
 }
 
@@ -1266,8 +1252,6 @@ dtl_ir_multiply_expression_create(
 bool
 dtl_ir_is_multiply_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_MULTIPLY;
 }
 
@@ -1319,8 +1303,6 @@ dtl_ir_divide_expression_create(
 bool
 dtl_ir_is_divide_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_array_expression(graph, expression));
-
     return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_DIVIDE;
 }
 
