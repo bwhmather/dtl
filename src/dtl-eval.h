@@ -1,11 +1,13 @@
 #pragma once
 
+#include "dtl-error.h"
 #include "dtl-io.h"
 
-void
+enum dtl_status
 dtl_eval(
     char const *source,
     struct dtl_io_importer *importer,
     struct dtl_io_exporter *exporter,
-    struct dtl_io_tracer *tracer
+    struct dtl_io_tracer *tracer,
+    struct dtl_error **error
 );

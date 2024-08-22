@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "dtl-error.h"
 #include "dtl-eval.h"
 #include "dtl-io-filesystem.h"
 #include "dtl-io.h"
@@ -64,6 +65,7 @@ main(int argc, char **argv) {
     struct dtl_io_importer *importer;
     struct dtl_io_exporter *exporter;
     struct dtl_io_tracer *tracer;
+    struct dtl_error *error = NULL;
 
     if (argc != 5) {
         return 1;
@@ -86,7 +88,7 @@ main(int argc, char **argv) {
     exporter = dtl_io_filesystem_exporter_create(output_path);
     tracer = dtl_io_filesystem_tracer_create(trace_path);
 
-    dtl_eval(source, importer, exporter, tracer);
+    dtl_eval(source, importer, exporter, tracer, &error);
 
     return 0;
 }

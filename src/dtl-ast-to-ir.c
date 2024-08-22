@@ -312,6 +312,7 @@ dtl_ast_to_ir_compile_table_reference_expression(
     struct dtl_ast_node *name_node;
     char const *table_name;
     struct dtl_ast_to_ir_scope *result;
+    size_t i;
 
     (void)error;
 
@@ -328,6 +329,10 @@ dtl_ast_to_ir_compile_table_reference_expression(
 
     result = dtl_ast_to_ir_scope_dup(context->globals);
     result = dtl_ast_to_ir_scope_pick_namespace(result, table_name);
+
+    for (i = 0; i < result->num_columns; i++) {
+        result->columns[i].namespace = NULL;
+    }
 
     return result;
 }
@@ -523,5 +528,5 @@ dtl_ast_to_ir(
         }
     }
 
-    return DTL_STATUS_ERROR;
+    return DTL_STATUS_OK;
 }

@@ -53,10 +53,14 @@ struct dtl_io_filesystem_importer {
 
 static size_t
 dtl_io_filesystem_table_get_num_rows(struct dtl_io_table* table) {
+    struct dtl_io_filesystem_table *fs_table;
+
     assert(table != NULL);
     assert(table->get_num_rows == dtl_io_filesystem_table_get_num_rows);
 
-    return 0; // TODO
+    fs_table = (struct dtl_io_filesystem_table *) table;
+
+    return fs_table->arrow_table->num_rows();
 }
 
 static size_t
@@ -167,12 +171,11 @@ dtl_io_filesystem_importer_import_table(
 
     fs_table->arrow_table = arrow_table;
 
-
     auto arrow_schema = arrow_table->schema();
     for (int i = 0; i < arrow_schema->num_fields(); i++) {
         auto arrow_field = arrow_schema->field(i);
         struct dtl_io_filesystem_column column;
-        column.name = arrow_field->name().c_str();
+        column.name = arrow_field->name();
         // TODO arrow_field->type()) {
 
         column.dtype = DTL_DTYPE_INT_ARRAY;
@@ -288,6 +291,12 @@ dtl_io_filesystem_exporter_export_table(
             arrow_status = builder.Resize(num_rows);
             assert(arrow_status.ok()); // TODO
 
+            col_data = realloc(col_data, num_rows * sizeof(int64_t));
+            status = dtl_io_table_get_column_data(table, col, col_data, 0, num_rows, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+
             for (row = 0; row < num_rows; row++) {
                 arrow_status = builder.Append(dtl_array_get_int(col_data, row));
                 assert(arrow_status.ok());
@@ -311,6 +320,8 @@ dtl_io_filesystem_exporter_export_table(
         schema_columns.push_back(arrow::field(col_name, arrow_array->type()));
         table_columns.push_back(arrow_array);
     }
+    free(col_data);
+
     arrow_schema = std::make_shared<arrow::Schema>(schema_columns);
     arrow_table = arrow::Table::Make(arrow_schema, table_columns);
 

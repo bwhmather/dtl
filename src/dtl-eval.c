@@ -269,14 +269,18 @@ dtl_eval_export_table(
     eval_table->base.get_column_name = dtl_eval_export_table_get_column_name;
     eval_table->base.get_column_dtype = dtl_eval_export_table_get_column_dtype;
     eval_table->base.get_column_data = dtl_eval_export_table_get_column_data;
+    eval_table->base.destroy = NULL;
 
+    eval_table->context = context;
+
+    eval_table->num_columns = 0;
     for (i = 0; i < context->num_columns; i++) {
         context_column = &context->columns[i];
         if (strcmp(context_column->table_name, table_name) != 0) {
             continue;
         }
         eval_table->num_columns += 1;
-        eval_table->columns[eval_table->num_columns -= 1] = i;
+        eval_table->columns[eval_table->num_columns - 1] = i;
     }
 
     status = dtl_io_exporter_export_table(exporter, table_name, &eval_table->base, error);
@@ -286,19 +290,20 @@ dtl_eval_export_table(
     return status;
 }
 
-void
+enum dtl_status
 dtl_eval(
     char const *source,
     struct dtl_io_importer *importer,
     struct dtl_io_exporter *exporter,
-    struct dtl_io_tracer *tracer
+    struct dtl_io_tracer *tracer,
+    struct dtl_error **error
 ) {
     struct dtl_tokenizer *tokenizer;
     int parse_result;
+    enum dtl_status status;
     struct dtl_ast_node *root;
     struct dtl_ir_graph *graph;
     struct dtl_eval_context context;
-    struct dtl_error *error;
 
     (void)exporter;
     (void)tracer;
@@ -316,13 +321,16 @@ dtl_eval(
     context = (struct dtl_eval_context){
         .graph = graph,
     };
-    dtl_ast_to_ir(
+    status = dtl_ast_to_ir(
         root, graph, importer,
         dtl_eval_ast_to_ir_column_callback,
         dtl_eval_ast_to_ir_trace_callback,
         &context,
-        &error
+        error
     );
+    if (status != DTL_STATUS_OK) {
+        return status;
+    }
 
     dtl_ir_viz(stderr, graph);
 
@@ -367,7 +375,11 @@ dtl_eval(
         struct dtl_ir_ref expression = dtl_ir_index_to_ref(graph, i);
 
         if (dtl_ir_is_table_shape_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            struct dtl_ir_ref table_expression = dtl_ir_table_shape_expression_get_table(graph, expression);
+            size_t table_index = dtl_ir_ref_to_index(graph, table_expression);
+            struct dtl_io_table *table = context.values[table_index].as_table;
+            size_t table_size = dtl_io_table_get_num_rows(table);
+            context.values[i].as_index = table_size;
         }
 
         if (dtl_ir_is_where_shape_expression(graph, expression)) {
@@ -375,10 +387,6 @@ dtl_eval(
         }
 
         if (dtl_ir_is_join_shape_expression(graph, expression)) {
-            assert(false); // Not implemented.
-        }
-
-        if (dtl_ir_is_array_expression(graph, expression)) {
             assert(false); // Not implemented.
         }
 
@@ -391,11 +399,38 @@ dtl_eval(
         }
 
         if (dtl_ir_is_open_table_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            char const *path = dtl_ir_open_table_expression_get_path(graph, expression);
+            struct dtl_io_table *table = dtl_io_importer_import_table(importer, path, error);
+            if (table == NULL) {
+                return DTL_STATUS_ERROR;
+            }
+            context.values[i].as_table = table;
         }
 
         if (dtl_ir_is_read_column_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            struct dtl_ir_ref shape_expression = dtl_ir_array_expression_get_shape(graph, expression);
+            size_t shape = context.values[dtl_ir_ref_to_index(graph, shape_expression)].as_index;
+
+            struct dtl_ir_ref table_expression = dtl_ir_read_column_expression_get_table(graph, expression);
+            struct dtl_io_table *table = context.values[dtl_ir_ref_to_index(graph, table_expression)].as_table;
+
+            char const *column_name = dtl_ir_read_column_expression_get_column_name(graph, expression);
+
+            assert(dtl_ir_expression_get_dtype(graph, expression) == DTL_DTYPE_INT_ARRAY); // TODO
+            int64_t *data = calloc(shape, sizeof(uint64_t));
+
+            for (size_t j = 0; j < dtl_io_table_get_num_columns(table); j++) {
+                if (strcmp(dtl_io_table_get_column_name(table, j), column_name) == 0) {
+                    status = dtl_io_table_get_column_data(table, j, data, 0, shape, error);
+                    if (status != DTL_STATUS_OK) {
+                        return status;
+                    }
+
+                    break;
+                }
+            }
+
+            context.values[i].as_int_array = data;
         }
 
         if (dtl_ir_is_where_expression(graph, expression)) {
@@ -433,4 +468,9 @@ dtl_eval(
             assert(false); // Not implemented.
         }
     }
+
+    // TODO
+    dtl_eval_export_table(&context, exporter, "output", error);
+
+    return DTL_STATUS_OK;
 }

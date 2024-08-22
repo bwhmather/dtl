@@ -111,6 +111,7 @@ dtl_ir_index_to_ref(struct dtl_ir_graph *graph, size_t index) {
 static void
 dtl_ir_scratch_begin(struct dtl_ir_graph *graph, enum dtl_ir_op op, enum dtl_dtype dtype) {
     struct dtl_ir_expression *expression;
+    size_t start;
 
     assert(graph != NULL);
     assert(!graph->writing);
@@ -124,6 +125,12 @@ dtl_ir_scratch_begin(struct dtl_ir_graph *graph, enum dtl_ir_op op, enum dtl_dty
 
     expression->op = op;
     expression->dtype = dtype;
+
+    start = 0;
+    if (graph->to_space.expressions_length > 0) {
+        start = graph->to_space.expressions[graph->to_space.expressions_length - 1].dependencies_end;
+    }
+    expression->dependencies_end = start;
 
     graph->writing = true;
 }
