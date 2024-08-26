@@ -305,7 +305,6 @@ dtl_eval(
     struct dtl_ir_graph *graph;
     struct dtl_eval_context context;
 
-    (void)exporter;
     (void)tracer;
 
     // === Parse Source Code =======================================================================
