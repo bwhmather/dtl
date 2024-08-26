@@ -17,6 +17,7 @@ extern "C" {
 extern "C" {
 #include "dtl-io.h"
 #include "dtl-array.h"
+#include "dtl-value.h"
 #include "dtl-dtype.h"
 }
 
@@ -101,18 +102,78 @@ dtl_io_filesystem_table_get_column_dtype(struct dtl_io_table* table, size_t inde
     return fs_table->columns[index].dtype;
 }
 
+struct  dtl_io_filesystem_table_get_column_data_visitor : arrow::ScalarVisitor {
+    enum dtl_dtype dtype;
+    union dtl_value value;
+
+    arrow::Status Visit(const arrow::Int32Scalar &scalar) {
+        fprintf(stderr, "Visit int32\n");
+        dtype = DTL_DTYPE_INT;
+        value.as_int = scalar.value;
+        return arrow::Status::OK();
+    }
+
+    arrow::Status Visit(const arrow::Int64Scalar &scalar) {
+        fprintf(stderr, "Visit int64\n");
+        dtype = DTL_DTYPE_INT;
+        value.as_int = scalar.value;
+        return arrow::Status::OK();
+    }
+};
+
+
 static enum dtl_status
 dtl_io_filesystem_table_get_column_data(
-    struct dtl_io_table* table, size_t col, void *dest, size_t offset, size_t size, struct dtl_error **error
+    struct dtl_io_table* table,
+     size_t col_index,
+      void *dest,
+      size_t offset,
+      size_t size,
+       struct dtl_error **error
 ) {
+    enum dtl_dtype dtype;
+    struct dtl_io_filesystem_table *fs_table;
+    std::shared_ptr<arrow::ChunkedArray> arrow_column;
+    size_t i;
+    arrow::Result<std::shared_ptr<arrow::Scalar>> arrow_scalar_result;
+    struct dtl_io_filesystem_table_get_column_data_visitor visitor;
+    arrow::Status arrow_status;
+
     assert(table != NULL);
     assert(table->get_column_data == dtl_io_filesystem_table_get_column_data);
 
-    (void) col;
-    (void) dest;
-    (void) offset;
-    (void) size;
-    (void) error;
+    dtype = dtl_io_table_get_column_dtype(table, col_index);
+    dtype = dtl_dtype_get_scalar_type(dtype);
+
+    fs_table = (struct dtl_io_filesystem_table*)table;
+    arrow_column = fs_table->arrow_table->column(col_index);
+
+    for (i = offset; i < offset + size; i++) {
+        // TODO this is fucking insane.  There must be a better way to do this.
+        arrow_scalar_result = arrow_column->GetScalar(i);
+        if (!arrow_scalar_result.ok()) {
+            dtl_io_filesystem_set_error_from_arrow_status(error, arrow_scalar_result.status());
+            return DTL_STATUS_ERROR;
+        }
+        arrow_status = arrow_scalar_result.ValueOrDie()->Accept(&visitor);
+        if (!arrow_status.ok()) {
+            dtl_io_filesystem_set_error_from_arrow_status(error, arrow_status);
+            return DTL_STATUS_ERROR;
+        }
+
+        if (visitor.dtype != dtype) {
+            // TODO set error.
+            return DTL_STATUS_ERROR;
+        }
+
+        switch (dtype) {
+        case DTL_DTYPE_INT:
+            ((int64_t*) dest)[offset + i] = visitor.value.as_int;
+            break;
+        default:
+            assert(false);
+        }
+    }
 
     return DTL_STATUS_OK;
 }
