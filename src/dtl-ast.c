@@ -346,7 +346,6 @@ struct dtl_ast_table_name_node {
 bool
 dtl_ast_node_is_table_name(struct dtl_ast_node *node) {
     assert(node != NULL);
-
     return node->type == DTL_AST_TABLE_NAME;
 }
 
@@ -375,6 +374,7 @@ dtl_ast_table_name_node_get_value(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_column_binding_list(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_COLUMN_BINDING_LIST;
 }
 
@@ -413,6 +413,7 @@ dtl_ast_column_binding_list_node_get_binding(struct dtl_ast_node *node, size_t i
 
 bool
 dtl_ast_node_is_from_clause(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_FROM_CLAUSE;
 }
 
@@ -438,6 +439,7 @@ dtl_ast_from_clause_node_get_table_binding(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_join_clause(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_JOIN_CLAUSE;
 }
 
@@ -471,6 +473,7 @@ dtl_ast_join_clause_node_get_constraint(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_join_clause_list(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_JOIN_CLAUSE_LIST;
 }
 
@@ -510,6 +513,7 @@ dtl_ast_join_clause_list_node_get_clause(struct dtl_ast_node *node, size_t index
 
 bool
 dtl_ast_node_is_where_clause(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_WHERE_CLAUSE;
 }
 
@@ -535,6 +539,7 @@ dtl_ast_where_clause_node_get_predicate(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_group_by_clause(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_GROUP_BY_CLAUSE;
 }
 
@@ -560,6 +565,7 @@ dtl_ast_group_by_clause_node_get_pattern(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_group_consecutive_by_clause(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_GROUP_CONSECUTIVE_BY_CLAUSE;
 }
 
@@ -585,6 +591,7 @@ dtl_ast_group_consecutive_by_clause_node_get_expression_list(struct dtl_ast_node
 
 bool
 dtl_ast_node_is_expression_list(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_EXPRESSION_LIST;
 }
 
@@ -624,6 +631,7 @@ dtl_ast_expression_list_node_get_expression(struct dtl_ast_node *node, size_t in
 
 bool
 dtl_ast_node_is_statement_list(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_STATEMENT_LIST;
 }
 
@@ -660,6 +668,7 @@ dtl_ast_statement_list_node_get_statement(struct dtl_ast_node *node, size_t inde
 
 bool
 dtl_ast_node_is_script(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_SCRIPT;
 }
 
@@ -685,6 +694,7 @@ dtl_ast_script_node_get_statements(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_literal(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return (node->type & DTL_AST_CLASS_MASK) == DTL_AST_CLASS_LITERAL;
 }
 
@@ -698,6 +708,7 @@ struct dtl_ast_int_literal_node {
 
 bool
 dtl_ast_node_is_int_literal(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_INT_LITERAL;
 }
 
@@ -731,7 +742,6 @@ struct dtl_ast_string_literal_node {
 bool
 dtl_ast_node_is_string_literal(struct dtl_ast_node *node) {
     assert(node != NULL);
-
     return node->type == DTL_AST_STRING_LITERAL;
 }
 
@@ -763,6 +773,7 @@ dtl_ast_string_literal_node_get_value(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_column_name(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return (node->type & DTL_AST_CLASS_MASK) == DTL_AST_CLASS_COLUMN_NAME;
 }
 
@@ -770,6 +781,7 @@ dtl_ast_node_is_column_name(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_unqualified_column_name(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_UNQUALIFIED_COLUMN_NAME;
 }
 
@@ -795,6 +807,7 @@ dtl_ast_unqualified_column_name_get_column_name(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_qualified_column_name(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_QUALIFIED_COLUMN_NAME;
 }
 
@@ -828,6 +841,7 @@ dtl_ast_qualified_column_name_get_column_name(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return (node->type & DTL_AST_CLASS_MASK) == DTL_AST_CLASS_EXPRESSION;
 }
 
@@ -835,6 +849,7 @@ dtl_ast_node_is_expression(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_column_reference_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_COLUMN_REFERENCE_EXPRESSION;
 }
 
@@ -860,6 +875,7 @@ dtl_ast_column_reference_expression_node_get_name(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_literal_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_LITERAL_EXPRESSION;
 }
 
@@ -885,6 +901,7 @@ dtl_ast_literal_expression_node_get_value(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_function_call_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_FUNCTION_CALL_EXPRESSION;
 }
 
@@ -918,6 +935,7 @@ dtl_ast_function_call_expression_node_get_arguments(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_equal_to_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_EQUAL_TO_EXPRESSION;
 }
 
@@ -951,6 +969,7 @@ dtl_ast_equal_to_expression_node_get_right(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_less_than_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_LESS_THAN_EXPRESSION;
 }
 
@@ -984,6 +1003,7 @@ dtl_ast_less_than_expression_node_get_right(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_less_than_or_equal_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_LESS_THAN_OR_EQUAL_EXPRESSION;
 }
 
@@ -1017,6 +1037,7 @@ dtl_ast_less_than_or_equal_expression_node_get_right(struct dtl_ast_node *node) 
 
 bool
 dtl_ast_node_is_greater_than_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_GREATER_THAN_EXPRESSION;
 }
 
@@ -1050,6 +1071,7 @@ dtl_ast_greater_than_expression_node_get_right(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_greater_than_or_equal_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_GREATER_THAN_OR_EQUAL_EXPRESSION;
 }
 
@@ -1083,6 +1105,7 @@ dtl_ast_greater_than_or_equal_expression_node_get_right(struct dtl_ast_node *nod
 
 bool
 dtl_ast_node_is_add_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_ADD_EXPRESSION;
 }
 
@@ -1116,6 +1139,7 @@ dtl_ast_add_expression_node_get_right(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_subtract_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_SUBTRACT_EXPRESSION;
 }
 
@@ -1149,6 +1173,7 @@ dtl_ast_subtract_expression_node_get_right(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_multiply_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_MULTIPLY_EXPRESSION;
 }
 
@@ -1182,6 +1207,7 @@ dtl_ast_multiply_expression_node_get_right(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_divide_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_DIVIDE_EXPRESSION;
 }
 
@@ -1215,6 +1241,7 @@ dtl_ast_divide_expression_node_get_right(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_column_binding(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return (node->type & DTL_AST_CLASS_MASK) == DTL_AST_CLASS_COLUMN_BINDING;
 }
 
@@ -1222,6 +1249,7 @@ dtl_ast_node_is_column_binding(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_wildcard_column_binding(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_WILDCARD_COLUMN_BINDING;
 }
 
@@ -1238,6 +1266,7 @@ dtl_ast_wildcard_column_binding_node_create(void) {
 
 bool
 dtl_ast_node_is_implicit_column_binding(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_IMPLICIT_COLUMN_BINDING;
 }
 
@@ -1263,6 +1292,7 @@ dtl_ast_implicit_column_binding_node_get_expression(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_aliased_column_binding(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_ALIASED_COLUMN_BINDING;
 }
 
@@ -1296,6 +1326,7 @@ dtl_ast_aliased_column_binding_node_get_alias(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_table_binding(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return (node->type & DTL_AST_CLASS_MASK) == DTL_AST_CLASS_TABLE_BINDING;
 }
 
@@ -1303,6 +1334,7 @@ dtl_ast_node_is_table_binding(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_implicit_table_binding(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_IMPLICIT_TABLE_BINDING;
 }
 
@@ -1328,6 +1360,7 @@ dtl_ast_implicit_table_binding_node_get_expression(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_aliased_table_binding(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_ALIASED_TABLE_BINDING;
 }
 
@@ -1363,6 +1396,7 @@ dtl_ast_aliased_table_binding_node_get_alias(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_distinct_clause(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_DISTINCT_CLAUSE;
 }
 
@@ -1377,6 +1411,7 @@ dtl_ast_distinct_clause_node_create(void) {
 
 bool
 dtl_ast_node_is_distinct_consecutive_clause(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_DISTINCT_CONSECUTIVE_CLAUSE;
 }
 
@@ -1393,6 +1428,7 @@ dtl_ast_distinct_consecutive_clause_node_create(void) {
 
 bool
 dtl_ast_node_is_join_constraint(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return (node->type & DTL_AST_CLASS_MASK) == DTL_AST_CLASS_JOIN_CONSTRAINT;
 }
 
@@ -1400,6 +1436,7 @@ dtl_ast_node_is_join_constraint(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_join_on_constraint(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_JOIN_ON_CONSTRAINT;
 }
 
@@ -1425,6 +1462,7 @@ dtl_ast_join_on_constraint_node_get_predicate(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_join_using_constraint(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_JOIN_USING_CONSTRAINT;
 }
 
@@ -1464,6 +1502,7 @@ dtl_ast_join_using_constraint_node_get_name(struct dtl_ast_node *node, size_t in
 
 bool
 dtl_ast_node_is_table_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return (node->type & DTL_AST_CLASS_MASK) == DTL_AST_CLASS_TABLE_EXPRESSION;
 }
 
@@ -1471,6 +1510,7 @@ dtl_ast_node_is_table_expression(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_select_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_SELECT_EXPRESSION;
 }
 
@@ -1485,12 +1525,12 @@ dtl_ast_select_expression_node_create(
 ) {
     struct dtl_ast_node *node;
 
-    assert(dtl_ast_node_is_distinct_clause(distinct_clause));
+    assert(distinct_clause == NULL || dtl_ast_node_is_distinct_clause(distinct_clause));
     assert(dtl_ast_node_is_column_binding_list(columns));
-    assert(dtl_ast_node_is_expression(source));
-    assert(dtl_ast_node_is_join_clause_list(join_clauses));
-    assert(dtl_ast_node_is_where_clause(where_clause));
-    assert(dtl_ast_node_is_group_by_clause(group_by_clause));
+    assert(dtl_ast_node_is_from_clause(source));
+    assert(join_clauses == NULL || dtl_ast_node_is_join_clause_list(join_clauses));
+    assert(where_clause == NULL || dtl_ast_node_is_where_clause(where_clause));
+    assert(group_by_clause == NULL || dtl_ast_node_is_group_by_clause(group_by_clause));
 
     node = dtl_ast_node_create_with_children(DTL_AST_SELECT_EXPRESSION);
     node = dtl_ast_node_append_child(node, distinct_clause);
@@ -1543,6 +1583,7 @@ dtl_ast_select_expression_node_get_group_by_clause(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_import_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_IMPORT_EXPRESSION;
 }
 
@@ -1568,6 +1609,7 @@ dtl_ast_import_expression_node_get_path(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_table_reference_expression(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_TABLE_REFERENCE_EXPRESSION;
 }
 
@@ -1594,6 +1636,7 @@ dtl_ast_table_reference_expression_node_get_name(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_statement(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return (node->type & DTL_AST_CLASS_MASK) == DTL_AST_CLASS_STATEMENT;
 }
 
@@ -1601,6 +1644,7 @@ dtl_ast_node_is_statement(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_assignment_statement(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_ASSIGNMENT_STATEMENT;
 }
 
@@ -1634,6 +1678,7 @@ dtl_ast_assignment_statement_node_get_name(struct dtl_ast_node *node) {
 
 bool
 dtl_ast_node_is_export_statement(struct dtl_ast_node *node) {
+    assert(node != NULL);
     return node->type == DTL_AST_EXPORT_STATEMENT;
 }
 
