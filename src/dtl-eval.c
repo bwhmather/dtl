@@ -242,7 +242,7 @@ dtl_eval_export_table_get_column_data(
 }
 
 static void
-dtl_export_table_destroy(struct dtl_io_table *table) {
+dtl_eval_export_table_destroy(struct dtl_io_table *table) {
     (void)table;
     // Intentionally left blank.
 }
@@ -269,7 +269,7 @@ dtl_eval_export_table(
     eval_table->base.get_column_name = dtl_eval_export_table_get_column_name;
     eval_table->base.get_column_dtype = dtl_eval_export_table_get_column_dtype;
     eval_table->base.get_column_data = dtl_eval_export_table_get_column_data;
-    eval_table->base.destroy = NULL;
+    eval_table->base.destroy = dtl_eval_export_table_destroy;
 
     eval_table->context = context;
 
