@@ -214,11 +214,14 @@ dtl_ast_node_append_child(struct dtl_ast_node *node, struct dtl_ast_node *child)
     );
 
     container_node->children[container_node->num_children - 1] = child;
-    dtl_ast_node_update_bounds(
-        &container_node->base,
-        dtl_ast_node_get_start(child),
-        dtl_ast_node_get_end(child)
-    );
+
+    if (child != NULL) {
+        dtl_ast_node_update_bounds(
+            &container_node->base,
+            dtl_ast_node_get_start(child),
+            dtl_ast_node_get_end(child)
+        );
+    }
 
     return &container_node->base;
 }
