@@ -75,6 +75,8 @@ BUILTIN_SYMBOLS = {
     "size_t": "stddef.h",
     "ssize_t": "sys/types.h",
     "pid_t": "sys/types.h",
+    "va_start": "stdarg.h",
+    "va_end": "stdarg.h",
 }
 
 IGNORED_SYMBOLS = {"NULL", "__u32", "std", "__normal_iterator"}

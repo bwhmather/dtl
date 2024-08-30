@@ -1,22 +1,30 @@
 #include "dtl-error.h"
 
 #include <assert.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "dtl-location.h"
 
 struct dtl_error *
-dtl_error_create(char const *message) {
+dtl_error_create(char const *message, ...) {
     struct dtl_error *result;
+    va_list args;
+    int size;
 
     assert(message != NULL);
 
     result = calloc(1, sizeof(struct dtl_error));
-    result->message = strdup(message);
     result->start = DTL_LOCATION_NULL;
     result->end = DTL_LOCATION_NULL;
 
+    va_start(args, message);
+    size = vasprintf(&result->message, message, args);
+    va_end(args);
+    if (size < 0) {
+        abort(); // Not a recoverable error.
+    }
     return result;
 }
 

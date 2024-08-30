@@ -14,7 +14,7 @@ enum dtl_status {
 };
 
 struct dtl_error *
-dtl_error_create(char const *message);
+dtl_error_create(char const *message, ...) __attribute__((format(printf, 1, 2)));
 
 void
 dtl_error_destroy(struct dtl_error *);
