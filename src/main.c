@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -66,6 +67,7 @@ main(int argc, char **argv) {
     struct dtl_io_exporter *exporter;
     struct dtl_io_tracer *tracer;
     struct dtl_error *error = NULL;
+    enum dtl_status status;
 
     if (argc != 5) {
         return 1;
@@ -88,7 +90,12 @@ main(int argc, char **argv) {
     exporter = dtl_io_filesystem_exporter_create(output_path);
     tracer = dtl_io_filesystem_tracer_create(trace_path);
 
-    dtl_eval(source, importer, exporter, tracer, &error);
+    status = dtl_eval(source, importer, exporter, tracer, &error);
+    if (status != DTL_STATUS_OK) {
+        fprintf(stderr, "error: %s\n", error->message);
+        dtl_clear_error(&error);
+        return 1;
+    }
 
     return 0;
 }
