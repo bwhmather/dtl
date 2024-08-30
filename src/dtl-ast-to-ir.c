@@ -107,10 +107,23 @@ dtl_ast_to_ir_scope_lookup(
     char const *name,
     char const *namespace
 ) {
-    (void)scope;
-    (void)name;
-    (void)namespace;
-    return (struct dtl_ir_ref){0}; // TODO
+    size_t i;
+
+    assert(scope != NULL);
+    assert(name != NULL);
+
+    for (i = 0; i < scope->num_columns; i++) {
+        if (scope->columns[i].name != name) {
+            continue;
+        }
+        if (scope->columns[i].namespace != namespace) {
+            continue;
+        }
+
+        return scope->columns[i].expression;
+    }
+
+    return DTL_IR_NULL_REF;
 }
 
 static struct dtl_ast_to_ir_scope *
@@ -234,16 +247,189 @@ dtl_ast_to_ir_context_export_table(
 /* === Compilation ============================================================================== */
 
 static struct dtl_ast_to_ir_scope *
-dtl_ast_to_ir_compile_select_expression(
+dtl_ast_to_ir_compile_table_expression(
     struct dtl_ast_to_ir_context *context, struct dtl_ast_node *expression, struct dtl_error **error
+);
+
+static char const *
+dtl_ast_to_ir_expression_name(struct dtl_ast_node *expression_node) {
+    struct dtl_ast_node *reference_node;
+    struct dtl_ast_node *column_name_node;
+
+    assert(dtl_ast_node_is_expression(expression_node));
+
+    if (dtl_ast_node_is_column_reference_expression(expression_node)) {
+        reference_node = dtl_ast_column_reference_expression_node_get_name(expression_node);
+
+        if (dtl_ast_node_is_unqualified_column_name(reference_node)) {
+            column_name_node = dtl_ast_unqualified_column_name_get_column_name(reference_node);
+            return dtl_ast_name_node_get_value(column_name_node);
+        }
+
+        if (dtl_ast_node_is_qualified_column_name(reference_node)) {
+            column_name_node = dtl_ast_qualified_column_name_get_column_name(reference_node);
+            return dtl_ast_name_node_get_value(column_name_node);
+        }
+
+        assert(false); // Unreachable.
+    }
+
+    return NULL;
+}
+
+static struct dtl_ir_ref
+dtl_ast_to_ir_compile_column_reference_expression(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_to_ir_scope *scope,
+    struct dtl_ast_node *expression_node,
+    struct dtl_error **error
+) {
+    struct dtl_ast_node *reference_node;
+    struct dtl_ast_node *table_name_node;
+    struct dtl_ast_node *column_name_node;
+    struct dtl_ir_ref referenced_expression;
+    char const *name;
+    char const *namespace;
+
+    assert(context != NULL);
+    assert(dtl_ast_node_is_column_reference_expression(expression_node));
+
+    reference_node = dtl_ast_column_reference_expression_node_get_name(expression_node);
+
+    if (dtl_ast_node_is_unqualified_column_name(reference_node)) {
+        column_name_node = dtl_ast_unqualified_column_name_get_column_name(reference_node);
+        name = dtl_ast_name_node_get_value(column_name_node);
+        namespace = NULL;
+    }
+
+    if (dtl_ast_node_is_qualified_column_name(reference_node)) {
+        column_name_node = dtl_ast_qualified_column_name_get_column_name(reference_node);
+        table_name_node = dtl_ast_qualified_column_name_get_table_name(reference_node);
+        name = dtl_ast_name_node_get_value(column_name_node);
+        namespace = dtl_ast_name_node_get_value(table_name_node);
+    }
+
+    name = dtl_ir_graph_intern(context->graph, name);
+    namespace = dtl_ir_graph_intern(context->graph, namespace);
+
+    referenced_expression = dtl_ast_to_ir_scope_lookup(scope, name, namespace);
+    if (dtl_ir_ref_is_null(referenced_expression)) {
+        assert(false);
+        if (namespace != NULL) {
+            dtl_set_error(error, dtl_error_create("Could not resolve column '%s.%s'", namespace, name));
+        } else {
+            dtl_set_error(error, dtl_error_create("Could not resolve column '%s'", name));
+        }
+        return DTL_IR_NULL_REF;
+    }
+
+    return referenced_expression;
+}
+
+static struct dtl_ir_ref
+dtl_ast_to_ir_compile_expression(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_to_ir_scope *scope,
+    struct dtl_ast_node *expression_node,
+    struct dtl_error **error
 ) {
     assert(context != NULL);
-    assert(expression != NULL);
-    assert(dtl_ast_node_is_select_expression(expression));
+    assert(dtl_ast_node_is_expression(expression_node));
 
-    (void)error;
+    if (dtl_ast_node_is_column_reference_expression(expression_node)) {
+        return dtl_ast_to_ir_compile_column_reference_expression(context, scope, expression_node, error);
+    }
 
-    assert(false);
+    return DTL_IR_NULL_REF;
+}
+
+static struct dtl_ast_to_ir_scope *
+dtl_ast_to_ir_compile_select_expression(
+    struct dtl_ast_to_ir_context *context, struct dtl_ast_node *select_node, struct dtl_error **error
+) {
+    struct dtl_ast_node *from_node;
+    struct dtl_ast_node *table_binding_node;
+    struct dtl_ast_node *source_node;
+    struct dtl_ast_to_ir_scope *source_scope;
+    struct dtl_ast_node *bindings_list_node;
+    struct dtl_ast_node *binding_node;
+    struct dtl_ast_node *binding_expression_node;
+    struct dtl_ast_to_ir_scope *output_scope;
+    size_t i;
+    char const *binding_name;
+    char const *binding_namespace;
+    struct dtl_ir_ref binding_expression;
+
+    assert(context != NULL);
+    assert(select_node != NULL);
+    assert(dtl_ast_node_is_select_expression(select_node));
+
+    // Compile source expression.
+    from_node = dtl_ast_select_expression_node_get_source(select_node);
+    table_binding_node = dtl_ast_from_clause_node_get_table_binding(from_node);
+    if (dtl_ast_node_is_implicit_table_binding(table_binding_node)) {
+        source_node = dtl_ast_implicit_table_binding_node_get_expression(table_binding_node);
+        source_scope = dtl_ast_to_ir_compile_table_expression(context, source_node, error);
+        if (source_scope == NULL) {
+            return NULL;
+        }
+    } else {
+        // TODO aliased table bindings.
+        assert(false);
+    }
+
+    // Add source expression name to source scope bindings.
+    // TODO
+
+    // Compile join clauses.
+    // TODO
+
+    // Compile where clause.
+    // TODO
+
+    // Compile column bindings.
+    bindings_list_node = dtl_ast_select_expression_node_get_columns(select_node);
+    assert(dtl_ast_node_is_column_binding_list(bindings_list_node));
+
+    output_scope = dtl_ast_to_ir_scope_create();
+
+    for (i = 0; i < dtl_ast_column_binding_list_node_get_num_bindings(bindings_list_node); i++) {
+        binding_node = dtl_ast_column_binding_list_node_get_binding(bindings_list_node, i);
+
+        if (dtl_ast_node_is_wildcard_column_binding(binding_node)) {
+            assert(false); // TODO not implemented.
+            continue;
+        }
+
+        if (dtl_ast_node_is_implicit_column_binding(binding_node)) {
+            binding_expression_node = dtl_ast_implicit_column_binding_node_get_expression(binding_node);
+            binding_expression = dtl_ast_to_ir_compile_expression(
+                context, source_scope, binding_expression_node, error
+            );
+            if (dtl_ir_ref_is_null(binding_expression)) {
+                return NULL;
+            }
+
+            binding_name = dtl_ast_to_ir_expression_name(binding_expression_node);
+            if (binding_name == NULL) {
+                return NULL; // TODO set error.
+            }
+            binding_name = dtl_ir_graph_intern(context->graph, binding_name);
+            binding_namespace = NULL;
+
+            output_scope = dtl_ast_to_ir_scope_add(
+                output_scope, binding_name, binding_namespace, binding_expression
+            );
+            continue;
+        }
+
+        if (dtl_ast_node_is_aliased_column_binding(binding_node)) {
+            assert(false); // TODO not implemented.
+            continue;
+        }
+    }
+
+    return output_scope;
 }
 
 static struct dtl_ast_to_ir_scope *

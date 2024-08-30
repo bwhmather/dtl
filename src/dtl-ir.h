@@ -14,6 +14,8 @@ struct dtl_ir_ref {
     uint32_t offset : 30;
 };
 
+#define DTL_IR_NULL_REF ((struct dtl_ir_ref){0})
+
 /* --- References ------------------------------------------------------------------------------- */
 
 bool
