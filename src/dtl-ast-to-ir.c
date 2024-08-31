@@ -354,6 +354,7 @@ dtl_ast_to_ir_compile_select_expression(
     struct dtl_ast_node *bindings_list_node;
     struct dtl_ast_node *binding_node;
     struct dtl_ast_node *binding_expression_node;
+    struct dtl_ast_node *binding_name_node;
     struct dtl_ast_to_ir_scope *output_scope;
     size_t i;
     char const *binding_name;
@@ -424,7 +425,22 @@ dtl_ast_to_ir_compile_select_expression(
         }
 
         if (dtl_ast_node_is_aliased_column_binding(binding_node)) {
-            assert(false); // TODO not implemented.
+            binding_expression_node = dtl_ast_aliased_column_binding_node_get_expression(binding_node);
+            binding_expression = dtl_ast_to_ir_compile_expression(
+                context, source_scope, binding_expression_node, error
+            );
+            if (dtl_ir_ref_is_null(binding_expression)) {
+                return NULL;
+            }
+
+            binding_name_node = dtl_ast_aliased_column_binding_node_get_alias(binding_node);
+            binding_name = dtl_ast_name_node_get_value(binding_name_node);
+            binding_name = dtl_ir_graph_intern(context->graph, binding_name);
+            binding_namespace = NULL;
+
+            output_scope = dtl_ast_to_ir_scope_add(
+                output_scope, binding_name, binding_namespace, binding_expression
+            );
             continue;
         }
     }
