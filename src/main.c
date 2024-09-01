@@ -92,7 +92,11 @@ main(int argc, char **argv) {
 
     status = dtl_eval(source, importer, exporter, tracer, &error);
     if (status != DTL_STATUS_OK) {
-        fprintf(stderr, "error: %s\n", error->message);
+        if (error != NULL) {
+            fprintf(stderr, "error: %s\n", error->message);
+        } else {
+            fprintf(stderr, "unknown error\n");
+        }
         dtl_clear_error(&error);
         return 1;
     }
