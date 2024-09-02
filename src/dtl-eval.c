@@ -453,7 +453,31 @@ dtl_eval(
         }
 
         if (dtl_ir_is_add_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            struct dtl_ir_ref shape_expression;
+            size_t shape;
+            struct dtl_ir_ref left_expression;
+            int64_t *left_data;
+            struct dtl_ir_ref right_expression;
+            int64_t *right_data;
+
+            assert(dtl_ir_expression_get_dtype(graph, expression) == DTL_DTYPE_INT_ARRAY); // TODO
+
+            shape_expression = dtl_ir_array_expression_get_shape(graph, expression);
+            shape = context.values[dtl_ir_ref_to_index(graph, shape_expression)].as_index;
+
+            left_expression = dtl_ir_add_expression_left(graph, expression);
+            left_data = context.values[dtl_ir_ref_to_index(graph, left_expression)].as_int_array;
+
+            right_expression = dtl_ir_add_expression_right(graph, expression);
+            right_data = context.values[dtl_ir_ref_to_index(graph, right_expression)].as_int_array;
+
+            int64_t *data = calloc(shape, sizeof(uint64_t));
+
+            for (size_t j = 0; j < shape; j++) {
+                data[j] = left_data[j] + right_data[j];
+            }
+
+            context.values[i].as_int_array = data;
         }
 
         if (dtl_ir_is_subtract_expression(graph, expression)) {

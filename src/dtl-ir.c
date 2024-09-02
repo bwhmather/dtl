@@ -1142,7 +1142,7 @@ dtl_ir_add_expression_create(
     struct dtl_ir_ref right
 ) {
     assert(graph != NULL);
-    assert(dtype == DTL_DTYPE_INT || dtype == DTL_DTYPE_DOUBLE);
+    assert(dtype == DTL_DTYPE_INT_ARRAY || dtype == DTL_DTYPE_DOUBLE_ARRAY);
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));
