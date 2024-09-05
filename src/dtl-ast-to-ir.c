@@ -515,6 +515,7 @@ dtl_ast_to_ir_compile_select_expression(
 
             binding_name = dtl_ast_to_ir_expression_name(binding_expression_node);
             if (binding_name == NULL) {
+                dtl_set_error(error, dtl_error_create("column has no obvious name"));
                 return NULL; // TODO set error.
             }
             binding_name = dtl_ir_graph_intern(context->graph, binding_name);
