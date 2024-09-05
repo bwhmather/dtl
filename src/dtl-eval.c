@@ -20,6 +20,8 @@
 #include "dtl-tokenizer.h"
 #include "dtl-value.h"
 
+/* === Context ================================================================================== */
+
 struct dtl_eval_context_column {
     char const *table_name;
     char const *column_name;
@@ -28,6 +30,9 @@ struct dtl_eval_context_column {
 };
 
 struct dtl_eval_context {
+    struct dtl_io_importer *importer;
+    struct dtl_io_exporter *exporter;
+
     struct dtl_ir_graph *graph;
 
     size_t num_columns;
@@ -35,6 +40,87 @@ struct dtl_eval_context {
 
     union dtl_value *values;
 };
+
+/* --- Load ------------------------------------------------------------------------------------- */
+
+static union dtl_value
+dtl_eval_context_load_value(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression
+) {
+    size_t index = dtl_ir_ref_to_index(context->graph, expression);
+    return context->values[index];
+}
+
+static size_t
+dtl_eval_context_load_index(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INDEX);
+    return dtl_eval_context_load_value(context, expression).as_index;
+}
+
+static int64_t *
+dtl_eval_context_load_int_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY);
+    return dtl_eval_context_load_value(context, expression).as_int_array;
+}
+
+static struct dtl_io_table *
+dtl_eval_context_load_table(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_TABLE);
+    return dtl_eval_context_load_value(context, expression).as_table;
+}
+
+/* --- Store ------------------------------------------------------------------------------------ */
+
+static void
+dtl_eval_context_store_value(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    union dtl_value value
+) {
+    size_t index = dtl_ir_ref_to_index(context->graph, expression);
+    context->values[index] = value;
+}
+
+static void
+dtl_eval_context_store_index(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    size_t index
+) {
+    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_index = index});
+}
+
+static void
+dtl_eval_context_store_int_array(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    int64_t *array
+) {
+    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_int_array = array});
+}
+
+static void
+dtl_eval_context_store_table(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_io_table *table
+) {
+    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_table = table});
+}
+
+/* --- Clear ------------------------------------------------------------------------------------ */
+
+static void
+dtl_eval_context_clear(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression
+) {
+    size_t index = dtl_ir_ref_to_index(context->graph, expression);
+    context->values[index].as_int = 0;
+}
+
+/* === Compilation ============================================================================== */
 
 static void
 dtl_eval_ast_to_ir_column_callback(
@@ -79,6 +165,102 @@ dtl_eval_ast_to_ir_trace_callback(
     (void)user_data;
 }
 
+/* === Operations =============================================================================== */
+
+/* --- Import Operations ------------------------------------------------------------------------ */
+
+static enum dtl_status
+dtl_eval_table_shape_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref table_expression;
+    struct dtl_io_table *table;
+    size_t table_size;
+
+    (void)error;
+
+    assert(context != NULL);
+    assert(dtl_ir_is_table_shape_expression(context->graph, expression));
+
+    table_expression = dtl_ir_table_shape_expression_get_table(context->graph, expression);
+    table = dtl_eval_context_load_table(context, table_expression);
+
+    table_size = dtl_io_table_get_num_rows(table);
+
+    dtl_eval_context_store_index(context, expression, table_size);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_open_table_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    char const *path;
+    struct dtl_io_table *table;
+
+    assert(context != NULL);
+    assert(dtl_ir_is_open_table_expression(context->graph, expression));
+
+    path = dtl_ir_open_table_expression_get_path(context->graph, expression);
+    table = dtl_io_importer_import_table(context->importer, path, error);
+    if (table == NULL) {
+        return DTL_STATUS_ERROR;
+    }
+
+    dtl_eval_context_store_table(context, expression, table);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_read_column_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref table_expression;
+    struct dtl_io_table *table;
+    char const *column_name;
+    int64_t *data;
+    size_t i;
+    enum dtl_status status;
+
+    assert(context != NULL);
+    assert(dtl_ir_is_read_column_expression(context->graph, expression));
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    table_expression = dtl_ir_read_column_expression_get_table(context->graph, expression);
+    table = dtl_eval_context_load_table(context, table_expression);
+
+    column_name = dtl_ir_read_column_expression_get_column_name(context->graph, expression);
+
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY); // TODO
+    data = calloc(shape, sizeof(uint64_t));
+
+    for (i = 0; i < dtl_io_table_get_num_columns(table); i++) {
+        if (strcmp(dtl_io_table_get_column_name(table, i), column_name) == 0) {
+            status = dtl_io_table_get_column_data(table, i, data, 0, shape, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+
+            break;
+        }
+    }
+
+    dtl_eval_context_store_int_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
+/* --- Export Operations ------------------------------------------------------------------------ */
+
 struct dtl_eval_export_table {
     struct dtl_io_table base;
 
@@ -111,7 +293,7 @@ dtl_eval_export_table_get_num_rows(struct dtl_io_table *table) {
     column = &context->columns[context_column_index];
 
     assert(dtl_ir_expression_get_dtype(context->graph, column->shape) == DTL_DTYPE_INDEX);
-    return context->values[dtl_ir_ref_to_index(context->graph, column->shape)].as_index;
+    return dtl_eval_context_load_index(context, column->shape);
 }
 
 static size_t
@@ -204,7 +386,7 @@ dtl_eval_export_table_get_column_data(
     column = &context->columns[context_column_index];
 
     assert(dtl_ir_expression_get_dtype(context->graph, column->shape) == DTL_DTYPE_INDEX);
-    num_rows = context->values[dtl_ir_ref_to_index(context->graph, column->shape)].as_index;
+    num_rows = dtl_eval_context_load_index(context, column->shape);
 
     assert(SIZE_MAX - size > offset);
     assert(offset + size <= num_rows);
@@ -212,7 +394,7 @@ dtl_eval_export_table_get_column_data(
     dtype = dtl_ir_expression_get_dtype(context->graph, column->value);
     assert(dtl_dtype_is_array_type(dtype));
 
-    value = context->values[dtl_ir_ref_to_index(context->graph, column->value)];
+    value = dtl_eval_context_load_value(context, column->value);
 
     switch (dtype) {
     case DTL_DTYPE_BOOL_ARRAY:
@@ -290,6 +472,47 @@ dtl_eval_export_table(
     return status;
 }
 
+/* --- Binary Operations ------------------------------------------------------------------------ */
+
+static enum dtl_status
+dtl_eval_add_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref left_expression;
+    int64_t *left_data;
+    struct dtl_ir_ref right_expression;
+    int64_t *right_data;
+
+    (void)error;
+
+    assert(dtl_ir_is_add_expression(context->graph, expression));
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY); // TODO
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    left_expression = dtl_ir_add_expression_left(context->graph, expression);
+    left_data = dtl_eval_context_load_int_array(context, left_expression);
+
+    right_expression = dtl_ir_add_expression_right(context->graph, expression);
+    right_data = dtl_eval_context_load_int_array(context, right_expression);
+
+    int64_t *data = calloc(shape, sizeof(uint64_t));
+
+    for (size_t j = 0; j < shape; j++) {
+        data[j] = left_data[j] + right_data[j];
+    }
+
+    dtl_eval_context_store_int_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
+/* === Eval ===================================================================================== */
+
 enum dtl_status
 dtl_eval(
     char const *source,
@@ -318,6 +541,8 @@ dtl_eval(
 
     graph = dtl_ir_graph_create(1024, 1024);
     context = (struct dtl_eval_context){
+        .importer = importer,
+        .exporter = exporter,
         .graph = graph,
     };
     status = dtl_ast_to_ir(
@@ -374,11 +599,10 @@ dtl_eval(
         struct dtl_ir_ref expression = dtl_ir_index_to_ref(graph, i);
 
         if (dtl_ir_is_table_shape_expression(graph, expression)) {
-            struct dtl_ir_ref table_expression = dtl_ir_table_shape_expression_get_table(graph, expression);
-            size_t table_index = dtl_ir_ref_to_index(graph, table_expression);
-            struct dtl_io_table *table = context.values[table_index].as_table;
-            size_t table_size = dtl_io_table_get_num_rows(table);
-            context.values[i].as_index = table_size;
+            status = dtl_eval_table_shape_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
         }
 
         if (dtl_ir_is_where_shape_expression(graph, expression)) {
@@ -398,38 +622,17 @@ dtl_eval(
         }
 
         if (dtl_ir_is_open_table_expression(graph, expression)) {
-            char const *path = dtl_ir_open_table_expression_get_path(graph, expression);
-            struct dtl_io_table *table = dtl_io_importer_import_table(importer, path, error);
-            if (table == NULL) {
-                return DTL_STATUS_ERROR;
+            status = dtl_eval_open_table_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
             }
-            context.values[i].as_table = table;
         }
 
         if (dtl_ir_is_read_column_expression(graph, expression)) {
-            struct dtl_ir_ref shape_expression = dtl_ir_array_expression_get_shape(graph, expression);
-            size_t shape = context.values[dtl_ir_ref_to_index(graph, shape_expression)].as_index;
-
-            struct dtl_ir_ref table_expression = dtl_ir_read_column_expression_get_table(graph, expression);
-            struct dtl_io_table *table = context.values[dtl_ir_ref_to_index(graph, table_expression)].as_table;
-
-            char const *column_name = dtl_ir_read_column_expression_get_column_name(graph, expression);
-
-            assert(dtl_ir_expression_get_dtype(graph, expression) == DTL_DTYPE_INT_ARRAY); // TODO
-            int64_t *data = calloc(shape, sizeof(uint64_t));
-
-            for (size_t j = 0; j < dtl_io_table_get_num_columns(table); j++) {
-                if (strcmp(dtl_io_table_get_column_name(table, j), column_name) == 0) {
-                    status = dtl_io_table_get_column_data(table, j, data, 0, shape, error);
-                    if (status != DTL_STATUS_OK) {
-                        return status;
-                    }
-
-                    break;
-                }
+            status = dtl_eval_read_column_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
             }
-
-            context.values[i].as_int_array = data;
         }
 
         if (dtl_ir_is_where_expression(graph, expression)) {
@@ -453,31 +656,10 @@ dtl_eval(
         }
 
         if (dtl_ir_is_add_expression(graph, expression)) {
-            struct dtl_ir_ref shape_expression;
-            size_t shape;
-            struct dtl_ir_ref left_expression;
-            int64_t *left_data;
-            struct dtl_ir_ref right_expression;
-            int64_t *right_data;
-
-            assert(dtl_ir_expression_get_dtype(graph, expression) == DTL_DTYPE_INT_ARRAY); // TODO
-
-            shape_expression = dtl_ir_array_expression_get_shape(graph, expression);
-            shape = context.values[dtl_ir_ref_to_index(graph, shape_expression)].as_index;
-
-            left_expression = dtl_ir_add_expression_left(graph, expression);
-            left_data = context.values[dtl_ir_ref_to_index(graph, left_expression)].as_int_array;
-
-            right_expression = dtl_ir_add_expression_right(graph, expression);
-            right_data = context.values[dtl_ir_ref_to_index(graph, right_expression)].as_int_array;
-
-            int64_t *data = calloc(shape, sizeof(uint64_t));
-
-            for (size_t j = 0; j < shape; j++) {
-                data[j] = left_data[j] + right_data[j];
+            status = dtl_eval_add_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
             }
-
-            context.values[i].as_int_array = data;
         }
 
         if (dtl_ir_is_subtract_expression(graph, expression)) {
