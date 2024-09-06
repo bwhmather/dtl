@@ -1,5 +1,5 @@
 project('dtl', ['c', 'cpp'], default_options: [
-    'cpp_std=c++20',
+  'cpp_std=c++20',
 ])
 
 cc = meson.get_compiler('cpp')
@@ -19,9 +19,9 @@ includes = include_directories('src')
 bison = find_program('bison')
 
 parser_source = custom_target(
-    'parser',
-    input: ['src/dtl-parser.y'], output: ['dtl-parser.c'],
-    command: [bison, '-o', '@OUTPUT@', '@INPUT@'],
+  'parser',
+  input: ['src/dtl-parser.y'], output: ['dtl-parser.c'],
+  command: [bison, '-o', '@OUTPUT@', '@INPUT@'],
 )
 
 lib_sources = [
