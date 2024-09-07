@@ -98,11 +98,13 @@ endforeach
 
 py_test_suites = {
   'end-to-end': [
+    'add-expression',
     'basic',
     'duplicate-columns',
+    'equal',
+    'less-than',
     'rename-columns',
     'subset-columns',
-    'add-expression',
   ],
   'lint': [
     'exact-includes',

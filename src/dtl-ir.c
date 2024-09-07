@@ -648,7 +648,7 @@ dtl_ir_table_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_r
 bool
 dtl_ir_is_table_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    return dtl_ir_expression_get_dtype(graph, expression) == DTL_DTYPE_INDEX;
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_TABLE_SHAPE;
 }
 
 struct dtl_ir_ref

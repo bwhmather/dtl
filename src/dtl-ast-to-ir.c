@@ -704,6 +704,12 @@ dtl_ast_to_ir_compile_select_expression(
     struct dtl_ast_node *source_node;
     struct dtl_ast_to_ir_scope *source_scope;
     struct dtl_ast_node *bindings_list_node;
+    struct dtl_ast_node *where_clause_node;
+    struct dtl_ast_node *predicate_node;
+    struct dtl_ir_ref mask_expr;
+    struct dtl_ir_ref where_shape;
+    struct dtl_ir_ref column_expr;
+    enum dtl_dtype column_dtype;
     struct dtl_ast_node *binding_node;
     struct dtl_ast_node *binding_expression_node;
     struct dtl_ast_node *binding_name_node;
@@ -738,7 +744,30 @@ dtl_ast_to_ir_compile_select_expression(
     // TODO
 
     // Compile where clause.
-    // TODO
+    where_clause_node = dtl_ast_select_expression_node_get_where_clause(select_node);
+    if (where_clause_node != NULL) {
+        assert(dtl_ast_node_is_where_clause(where_clause_node));
+
+        predicate_node = dtl_ast_where_clause_node_get_predicate(where_clause_node);
+
+        mask_expr = dtl_ast_to_ir_compile_expression(context, source_scope, predicate_node, error);
+        if (dtl_ir_ref_is_null(mask_expr)) {
+            return NULL;
+        }
+
+        where_shape = dtl_ir_where_shape_expression_create(context->graph, mask_expr);
+
+        for (i = 0; i < source_scope->num_columns; i++) {
+            column_expr = source_scope->columns[i].expression;
+
+            column_dtype = dtl_ir_expression_get_dtype(context->graph, column_expr);
+            column_expr = dtl_ir_where_expression_create(
+                context->graph, column_dtype, where_shape, column_expr, mask_expr
+            );
+
+            source_scope->columns[i].expression = column_expr;
+        }
+    }
 
     // Compile column bindings.
     bindings_list_node = dtl_ast_select_expression_node_get_columns(select_node);

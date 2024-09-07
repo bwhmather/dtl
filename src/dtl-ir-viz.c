@@ -44,6 +44,21 @@ dtl_ir_viz_get_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     if (dtl_ir_is_join_right_expression(graph, expression)) {
         return "Join Right";
     }
+    if (dtl_ir_is_equal_to_expression(graph, expression)) {
+        return "Equal To";
+    }
+    if (dtl_ir_is_less_than_expression(graph, expression)) {
+        return "Less Than";
+    }
+    if (dtl_ir_is_less_than_or_equal_to_expression(graph, expression)) {
+        return "Less Than or Equal To";
+    }
+    if (dtl_ir_is_greater_than_expression(graph, expression)) {
+        return "Greater Than";
+    }
+    if (dtl_ir_is_greater_than_or_equal_to_expression(graph, expression)) {
+        return "Greater Than or Equal To";
+    }
     if (dtl_ir_is_add_expression(graph, expression)) {
         return "Add";
     }

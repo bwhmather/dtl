@@ -58,6 +58,12 @@ dtl_eval_context_load_index(struct dtl_eval_context *context, struct dtl_ir_ref 
     return dtl_eval_context_load_value(context, expression).as_index;
 }
 
+static bool *
+dtl_eval_context_load_bool_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
+    return dtl_eval_context_load_value(context, expression).as_bool_array;
+}
+
 static int64_t *
 dtl_eval_context_load_int_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY);
@@ -89,6 +95,15 @@ dtl_eval_context_store_index(
     size_t index
 ) {
     dtl_eval_context_store_value(context, expression, (union dtl_value){.as_index = index});
+}
+
+static void
+dtl_eval_context_store_bool_array(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    bool *array
+) {
+    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_bool_array = array});
 }
 
 static void
@@ -472,7 +487,272 @@ dtl_eval_export_table(
     return status;
 }
 
+/* --- Filtering Operations ---------------------------------------------------------------------- */
+
+static enum dtl_status
+dtl_eval_where_shape_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref mask_expression;
+    bool *mask_data;
+    struct dtl_ir_ref mask_shape_expression;
+    size_t mask_shape;
+    size_t shape;
+    size_t i;
+
+    (void)error;
+
+    assert(dtl_ir_is_where_shape_expression(context->graph, expression));
+
+    mask_expression = dtl_ir_where_shape_expression_get_mask(context->graph, expression);
+    mask_data = dtl_eval_context_load_bool_array(context, mask_expression);
+
+    mask_shape_expression = dtl_ir_array_expression_get_shape(context->graph, mask_expression);
+    mask_shape = dtl_eval_context_load_index(context, mask_shape_expression);
+
+    shape = 0;
+    for (i = 0; i < mask_shape; i++) {
+        if (mask_data[i]) {
+            shape++;
+        }
+    }
+
+    dtl_eval_context_store_index(context, expression, shape);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_where_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref mask_expression;
+    bool *mask_data;
+    struct dtl_ir_ref source_expression;
+    int64_t *source_data;
+    int64_t *data;
+    size_t cursor;
+    size_t i;
+
+    (void)error;
+
+    assert(dtl_ir_is_where_expression(context->graph, expression));
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    mask_expression = dtl_ir_where_expression_get_mask(context->graph, expression);
+    mask_data = dtl_eval_context_load_bool_array(context, mask_expression);
+
+    source_expression = dtl_ir_where_expression_get_source(context->graph, expression);
+    source_data = dtl_eval_context_load_int_array(context, source_expression); // TODO
+
+    data = calloc(shape, sizeof(int64_t)); // TODO
+
+    cursor = 0;
+    for (i = 0; i < shape; i++) {
+        if (mask_data[i]) {
+            data[cursor] = source_data[i];
+            cursor += 1;
+        }
+    }
+
+    dtl_eval_context_store_int_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
 /* --- Binary Operations ------------------------------------------------------------------------ */
+
+static enum dtl_status
+dtl_eval_equal_to_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref left_expression;
+    int64_t *left_data;
+    struct dtl_ir_ref right_expression;
+    int64_t *right_data;
+
+    (void)error;
+
+    assert(dtl_ir_is_equal_to_expression(context->graph, expression));
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    left_expression = dtl_ir_equal_to_expression_left(context->graph, expression);
+    left_data = dtl_eval_context_load_int_array(context, left_expression);
+
+    right_expression = dtl_ir_equal_to_expression_right(context->graph, expression);
+    right_data = dtl_eval_context_load_int_array(context, right_expression);
+
+    bool *data = calloc(shape, sizeof(bool));
+
+    for (size_t i = 0; i < shape; i++) {
+        data[i] = left_data[i] == right_data[i];
+    }
+
+    dtl_eval_context_store_bool_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_less_than_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref left_expression;
+    int64_t *left_data;
+    struct dtl_ir_ref right_expression;
+    int64_t *right_data;
+
+    (void)error;
+
+    assert(dtl_ir_is_less_than_expression(context->graph, expression));
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    left_expression = dtl_ir_less_than_expression_left(context->graph, expression);
+    left_data = dtl_eval_context_load_int_array(context, left_expression);
+
+    right_expression = dtl_ir_less_than_expression_right(context->graph, expression);
+    right_data = dtl_eval_context_load_int_array(context, right_expression);
+
+    bool *data = calloc(shape, sizeof(bool));
+
+    for (size_t i = 0; i < shape; i++) {
+        data[i] = left_data[i] < right_data[i];
+    }
+
+    dtl_eval_context_store_bool_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_less_than_or_equal_to_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref left_expression;
+    int64_t *left_data;
+    struct dtl_ir_ref right_expression;
+    int64_t *right_data;
+
+    (void)error;
+
+    assert(dtl_ir_is_less_than_or_equal_to_expression(context->graph, expression));
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    left_expression = dtl_ir_less_than_or_equal_to_expression_left(context->graph, expression);
+    left_data = dtl_eval_context_load_int_array(context, left_expression);
+
+    right_expression = dtl_ir_less_than_or_equal_to_expression_right(context->graph, expression);
+    right_data = dtl_eval_context_load_int_array(context, right_expression);
+
+    bool *data = calloc(shape, sizeof(bool));
+
+    for (size_t i = 0; i < shape; i++) {
+        data[i] = left_data[i] <= right_data[i];
+    }
+
+    dtl_eval_context_store_bool_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_greater_than_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref left_expression;
+    int64_t *left_data;
+    struct dtl_ir_ref right_expression;
+    int64_t *right_data;
+
+    (void)error;
+
+    assert(dtl_ir_is_greater_than_expression(context->graph, expression));
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    left_expression = dtl_ir_greater_than_expression_left(context->graph, expression);
+    left_data = dtl_eval_context_load_int_array(context, left_expression);
+
+    right_expression = dtl_ir_greater_than_expression_right(context->graph, expression);
+    right_data = dtl_eval_context_load_int_array(context, right_expression);
+
+    bool *data = calloc(shape, sizeof(bool));
+
+    for (size_t i = 0; i < shape; i++) {
+        data[i] = left_data[i] > right_data[i];
+    }
+
+    dtl_eval_context_store_bool_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_greater_than_or_equal_to_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref left_expression;
+    int64_t *left_data;
+    struct dtl_ir_ref right_expression;
+    int64_t *right_data;
+
+    (void)error;
+
+    assert(dtl_ir_is_greater_than_or_equal_to_expression(context->graph, expression));
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    left_expression = dtl_ir_greater_than_or_equal_to_expression_left(context->graph, expression);
+    left_data = dtl_eval_context_load_int_array(context, left_expression);
+
+    right_expression = dtl_ir_greater_than_or_equal_to_expression_right(context->graph, expression);
+    right_data = dtl_eval_context_load_int_array(context, right_expression);
+
+    bool *data = calloc(shape, sizeof(bool));
+
+    for (size_t i = 0; i < shape; i++) {
+        data[i] = left_data[i] >= right_data[i];
+    }
+
+    dtl_eval_context_store_bool_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
 
 static enum dtl_status
 dtl_eval_add_expression(
@@ -603,10 +883,15 @@ dtl_eval(
             if (status != DTL_STATUS_OK) {
                 return status;
             }
+            continue;
         }
 
         if (dtl_ir_is_where_shape_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            status = dtl_eval_where_shape_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
         }
 
         if (dtl_ir_is_join_shape_expression(graph, expression)) {
@@ -626,6 +911,7 @@ dtl_eval(
             if (status != DTL_STATUS_OK) {
                 return status;
             }
+            continue;
         }
 
         if (dtl_ir_is_read_column_expression(graph, expression)) {
@@ -633,10 +919,15 @@ dtl_eval(
             if (status != DTL_STATUS_OK) {
                 return status;
             }
+            continue;
         }
 
         if (dtl_ir_is_where_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            status = dtl_eval_where_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
         }
 
         if (dtl_ir_is_pick_expression(graph, expression)) {
@@ -655,11 +946,52 @@ dtl_eval(
             assert(false); // Not implemented.
         }
 
+        if (dtl_ir_is_equal_to_expression(graph, expression)) {
+            status = dtl_eval_equal_to_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
+        }
+
+        if (dtl_ir_is_less_than_expression(graph, expression)) {
+            status = dtl_eval_less_than_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
+        }
+
+        if (dtl_ir_is_less_than_or_equal_to_expression(graph, expression)) {
+            status = dtl_eval_less_than_or_equal_to_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
+        }
+
+        if (dtl_ir_is_greater_than_expression(graph, expression)) {
+            status = dtl_eval_greater_than_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
+        }
+
+        if (dtl_ir_is_greater_than_or_equal_to_expression(graph, expression)) {
+            status = dtl_eval_greater_than_or_equal_to_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
+        }
+
         if (dtl_ir_is_add_expression(graph, expression)) {
             status = dtl_eval_add_expression(&context, expression, error);
             if (status != DTL_STATUS_OK) {
                 return status;
             }
+            continue;
         }
 
         if (dtl_ir_is_subtract_expression(graph, expression)) {
@@ -672,6 +1004,7 @@ dtl_eval(
         if (dtl_ir_is_divide_expression(graph, expression)) {
             assert(false); // Not implemented.
         }
+        assert(false);
     }
 
     // TODO
