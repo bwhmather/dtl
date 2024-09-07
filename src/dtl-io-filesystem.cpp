@@ -107,14 +107,12 @@ struct  dtl_io_filesystem_table_get_column_data_visitor : arrow::ScalarVisitor {
     union dtl_value value;
 
     arrow::Status Visit(const arrow::Int32Scalar &scalar) {
-        fprintf(stderr, "Visit int32\n");
         dtype = DTL_DTYPE_INT;
         value.as_int = scalar.value;
         return arrow::Status::OK();
     }
 
     arrow::Status Visit(const arrow::Int64Scalar &scalar) {
-        fprintf(stderr, "Visit int64\n");
         dtype = DTL_DTYPE_INT;
         value.as_int = scalar.value;
         return arrow::Status::OK();
