@@ -133,6 +133,7 @@ foreach suite, tests : py_test_suites
         'MESON_BUILD_ROOT': meson.project_build_root(),
         'MESON_SOURCE_ROOT': meson.project_source_root(),
       },
+      depends: [exe],
       timeout: 120,
     )
 
