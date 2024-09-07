@@ -334,16 +334,16 @@ dtl_ast_less_than_expression_node_get_right(struct dtl_ast_node *);
 /* --- Less-than-or-equal Expressions ----------------------------------------------------------- */
 
 bool
-dtl_ast_node_is_less_than_or_equal_expression(struct dtl_ast_node *);
+dtl_ast_node_is_less_than_or_equal_to_expression(struct dtl_ast_node *);
 
 struct dtl_ast_node *
-dtl_ast_less_than_or_equal_expression_node_create(struct dtl_ast_node *, struct dtl_ast_node *);
+dtl_ast_less_than_or_equal_to_expression_node_create(struct dtl_ast_node *, struct dtl_ast_node *);
 
 struct dtl_ast_node *
-dtl_ast_less_than_or_equal_expression_node_get_left(struct dtl_ast_node *);
+dtl_ast_less_than_or_equal_to_expression_node_get_left(struct dtl_ast_node *);
 
 struct dtl_ast_node *
-dtl_ast_less_than_or_equal_expression_node_get_right(struct dtl_ast_node *);
+dtl_ast_less_than_or_equal_to_expression_node_get_right(struct dtl_ast_node *);
 
 /* --- Greater-than Expressions ----------------------------------------------------------------- */
 
@@ -362,16 +362,16 @@ dtl_ast_greater_than_expression_node_get_right(struct dtl_ast_node *);
 /* --- Greater-than-or-equal Expressions -------------------------------------------------------- */
 
 bool
-dtl_ast_node_is_greater_than_or_equal_expression(struct dtl_ast_node *);
+dtl_ast_node_is_greater_than_or_equal_to_expression(struct dtl_ast_node *);
 
 struct dtl_ast_node *
-dtl_ast_greater_than_or_equal_expression_node_create(struct dtl_ast_node *, struct dtl_ast_node *);
+dtl_ast_greater_than_or_equal_to_expression_node_create(struct dtl_ast_node *, struct dtl_ast_node *);
 
 struct dtl_ast_node *
-dtl_ast_greater_than_or_equal_expression_node_get_left(struct dtl_ast_node *);
+dtl_ast_greater_than_or_equal_to_expression_node_get_left(struct dtl_ast_node *);
 
 struct dtl_ast_node *
-dtl_ast_greater_than_or_equal_expression_node_get_right(struct dtl_ast_node *);
+dtl_ast_greater_than_or_equal_to_expression_node_get_right(struct dtl_ast_node *);
 
 /* --- Add Expressions -------------------------------------------------------------------------- */
 

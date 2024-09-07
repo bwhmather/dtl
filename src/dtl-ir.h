@@ -303,6 +303,101 @@ dtl_ir_join_right_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref 
 struct dtl_ir_ref
 dtl_ir_join_right_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
+/* --- Equal-to Expressions --------------------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_equal_to_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+);
+
+bool
+dtl_ir_is_equal_to_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_equal_to_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_equal_to_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+/* --- Less-than Expressions -------------------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_less_than_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+);
+
+bool
+dtl_ir_is_less_than_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_less_than_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_less_than_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+/* --- Less-than-or-equal-to Expressions -------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_less_than_or_equal_to_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+);
+
+bool
+dtl_ir_is_less_than_or_equal_to_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_less_than_or_equal_to_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_less_than_or_equal_to_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+/* --- Greater-than expressions ----------------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_greater_than_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+);
+
+bool
+dtl_ir_is_greater_than_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_greater_than_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_greater_than_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+/* --- Greater-than-or-equal-to Expressions ----------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_greater_than_or_equal_to_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+);
+
+bool
+dtl_ir_is_greater_than_or_equal_to_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_greater_than_or_equal_to_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
+struct dtl_ir_ref
+dtl_ir_greater_than_or_equal_to_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+
 /* --- Add Expressions -------------------------------------------------------------------------- */
 
 struct dtl_ir_ref

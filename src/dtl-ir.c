@@ -23,6 +23,11 @@ enum dtl_ir_op {
     DTL_IR_OP_INDEX,
     DTL_IR_OP_JOIN_LEFT,
     DTL_IR_OP_JOIN_RIGHT,
+    DTL_IR_OP_EQUAL_TO,
+    DTL_IR_OP_LESS_THAN,
+    DTL_IR_OP_LESS_THAN_OR_EQUAL_TO,
+    DTL_IR_OP_GREATER_THAN,
+    DTL_IR_OP_GREATER_THAN_OR_EQUAL_TO,
     DTL_IR_OP_ADD,
     DTL_IR_OP_SUBTRACT,
     DTL_IR_OP_MULTIPLY,
@@ -1126,6 +1131,276 @@ struct dtl_ir_ref
 dtl_ir_join_right_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
     assert(dtl_ir_is_join_right_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 2);
+}
+
+/* --- Equal-to Expressions --------------------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_equal_to_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+) {
+    enum dtl_dtype input_dtype;
+
+    assert(graph != NULL);
+    assert(dtl_ir_is_shape_expression(graph, shape));
+    assert(dtl_ir_is_array_expression(graph, left));
+    assert(dtl_ir_is_array_expression(graph, right));
+
+    input_dtype = dtl_ir_expression_get_dtype(graph, left);
+    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
+
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
+
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_EQUAL_TO, DTL_DTYPE_BOOL_ARRAY);
+    dtl_ir_scratch_add_dependency(graph, shape);
+    dtl_ir_scratch_add_dependency(graph, left);
+    dtl_ir_scratch_add_dependency(graph, right);
+    return dtl_ir_scratch_end(graph);
+}
+
+bool
+dtl_ir_is_equal_to_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_EQUAL_TO;
+}
+
+struct dtl_ir_ref
+dtl_ir_equal_to_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_equal_to_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 1);
+}
+
+struct dtl_ir_ref
+dtl_ir_equal_to_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_equal_to_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 2);
+}
+
+/* --- Less-than Expressions -------------------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_less_than_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+) {
+    enum dtl_dtype input_dtype;
+
+    assert(graph != NULL);
+    assert(dtl_ir_is_shape_expression(graph, shape));
+    assert(dtl_ir_is_array_expression(graph, left));
+    assert(dtl_ir_is_array_expression(graph, right));
+
+    input_dtype = dtl_ir_expression_get_dtype(graph, left);
+    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
+
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
+
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_LESS_THAN, DTL_DTYPE_BOOL_ARRAY);
+    dtl_ir_scratch_add_dependency(graph, shape);
+    dtl_ir_scratch_add_dependency(graph, left);
+    dtl_ir_scratch_add_dependency(graph, right);
+    return dtl_ir_scratch_end(graph);
+}
+
+bool
+dtl_ir_is_less_than_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_LESS_THAN;
+}
+
+struct dtl_ir_ref
+dtl_ir_less_than_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_less_than_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 1);
+}
+
+struct dtl_ir_ref
+dtl_ir_less_than_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_less_than_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 2);
+}
+
+/* --- Less-than-or-equal-to Expressions -------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_less_than_or_equal_to_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+) {
+    enum dtl_dtype input_dtype;
+
+    assert(graph != NULL);
+    assert(dtl_ir_is_shape_expression(graph, shape));
+    assert(dtl_ir_is_array_expression(graph, left));
+    assert(dtl_ir_is_array_expression(graph, right));
+
+    input_dtype = dtl_ir_expression_get_dtype(graph, left);
+    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
+
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
+
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_LESS_THAN_OR_EQUAL_TO, DTL_DTYPE_BOOL_ARRAY);
+    dtl_ir_scratch_add_dependency(graph, shape);
+    dtl_ir_scratch_add_dependency(graph, left);
+    dtl_ir_scratch_add_dependency(graph, right);
+    return dtl_ir_scratch_end(graph);
+}
+
+bool
+dtl_ir_is_less_than_or_equal_to_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_LESS_THAN_OR_EQUAL_TO;
+}
+
+struct dtl_ir_ref
+dtl_ir_less_than_or_equal_to_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_less_than_or_equal_to_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 1);
+}
+
+struct dtl_ir_ref
+dtl_ir_less_than_or_equal_to_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_less_than_or_equal_to_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 2);
+}
+
+/* --- Greater-than expressions ----------------------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_greater_than_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+) {
+    enum dtl_dtype input_dtype;
+
+    assert(graph != NULL);
+    assert(dtl_ir_is_shape_expression(graph, shape));
+    assert(dtl_ir_is_array_expression(graph, left));
+    assert(dtl_ir_is_array_expression(graph, right));
+
+    input_dtype = dtl_ir_expression_get_dtype(graph, left);
+    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
+
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
+
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_GREATER_THAN_OR_EQUAL_TO, DTL_DTYPE_BOOL_ARRAY);
+    dtl_ir_scratch_add_dependency(graph, shape);
+    dtl_ir_scratch_add_dependency(graph, left);
+    dtl_ir_scratch_add_dependency(graph, right);
+    return dtl_ir_scratch_end(graph);
+}
+
+bool
+dtl_ir_is_greater_than_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_GREATER_THAN;
+}
+
+struct dtl_ir_ref
+dtl_ir_greater_than_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_greater_than_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 1);
+}
+
+struct dtl_ir_ref
+dtl_ir_greater_than_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_greater_than_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 2);
+}
+
+/* --- Greater-than-or-equal-to Expressions ----------------------------------------------------- */
+
+struct dtl_ir_ref
+dtl_ir_greater_than_or_equal_to_expression_create(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref shape,
+    struct dtl_ir_ref left,
+    struct dtl_ir_ref right
+) {
+    enum dtl_dtype input_dtype;
+
+    assert(graph != NULL);
+    assert(dtl_ir_is_shape_expression(graph, shape));
+    assert(dtl_ir_is_array_expression(graph, left));
+    assert(dtl_ir_is_array_expression(graph, right));
+
+    input_dtype = dtl_ir_expression_get_dtype(graph, left);
+    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
+
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
+    assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, right), shape));
+
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_GREATER_THAN_OR_EQUAL_TO, DTL_DTYPE_BOOL_ARRAY);
+    dtl_ir_scratch_add_dependency(graph, shape);
+    dtl_ir_scratch_add_dependency(graph, left);
+    dtl_ir_scratch_add_dependency(graph, right);
+    return dtl_ir_scratch_end(graph);
+}
+
+bool
+dtl_ir_is_greater_than_or_equal_to_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    return dtl_ir_expression_get_op(graph, expression) == DTL_IR_OP_GREATER_THAN_OR_EQUAL_TO;
+}
+
+struct dtl_ir_ref
+dtl_ir_greater_than_or_equal_to_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_greater_than_or_equal_to_expression(graph, expression));
+    assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
+
+    return dtl_ir_expression_get_dependency(graph, expression, 1);
+}
+
+struct dtl_ir_ref
+dtl_ir_greater_than_or_equal_to_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+    assert(graph != NULL);
+    assert(dtl_ir_is_greater_than_or_equal_to_expression(graph, expression));
     assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
 
     return dtl_ir_expression_get_dependency(graph, expression, 2);

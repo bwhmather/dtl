@@ -335,6 +335,256 @@ dtl_ast_to_ir_compile_column_reference_expression(
 }
 
 static struct dtl_ir_ref
+dtl_ast_to_ir_compile_equal_to_expression(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_to_ir_scope *scope,
+    struct dtl_ast_node *expression_node,
+    struct dtl_error **error
+) {
+    struct dtl_ast_node *left_node;
+    struct dtl_ir_ref left_expression;
+    struct dtl_ast_node *right_node;
+    struct dtl_ir_ref right_expression;
+    enum dtl_dtype left_dtype;
+    enum dtl_dtype right_dtype;
+    struct dtl_ir_ref left_shape;
+    struct dtl_ir_ref right_shape;
+
+    assert(context != NULL);
+    assert(dtl_ast_node_is_equal_to_expression(expression_node));
+
+    left_node = dtl_ast_equal_to_expression_node_get_left(expression_node);
+    left_expression = dtl_ast_to_ir_compile_expression(context, scope, left_node, error);
+    if (dtl_ir_ref_is_null(left_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    right_node = dtl_ast_equal_to_expression_node_get_right(expression_node);
+    right_expression = dtl_ast_to_ir_compile_expression(context, scope, right_node, error);
+    if (dtl_ir_ref_is_null(right_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    left_dtype = dtl_ir_expression_get_dtype(context->graph, left_expression);
+    right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
+    if (left_dtype != right_dtype) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    left_shape = dtl_ir_array_expression_get_shape(context->graph, left_expression);
+    right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
+    if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    return dtl_ir_equal_to_expression_create(
+        context->graph, left_shape, left_expression, right_expression
+    );
+}
+
+static struct dtl_ir_ref
+dtl_ast_to_ir_compile_less_than_expression(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_to_ir_scope *scope,
+    struct dtl_ast_node *expression_node,
+    struct dtl_error **error
+) {
+    struct dtl_ast_node *left_node;
+    struct dtl_ir_ref left_expression;
+    struct dtl_ast_node *right_node;
+    struct dtl_ir_ref right_expression;
+    enum dtl_dtype left_dtype;
+    enum dtl_dtype right_dtype;
+    struct dtl_ir_ref left_shape;
+    struct dtl_ir_ref right_shape;
+
+    assert(context != NULL);
+    assert(dtl_ast_node_is_less_than_expression(expression_node));
+
+    left_node = dtl_ast_less_than_expression_node_get_left(expression_node);
+    left_expression = dtl_ast_to_ir_compile_expression(context, scope, left_node, error);
+    if (dtl_ir_ref_is_null(left_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    right_node = dtl_ast_less_than_expression_node_get_right(expression_node);
+    right_expression = dtl_ast_to_ir_compile_expression(context, scope, right_node, error);
+    if (dtl_ir_ref_is_null(right_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    left_dtype = dtl_ir_expression_get_dtype(context->graph, left_expression);
+    right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
+    if (left_dtype != right_dtype) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    left_shape = dtl_ir_array_expression_get_shape(context->graph, left_expression);
+    right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
+    if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    return dtl_ir_less_than_expression_create(
+        context->graph, left_shape, left_expression, right_expression
+    );
+}
+
+static struct dtl_ir_ref
+dtl_ast_to_ir_compile_less_than_or_equal_to_expression(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_to_ir_scope *scope,
+    struct dtl_ast_node *expression_node,
+    struct dtl_error **error
+) {
+    struct dtl_ast_node *left_node;
+    struct dtl_ir_ref left_expression;
+    struct dtl_ast_node *right_node;
+    struct dtl_ir_ref right_expression;
+    enum dtl_dtype left_dtype;
+    enum dtl_dtype right_dtype;
+    struct dtl_ir_ref left_shape;
+    struct dtl_ir_ref right_shape;
+
+    assert(context != NULL);
+    assert(dtl_ast_node_is_less_than_or_equal_to_expression(expression_node));
+
+    left_node = dtl_ast_less_than_or_equal_to_expression_node_get_left(expression_node);
+    left_expression = dtl_ast_to_ir_compile_expression(context, scope, left_node, error);
+    if (dtl_ir_ref_is_null(left_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    right_node = dtl_ast_less_than_or_equal_to_expression_node_get_right(expression_node);
+    right_expression = dtl_ast_to_ir_compile_expression(context, scope, right_node, error);
+    if (dtl_ir_ref_is_null(right_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    left_dtype = dtl_ir_expression_get_dtype(context->graph, left_expression);
+    right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
+    if (left_dtype != right_dtype) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    left_shape = dtl_ir_array_expression_get_shape(context->graph, left_expression);
+    right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
+    if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    return dtl_ir_less_than_or_equal_to_expression_create(
+        context->graph, left_shape, left_expression, right_expression
+    );
+}
+
+static struct dtl_ir_ref
+dtl_ast_to_ir_compile_greater_than_expression(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_to_ir_scope *scope,
+    struct dtl_ast_node *expression_node,
+    struct dtl_error **error
+) {
+    struct dtl_ast_node *left_node;
+    struct dtl_ir_ref left_expression;
+    struct dtl_ast_node *right_node;
+    struct dtl_ir_ref right_expression;
+    enum dtl_dtype left_dtype;
+    enum dtl_dtype right_dtype;
+    struct dtl_ir_ref left_shape;
+    struct dtl_ir_ref right_shape;
+
+    assert(context != NULL);
+    assert(dtl_ast_node_is_greater_than_expression(expression_node));
+
+    left_node = dtl_ast_greater_than_expression_node_get_left(expression_node);
+    left_expression = dtl_ast_to_ir_compile_expression(context, scope, left_node, error);
+    if (dtl_ir_ref_is_null(left_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    right_node = dtl_ast_greater_than_expression_node_get_right(expression_node);
+    right_expression = dtl_ast_to_ir_compile_expression(context, scope, right_node, error);
+    if (dtl_ir_ref_is_null(right_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    left_dtype = dtl_ir_expression_get_dtype(context->graph, left_expression);
+    right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
+    if (left_dtype != right_dtype) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    left_shape = dtl_ir_array_expression_get_shape(context->graph, left_expression);
+    right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
+    if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    return dtl_ir_greater_than_expression_create(
+        context->graph, left_shape, left_expression, right_expression
+    );
+}
+
+static struct dtl_ir_ref
+dtl_ast_to_ir_compile_greater_than_or_equal_to_expression(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_to_ir_scope *scope,
+    struct dtl_ast_node *expression_node,
+    struct dtl_error **error
+) {
+    struct dtl_ast_node *left_node;
+    struct dtl_ir_ref left_expression;
+    struct dtl_ast_node *right_node;
+    struct dtl_ir_ref right_expression;
+    enum dtl_dtype left_dtype;
+    enum dtl_dtype right_dtype;
+    struct dtl_ir_ref left_shape;
+    struct dtl_ir_ref right_shape;
+
+    assert(context != NULL);
+    assert(dtl_ast_node_is_greater_than_or_equal_to_expression(expression_node));
+
+    left_node = dtl_ast_greater_than_or_equal_to_expression_node_get_left(expression_node);
+    left_expression = dtl_ast_to_ir_compile_expression(context, scope, left_node, error);
+    if (dtl_ir_ref_is_null(left_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    right_node = dtl_ast_greater_than_or_equal_to_expression_node_get_right(expression_node);
+    right_expression = dtl_ast_to_ir_compile_expression(context, scope, right_node, error);
+    if (dtl_ir_ref_is_null(right_expression)) {
+        return DTL_IR_NULL_REF;
+    }
+
+    left_dtype = dtl_ir_expression_get_dtype(context->graph, left_expression);
+    right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
+    if (left_dtype != right_dtype) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    left_shape = dtl_ir_array_expression_get_shape(context->graph, left_expression);
+    right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
+    if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
+        dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        return DTL_IR_NULL_REF;
+    }
+
+    return dtl_ir_greater_than_or_equal_to_expression_create(
+        context->graph, left_shape, left_expression, right_expression
+    );
+}
+
+static struct dtl_ir_ref
 dtl_ast_to_ir_compile_add_expression(
     struct dtl_ast_to_ir_context *context,
     struct dtl_ast_to_ir_scope *scope,
@@ -407,23 +657,23 @@ dtl_ast_to_ir_compile_expression(
     }
 
     if (dtl_ast_node_is_equal_to_expression(expression_node)) {
-        assert(false);
+        return dtl_ast_to_ir_compile_equal_to_expression(context, scope, expression_node, error);
     }
 
     if (dtl_ast_node_is_less_than_expression(expression_node)) {
-        assert(false);
+        return dtl_ast_to_ir_compile_less_than_expression(context, scope, expression_node, error);
     }
 
-    if (dtl_ast_node_is_less_than_or_equal_expression(expression_node)) {
-        assert(false);
+    if (dtl_ast_node_is_less_than_or_equal_to_expression(expression_node)) {
+        return dtl_ast_to_ir_compile_less_than_or_equal_to_expression(context, scope, expression_node, error);
     }
 
     if (dtl_ast_node_is_greater_than_expression(expression_node)) {
-        assert(false);
+        return dtl_ast_to_ir_compile_greater_than_expression(context, scope, expression_node, error);
     }
 
-    if (dtl_ast_node_is_greater_than_or_equal_expression(expression_node)) {
-        assert(false);
+    if (dtl_ast_node_is_greater_than_or_equal_to_expression(expression_node)) {
+        return dtl_ast_to_ir_compile_greater_than_or_equal_to_expression(context, scope, expression_node, error);
     }
 
     if (dtl_ast_node_is_add_expression(expression_node)) {

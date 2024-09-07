@@ -267,6 +267,11 @@
 %type <node> literal_expression;
 %type <node> expression_list;
 %type <node> function_call_expression;
+%type <node> equal_to_expression;
+%type <node> less_than_expression;
+%type <node> less_than_or_equal_to_expression;
+%type <node> greater_than_expression;
+%type <node> greater_than_or_equal_to_expression;
 %type <node> add_expression;
 %type <node> subtract_expression;
 %type <node> multiply_expression;
@@ -398,6 +403,21 @@ expression
     | function_call_expression {
         $$ = $1;
     }
+    | equal_to_expression {
+        $$ = $1;
+    }
+    | less_than_expression {
+        $$ = $1;
+    }
+    | less_than_or_equal_to_expression {
+        $$ = $1;
+    }
+    | greater_than_expression {
+        $$ = $1;
+    }
+    | greater_than_or_equal_to_expression {
+        $$ = $1;
+    }
     | add_expression {
         $$ = $1;
     }
@@ -438,7 +458,31 @@ function_call_expression
         $$ = dtl_ast_function_call_expression_node_create($name, $arguments);
     }
     ;
-
+equal_to_expression
+    : expression[left] EQUAL expression[right] {
+        $$ = dtl_ast_equal_to_expression_node_create($left, $right);
+    }
+    ;
+less_than_expression
+    : expression[left] LESS_THAN expression[right] {
+        $$ = dtl_ast_less_than_expression_node_create($left, $right);
+    }
+    ;
+less_than_or_equal_to_expression
+    : expression[left] LESS_THAN_OR_EQUAL expression[right] {
+        $$ = dtl_ast_less_than_or_equal_to_expression_node_create($left, $right);
+    }
+    ;
+greater_than_expression
+    : expression[left] GREATER_THAN expression[right] {
+        $$ = dtl_ast_greater_than_expression_node_create($left, $right);
+    }
+    ;
+greater_than_or_equal_to_expression
+    : expression[left] GREATER_THAN_OR_EQUAL expression[right] {
+        $$ = dtl_ast_greater_than_or_equal_to_expression_node_create($left, $right);
+    }
+    ;
 add_expression
     : expression[left] PLUS expression[right] {
         $$ = dtl_ast_add_expression_node_create($left, $right);

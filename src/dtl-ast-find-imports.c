@@ -141,9 +141,9 @@ dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_
         return;
     }
 
-    if (dtl_ast_node_is_less_than_or_equal_expression(node)) {
-        dtl_ast_find_imports(dtl_ast_less_than_or_equal_expression_node_get_left(node), callback, user_data);
-        dtl_ast_find_imports(dtl_ast_less_than_or_equal_expression_node_get_right(node), callback, user_data);
+    if (dtl_ast_node_is_less_than_or_equal_to_expression(node)) {
+        dtl_ast_find_imports(dtl_ast_less_than_or_equal_to_expression_node_get_left(node), callback, user_data);
+        dtl_ast_find_imports(dtl_ast_less_than_or_equal_to_expression_node_get_right(node), callback, user_data);
         return;
     }
 
@@ -153,9 +153,9 @@ dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_
         return;
     }
 
-    if (dtl_ast_node_is_greater_than_or_equal_expression(node)) {
-        dtl_ast_find_imports(dtl_ast_greater_than_or_equal_expression_node_get_left(node), callback, user_data);
-        dtl_ast_find_imports(dtl_ast_greater_than_or_equal_expression_node_get_right(node), callback, user_data);
+    if (dtl_ast_node_is_greater_than_or_equal_to_expression(node)) {
+        dtl_ast_find_imports(dtl_ast_greater_than_or_equal_to_expression_node_get_left(node), callback, user_data);
+        dtl_ast_find_imports(dtl_ast_greater_than_or_equal_to_expression_node_get_right(node), callback, user_data);
         return;
     }
 

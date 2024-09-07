@@ -1005,13 +1005,13 @@ dtl_ast_less_than_expression_node_get_right(struct dtl_ast_node *node) {
 /* --- Less-than Expressions -------------------------------------------------------------------- */
 
 bool
-dtl_ast_node_is_less_than_or_equal_expression(struct dtl_ast_node *node) {
+dtl_ast_node_is_less_than_or_equal_to_expression(struct dtl_ast_node *node) {
     assert(node != NULL);
     return node->type == DTL_AST_LESS_THAN_OR_EQUAL_EXPRESSION;
 }
 
 struct dtl_ast_node *
-dtl_ast_less_than_or_equal_expression_node_create(struct dtl_ast_node *left, struct dtl_ast_node *right) {
+dtl_ast_less_than_or_equal_to_expression_node_create(struct dtl_ast_node *left, struct dtl_ast_node *right) {
     struct dtl_ast_node *node;
 
     assert(dtl_ast_node_is_expression(left));
@@ -1025,14 +1025,14 @@ dtl_ast_less_than_or_equal_expression_node_create(struct dtl_ast_node *left, str
 }
 
 struct dtl_ast_node *
-dtl_ast_less_than_or_equal_expression_node_get_left(struct dtl_ast_node *node) {
-    assert(dtl_ast_node_is_less_than_or_equal_expression(node));
+dtl_ast_less_than_or_equal_to_expression_node_get_left(struct dtl_ast_node *node) {
+    assert(dtl_ast_node_is_less_than_or_equal_to_expression(node));
     return dtl_ast_node_get_child(node, 0);
 }
 
 struct dtl_ast_node *
-dtl_ast_less_than_or_equal_expression_node_get_right(struct dtl_ast_node *node) {
-    assert(dtl_ast_node_is_less_than_or_equal_expression(node));
+dtl_ast_less_than_or_equal_to_expression_node_get_right(struct dtl_ast_node *node) {
+    assert(dtl_ast_node_is_less_than_or_equal_to_expression(node));
     return dtl_ast_node_get_child(node, 1);
 }
 
@@ -1070,16 +1070,16 @@ dtl_ast_greater_than_expression_node_get_right(struct dtl_ast_node *node) {
     return dtl_ast_node_get_child(node, 1);
 }
 
-/* --- Greater-than-or-equal Expressions -------------------------------------------------------- */
+/* --- Greater-than-or-equal_to Expressions -------------------------------------------------------- */
 
 bool
-dtl_ast_node_is_greater_than_or_equal_expression(struct dtl_ast_node *node) {
+dtl_ast_node_is_greater_than_or_equal_to_expression(struct dtl_ast_node *node) {
     assert(node != NULL);
     return node->type == DTL_AST_GREATER_THAN_OR_EQUAL_EXPRESSION;
 }
 
 struct dtl_ast_node *
-dtl_ast_greater_than_or_equal_expression_node_create(struct dtl_ast_node *left, struct dtl_ast_node *right) {
+dtl_ast_greater_than_or_equal_to_expression_node_create(struct dtl_ast_node *left, struct dtl_ast_node *right) {
     struct dtl_ast_node *node;
 
     assert(dtl_ast_node_is_expression(left));
@@ -1093,14 +1093,14 @@ dtl_ast_greater_than_or_equal_expression_node_create(struct dtl_ast_node *left, 
 }
 
 struct dtl_ast_node *
-dtl_ast_greater_than_or_equal_expression_node_get_left(struct dtl_ast_node *node) {
-    assert(dtl_ast_node_is_greater_than_or_equal_expression(node));
+dtl_ast_greater_than_or_equal_to_expression_node_get_left(struct dtl_ast_node *node) {
+    assert(dtl_ast_node_is_greater_than_or_equal_to_expression(node));
     return dtl_ast_node_get_child(node, 0);
 }
 
 struct dtl_ast_node *
-dtl_ast_greater_than_or_equal_expression_node_get_right(struct dtl_ast_node *node) {
-    assert(dtl_ast_node_is_greater_than_or_equal_expression(node));
+dtl_ast_greater_than_or_equal_to_expression_node_get_right(struct dtl_ast_node *node) {
+    assert(dtl_ast_node_is_greater_than_or_equal_to_expression(node));
     return dtl_ast_node_get_child(node, 1);
 }
 
