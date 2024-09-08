@@ -827,6 +827,8 @@ dtl_ast_to_ir_compile_select_expression(
         }
     }
 
+    dtl_ast_to_ir_scope_destroy(source_scope);
+
     return output_scope;
 }
 
@@ -995,6 +997,8 @@ dtl_ast_to_ir_compile_assignment_statement(
         );
     }
 
+    dtl_ast_to_ir_scope_destroy(expression_scope);
+
     return DTL_STATUS_OK;
 }
 
@@ -1032,6 +1036,8 @@ dtl_ast_to_ir_compile_export_statement(
     );
 
     dtl_ast_to_ir_context_export_table(context, path, expression_scope);
+
+    dtl_ast_to_ir_scope_destroy(expression_scope);
 
     return DTL_STATUS_OK;
 }
@@ -1090,7 +1096,7 @@ dtl_ast_to_ir(
     size_t i;
     struct dtl_ast_node *statements;
     struct dtl_ast_node *statement;
-    enum dtl_status status;
+    enum dtl_status status = DTL_STATUS_OK;
 
     context = calloc(1, sizeof(struct dtl_ast_to_ir_context));
     context->graph = graph;
@@ -1108,9 +1114,12 @@ dtl_ast_to_ir(
         statement = dtl_ast_statement_list_node_get_statement(statements, i);
         status = dtl_ast_to_ir_compile_statement(context, statement, error);
         if (status != DTL_STATUS_OK) {
-            return status;
+            break;
         }
     }
 
-    return DTL_STATUS_OK;
+    dtl_ast_to_ir_scope_destroy(context->globals);
+    free(context);
+
+    return status;
 }
