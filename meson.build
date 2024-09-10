@@ -102,6 +102,7 @@ py_test_suites = {
     'basic',
     'duplicate-columns',
     'equal',
+    'export-twice',
     'less-than',
     'rename-columns',
     'subset-columns',

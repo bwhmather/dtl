@@ -206,6 +206,7 @@ struct dtl_ast_to_ir_context {
     void *user_data;
 
     struct dtl_ast_to_ir_scope *globals;
+    struct dtl_ast_to_ir_scope *exports;
 };
 
 static void
@@ -233,6 +234,7 @@ dtl_ast_to_ir_context_export_table(
     char const *column_namespace;
     struct dtl_ir_ref column_expression;
 
+    context->exports = dtl_ast_to_ir_scope_filter_namespace(context->exports, path);
     for (i = 0; i < table->num_columns; i++) {
         column_name = table->columns[i].name;
         column_namespace = table->columns[i].namespace;
@@ -240,7 +242,12 @@ dtl_ast_to_ir_context_export_table(
 
         assert(column_namespace == NULL); // TODO might be safe to skip if not NULL.
 
-        context->column_callback(path, column_name, column_expression, context->user_data);
+        context->exports = dtl_ast_to_ir_scope_add_unsafe(
+            context->exports,
+            column_name,
+            path,
+            column_expression
+        );
     }
 }
 
@@ -1097,6 +1104,9 @@ dtl_ast_to_ir(
     struct dtl_ast_node *statements;
     struct dtl_ast_node *statement;
     enum dtl_status status = DTL_STATUS_OK;
+    char const *column_name;
+    char const *column_namespace;
+    struct dtl_ir_ref column_expression;
 
     context = calloc(1, sizeof(struct dtl_ast_to_ir_context));
     context->graph = graph;
@@ -1105,6 +1115,7 @@ dtl_ast_to_ir(
     context->trace_callback = trace_callback;
     context->user_data = user_data;
     context->globals = dtl_ast_to_ir_scope_create();
+    context->exports = dtl_ast_to_ir_scope_create();
 
     //    dtl_ast_find_imports();
     //    dtl_ast_find_imports(root, void (*callback)(struct dtl_ast_node *, void *), void *user_data) {
@@ -1118,7 +1129,16 @@ dtl_ast_to_ir(
         }
     }
 
+    for (i = 0; i < context->exports->num_columns; i++) {
+        column_name = context->exports->columns[i].name;
+        column_namespace = context->exports->columns[i].namespace;
+        column_expression = context->exports->columns[i].expression;
+
+        context->column_callback(column_namespace, column_name, column_expression, context->user_data);
+    }
+
     dtl_ast_to_ir_scope_destroy(context->globals);
+    dtl_ast_to_ir_scope_destroy(context->exports);
     free(context);
 
     return status;

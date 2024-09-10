@@ -753,7 +753,6 @@ dtl_eval_greater_than_or_equal_to_expression(
     return DTL_STATUS_OK;
 }
 
-
 static enum dtl_status
 dtl_eval_add_expression(
     struct dtl_eval_context *context,
