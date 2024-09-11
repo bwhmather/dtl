@@ -263,8 +263,9 @@ static struct dtl_ast_node *
 dtl_ast_node_create_with_data(int tag, size_t size) {
     struct dtl_ast_data_node *data_node;
 
-    data_node = calloc(1, sizeof(struct dtl_ast_data_node));
+    data_node = calloc(1, sizeof(struct dtl_ast_data_node) + size);
     dtl_ast_node_init(&data_node->base, tag);
+    data_node->base.has_data = true;
     data_node->size = size;
 
     return &data_node->base;
@@ -303,12 +304,6 @@ dtl_ast_node_get_data(struct dtl_ast_node *node) {
 
 /* --- Names ------------------------------------------------------------------------------------ */
 
-struct dtl_ast_name_node {
-    struct dtl_ast_node base;
-
-    char value[];
-};
-
 bool
 dtl_ast_node_is_name(struct dtl_ast_node *node) {
     assert(node != NULL);
@@ -318,33 +313,24 @@ dtl_ast_node_is_name(struct dtl_ast_node *node) {
 struct dtl_ast_node *
 dtl_ast_name_node_create(char const *value) {
     size_t len;
-    struct dtl_ast_name_node *name_node;
+    struct dtl_ast_node *node;
 
     assert(value != NULL);
 
     len = strlen(value);
+    node = dtl_ast_node_create_with_data(DTL_AST_NAME, len + 1);
+    memcpy(dtl_ast_node_get_data(node), value, len + 1);
 
-    name_node = calloc(1, sizeof(struct dtl_ast_name_node) + len + 1);
-
-    dtl_ast_node_init(&name_node->base, DTL_AST_NAME);
-    memcpy(name_node->value, value, len + 1);
-
-    return &name_node->base;
+    return node;
 }
 
 char const *
 dtl_ast_name_node_get_value(struct dtl_ast_node *node) {
     assert(dtl_ast_node_is_name(node));
-    return ((struct dtl_ast_name_node *)node)->value;
+    return dtl_ast_node_get_data(node);
 }
 
 /* --- Table Names ------------------------------------------------------------------------------ */
-
-struct dtl_ast_table_name_node {
-    struct dtl_ast_node base;
-
-    struct dtl_ast_node *name;
-};
 
 bool
 dtl_ast_node_is_table_name(struct dtl_ast_node *node) {
@@ -354,23 +340,20 @@ dtl_ast_node_is_table_name(struct dtl_ast_node *node) {
 
 struct dtl_ast_node *
 dtl_ast_table_name_node_create(struct dtl_ast_node *name) {
-    struct dtl_ast_table_name_node *table_name_node;
+    struct dtl_ast_node *node;
 
     assert(dtl_ast_node_is_name(name));
 
-    table_name_node = calloc(1, sizeof(struct dtl_ast_table_name_node));
+    node = dtl_ast_node_create_with_children(DTL_AST_TABLE_NAME);
+    node = dtl_ast_node_append_child(node, name);
 
-    dtl_ast_node_init(&table_name_node->base, DTL_AST_TABLE_NAME);
-    table_name_node->name = name;
-
-    return &table_name_node->base;
+    return node;
 }
 
 struct dtl_ast_node *
 dtl_ast_table_name_node_get_value(struct dtl_ast_node *node) {
     assert(dtl_ast_node_is_table_name(node));
-
-    return ((struct dtl_ast_table_name_node *)node)->name;
+    return dtl_ast_node_get_child(node, 0);
 }
 
 /* --- Column Binding Lists --------------------------------------------------------------------- */
@@ -703,12 +686,6 @@ dtl_ast_node_is_literal(struct dtl_ast_node *node) {
 
 /* --- Integer Literals ------------------------------------------------------------------------- */
 
-struct dtl_ast_int_literal_node {
-    struct dtl_ast_node base;
-
-    int64_t value;
-};
-
 bool
 dtl_ast_node_is_int_literal(struct dtl_ast_node *node) {
     assert(node != NULL);
@@ -717,30 +694,21 @@ dtl_ast_node_is_int_literal(struct dtl_ast_node *node) {
 
 struct dtl_ast_node *
 dtl_ast_int_literal_node_create(int64_t value) {
-    struct dtl_ast_int_literal_node *int_literal_node;
+    struct dtl_ast_node *node;
 
-    int_literal_node = calloc(1, sizeof(struct dtl_ast_int_literal_node));
+    node = dtl_ast_node_create_with_data(DTL_AST_INT_LITERAL, sizeof(uint64_t));
+    *((int64_t *)dtl_ast_node_get_data(node)) = value;
 
-    dtl_ast_node_init(&int_literal_node->base, DTL_AST_INT_LITERAL);
-
-    int_literal_node->value = value;
-
-    return &int_literal_node->base;
+    return node;
 }
 
 int64_t
 dtl_ast_int_literal_node_get_value(struct dtl_ast_node *node) {
     assert(dtl_ast_node_is_int_literal(node));
-    return ((struct dtl_ast_int_literal_node *)node)->value;
+    return *((int64_t *)dtl_ast_node_get_data(node));
 }
 
 /* --- String Literals -------------------------------------------------------------------------- */
-
-struct dtl_ast_string_literal_node {
-    struct dtl_ast_node base;
-
-    char value[];
-};
 
 bool
 dtl_ast_node_is_string_literal(struct dtl_ast_node *node) {
@@ -751,25 +719,21 @@ dtl_ast_node_is_string_literal(struct dtl_ast_node *node) {
 struct dtl_ast_node *
 dtl_ast_string_literal_node_create(char const *value) {
     size_t len;
-    struct dtl_ast_name_node *string_literal_node;
+    struct dtl_ast_node *node;
 
     assert(value != NULL);
 
     len = strlen(value);
+    node = dtl_ast_node_create_with_data(DTL_AST_STRING_LITERAL, len + 1);
+    memcpy(dtl_ast_node_get_data(node), value, len + 1);
 
-    string_literal_node = calloc(1, sizeof(struct dtl_ast_string_literal_node) + len + 1);
-
-    dtl_ast_node_init(&string_literal_node->base, DTL_AST_STRING_LITERAL);
-    memcpy(string_literal_node->value, value, len + 1);
-
-    return &string_literal_node->base;
+    return node;
 }
 
 char const *
 dtl_ast_string_literal_node_get_value(struct dtl_ast_node *node) {
     assert(dtl_ast_node_is_string_literal(node));
-
-    return ((struct dtl_ast_string_literal_node *)node)->value;
+    return dtl_ast_node_get_data(node);
 }
 
 /* === Column Names ============================================================================= */
