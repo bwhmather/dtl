@@ -94,6 +94,7 @@ dtl_eval_context_store_index(
     struct dtl_ir_ref expression,
     size_t index
 ) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INDEX);
     dtl_eval_context_store_value(context, expression, (union dtl_value){.as_index = index});
 }
 
@@ -103,6 +104,7 @@ dtl_eval_context_store_bool_array(
     struct dtl_ir_ref expression,
     bool *array
 ) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
     dtl_eval_context_store_value(context, expression, (union dtl_value){.as_bool_array = array});
 }
 
@@ -112,6 +114,7 @@ dtl_eval_context_store_int_array(
     struct dtl_ir_ref expression,
     int64_t *array
 ) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY);
     dtl_eval_context_store_value(context, expression, (union dtl_value){.as_int_array = array});
 }
 
@@ -121,6 +124,7 @@ dtl_eval_context_store_table(
     struct dtl_ir_ref expression,
     struct dtl_io_table *table
 ) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_TABLE);
     dtl_eval_context_store_value(context, expression, (union dtl_value){.as_table = table});
 }
 
