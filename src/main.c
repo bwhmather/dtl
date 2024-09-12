@@ -14,12 +14,14 @@
 #include "dtl-io.h"
 
 char *
-dtl_read_file(int f) {
+dtl_read_file(int f, struct dtl_error **error) {
     int errsv;
     char *buffer = NULL;
     size_t capacity = 1024;
     size_t size = 0;
     ssize_t n;
+
+    (void)error; // TODO
 
     errsv = errno;
     errno = 0;
@@ -55,6 +57,15 @@ dtl_read_file(int f) {
     return buffer;
 }
 
+void
+dtl_print_error(struct dtl_error *error) {
+    if (error != NULL) {
+        fprintf(stderr, "error: %s\n", error->message);
+    } else {
+        fprintf(stderr, "unknown error\n");
+    }
+}
+
 int
 main(int argc, char **argv) {
     char const *source_path;
@@ -83,20 +94,29 @@ main(int argc, char **argv) {
         return 1;
     }
 
-    source = dtl_read_file(source_file);
-    assert(source != NULL);
+    source = dtl_read_file(source_file, &error);
+    if (source == NULL) {
+        dtl_print_error(error);
+        dtl_clear_error(&error);
+
+        close(source_file);
+        return 1;
+    }
+
+    close(source_file);
 
     importer = dtl_io_filesystem_importer_create(input_path);
     exporter = dtl_io_filesystem_exporter_create(output_path);
     tracer = dtl_io_filesystem_tracer_create(trace_path);
 
     status = dtl_eval(source, importer, exporter, tracer, &error);
+
+    dtl_io_filesystem_importer_destroy(importer);
+    dtl_io_filesystem_exporter_destroy(exporter);
+    dtl_io_filesystem_tracer_destroy(tracer);
+
     if (status != DTL_STATUS_OK) {
-        if (error != NULL) {
-            fprintf(stderr, "error: %s\n", error->message);
-        } else {
-            fprintf(stderr, "unknown error\n");
-        }
+        dtl_print_error(error);
         dtl_clear_error(&error);
         return 1;
     }
