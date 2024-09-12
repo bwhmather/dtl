@@ -38,4 +38,6 @@ main(int argc, char **argv) {
     last = dtl_string_interner_intern(interner, "sentinel");
     dtl_assert(strcmp(first, "sentinel") == 0);
     dtl_assert(last == first);
+
+    dtl_string_interner_destroy(interner);
 }
