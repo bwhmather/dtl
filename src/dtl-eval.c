@@ -1009,5 +1009,7 @@ dtl_eval(
     // TODO
     dtl_eval_export_table(&context, exporter, "output", error);
 
+    dtl_ir_graph_destroy(graph);
+
     return DTL_STATUS_OK;
 }
