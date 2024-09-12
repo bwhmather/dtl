@@ -35,5 +35,7 @@ main(void) {
     dtl_ast_find_imports(root, count_imports, &count);
     dtl_assert(count == 2);
 
+    dtl_ast_node_destroy(root);
+
     dtl_tokenizer_destroy(tokenizer);
 }

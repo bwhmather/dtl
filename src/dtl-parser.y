@@ -338,6 +338,8 @@ name
 
         $$ = dtl_ast_name_node_create(buffer);
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
+
+        free(buffer);
     }
     ;
 
@@ -369,6 +371,8 @@ string
 
         $$ = dtl_ast_string_literal_node_create(buffer);
         dtl_ast_node_update_bounds($$, $1.start, $1.end);
+
+        free(buffer);
     }
     ;
 

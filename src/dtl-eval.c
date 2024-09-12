@@ -135,8 +135,59 @@ dtl_eval_context_clear(
     struct dtl_eval_context *context,
     struct dtl_ir_ref expression
 ) {
-    size_t index = dtl_ir_ref_to_index(context->graph, expression);
-    context->values[index].as_int = 0;
+    // TODO context values array is _sort of_ type erased.  This breaks that property.
+    size_t index;
+    union dtl_value *value;
+
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    value = &context->values[index];
+
+    switch (dtl_ir_expression_get_dtype(context->graph, expression)) {
+    case DTL_DTYPE_BOOL:
+        value->as_bool = false;
+        break;
+    case DTL_DTYPE_INT:
+        value->as_int = 0;
+        break;
+    case DTL_DTYPE_DOUBLE:
+        value->as_double = 0.0;
+        break;
+    case DTL_DTYPE_TEXT:
+        assert(false);
+        break;
+    case DTL_DTYPE_BYTES:
+        assert(false);
+        break;
+    case DTL_DTYPE_INDEX:
+        value->as_index = 0;
+        break;
+    case DTL_DTYPE_TABLE:
+        dtl_io_table_destroy(value->as_table);
+        value->as_table = NULL;
+        break;
+    case DTL_DTYPE_BOOL_ARRAY:
+        free(value->as_bool_array);
+        value->as_bool_array = NULL;
+        break;
+    case DTL_DTYPE_INT_ARRAY:
+        free(value->as_int_array);
+        value->as_int_array = NULL;
+        break;
+    case DTL_DTYPE_DOUBLE_ARRAY:
+        free(value->as_double_array);
+        value->as_double_array = NULL;
+        break;
+    case DTL_DTYPE_TEXT_ARRAY:
+        assert(false);
+        break;
+    case DTL_DTYPE_BYTES_ARRAY:
+        assert(false);
+        break;
+    case DTL_DTYPE_INDEX_ARRAY:
+        free(value->as_index_array);
+        value->as_index_array = NULL;
+        break;
+    }
 }
 
 /* === Compilation ============================================================================== */
@@ -836,9 +887,12 @@ dtl_eval(
         error
     );
     if (status != DTL_STATUS_OK) {
+        dtl_ir_graph_destroy(graph);
+        dtl_ast_node_destroy(root);
         return status;
     }
 
+    dtl_ast_node_destroy(root);
     dtl_ir_viz(stderr, graph);
 
     // === Optimise IR =============================================================================
@@ -1012,6 +1066,15 @@ dtl_eval(
 
     // TODO
     dtl_eval_export_table(&context, exporter, "output", error);
+
+    // TODO
+    for (size_t i = 0; i < num_expressions; i++) {
+        struct dtl_ir_ref expression = dtl_ir_index_to_ref(graph, i);
+        dtl_eval_context_clear(&context, expression);
+    }
+    free(context.values);
+
+    free(context.columns);
 
     dtl_ir_graph_destroy(graph);
 

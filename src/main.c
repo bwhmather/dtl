@@ -111,9 +111,11 @@ main(int argc, char **argv) {
 
     status = dtl_eval(source, importer, exporter, tracer, &error);
 
-    dtl_io_filesystem_importer_destroy(importer);
-    dtl_io_filesystem_exporter_destroy(exporter);
+    free(source);
+
     dtl_io_filesystem_tracer_destroy(tracer);
+    dtl_io_filesystem_exporter_destroy(exporter);
+    dtl_io_filesystem_importer_destroy(importer);
 
     if (status != DTL_STATUS_OK) {
         dtl_print_error(error);
