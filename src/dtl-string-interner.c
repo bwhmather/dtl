@@ -173,6 +173,7 @@ dtl_string_interner_intern(struct dtl_string_interner *self, char const *input_s
                 cursor = dtl_string_interner_wrap(self, cursor + 1);
             }
         }
+        free(old_strings);
     }
 
     input_target = dtl_string_interner_target(self, input_string);
