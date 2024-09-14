@@ -155,9 +155,6 @@ dtl_eval_context_clear(
     case DTL_DTYPE_TEXT:
         assert(false);
         break;
-    case DTL_DTYPE_BYTES:
-        assert(false);
-        break;
     case DTL_DTYPE_INDEX:
         value->as_index = 0;
         break;
@@ -178,9 +175,6 @@ dtl_eval_context_clear(
         value->as_double_array = NULL;
         break;
     case DTL_DTYPE_TEXT_ARRAY:
-        assert(false);
-        break;
-    case DTL_DTYPE_BYTES_ARRAY:
         assert(false);
         break;
     case DTL_DTYPE_INDEX_ARRAY:
@@ -478,9 +472,6 @@ dtl_eval_export_table_get_column_data(
         break;
     case DTL_DTYPE_TEXT_ARRAY:
         memcpy(dest, value.as_text_array + offset, sizeof(char *) * size);
-        break;
-    case DTL_DTYPE_BYTES_ARRAY:
-        memcpy(dest, value.as_pointer_array + offset, sizeof(void *) * size);
         break;
     case DTL_DTYPE_INDEX_ARRAY:
         memcpy(dest, value.as_index_array + offset, sizeof(size_t) * size);

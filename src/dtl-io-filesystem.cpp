@@ -368,7 +368,6 @@ dtl_io_filesystem_exporter_export_table(
         }
         case DTL_DTYPE_DOUBLE_ARRAY:
         case DTL_DTYPE_TEXT_ARRAY:
-        case DTL_DTYPE_BYTES_ARRAY:
         case DTL_DTYPE_INDEX_ARRAY:
             assert(false); // TODO
 

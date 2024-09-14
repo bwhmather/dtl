@@ -85,8 +85,6 @@ dtl_ir_viz_get_dtype_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expressi
         return "DOUBLE";
     case DTL_DTYPE_TEXT:
         return "TEXT";
-    case DTL_DTYPE_BYTES:
-        return "BYTES";
     case DTL_DTYPE_INDEX:
         return "INDEX";
     case DTL_DTYPE_TABLE:
@@ -100,8 +98,6 @@ dtl_ir_viz_get_dtype_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expressi
         return "DOUBLE[]";
     case DTL_DTYPE_TEXT_ARRAY:
         return "TEXT[]";
-    case DTL_DTYPE_BYTES_ARRAY:
-        return "BYTES[]";
     case DTL_DTYPE_INDEX_ARRAY:
         return "INDEX[]";
     }
