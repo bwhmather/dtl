@@ -150,17 +150,17 @@ dtl_ir_array_expression_get_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref 
 /* --- Integer Constant Expressions ------------------------------------------------------------- */
 
 struct dtl_ir_ref
-dtl_ir_int_constant_expression_create(
+dtl_ir_int64_constant_expression_create(
     struct dtl_ir_graph *graph,
     struct dtl_ir_ref shape,
-    uint64_t value
+    int64_t value
 );
 
 bool
-dtl_ir_is_int_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_is_int64_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
-uint64_t
-dtl_ir_int_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+int64_t
+dtl_ir_int64_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 /* --- Double Constant Expressions ------------------------------------------------------------- */
 
@@ -174,7 +174,7 @@ dtl_ir_double_constant_expression_create(
 bool
 dtl_ir_is_double_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression);
 
-uint64_t
+double
 dtl_ir_double_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref expression);
 
 /* --- Open Table Expressions ------------------------------------------------------------------- */

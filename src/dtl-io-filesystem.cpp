@@ -107,14 +107,14 @@ struct  dtl_io_filesystem_table_get_column_data_visitor : arrow::ScalarVisitor {
     union dtl_value value;
 
     arrow::Status Visit(const arrow::Int32Scalar &scalar) {
-        dtype = DTL_DTYPE_INT;
-        value.as_int = scalar.value;
+        dtype = DTL_DTYPE_INT64;
+        value.as_int64 = scalar.value;
         return arrow::Status::OK();
     }
 
     arrow::Status Visit(const arrow::Int64Scalar &scalar) {
-        dtype = DTL_DTYPE_INT;
-        value.as_int = scalar.value;
+        dtype = DTL_DTYPE_INT64;
+        value.as_int64 = scalar.value;
         return arrow::Status::OK();
     }
 };
@@ -165,8 +165,8 @@ dtl_io_filesystem_table_get_column_data(
         }
 
         switch (dtype) {
-        case DTL_DTYPE_INT:
-            ((int64_t*) dest)[offset + i] = visitor.value.as_int;
+        case DTL_DTYPE_INT64:
+            ((int64_t*) dest)[offset + i] = visitor.value.as_int64;
             break;
         default:
             assert(false);
@@ -237,7 +237,7 @@ dtl_io_filesystem_importer_import_table(
         column.name = arrow_field->name();
         // TODO arrow_field->type()) {
 
-        column.dtype = DTL_DTYPE_INT_ARRAY;
+        column.dtype = DTL_DTYPE_INT64_ARRAY;
         column.arrow_index = i;
 
         fs_table->columns.push_back(column);
@@ -344,7 +344,7 @@ dtl_io_filesystem_exporter_export_table(
 
             break;
         }
-        case DTL_DTYPE_INT_ARRAY: {
+        case DTL_DTYPE_INT64_ARRAY: {
             arrow::Int64Builder builder(pool);
 
             arrow_status = builder.Resize(num_rows);
@@ -357,7 +357,7 @@ dtl_io_filesystem_exporter_export_table(
             }
 
             for (row = 0; row < num_rows; row++) {
-                arrow_status = builder.Append(dtl_array_get_int(col_data, row));
+                arrow_status = builder.Append(dtl_array_get_int64(col_data, row));
                 assert(arrow_status.ok());
             }
 

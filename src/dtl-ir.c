@@ -141,7 +141,7 @@ dtl_ir_scratch_begin(struct dtl_ir_graph *graph, enum dtl_ir_op op, enum dtl_dty
 }
 
 static void
-dtl_ir_scratch_set_int(struct dtl_ir_graph *graph, int64_t value) {
+dtl_ir_scratch_set_int64(struct dtl_ir_graph *graph, int64_t value) {
     struct dtl_ir_expression *expression;
 
     assert(graph != NULL);
@@ -149,7 +149,7 @@ dtl_ir_scratch_set_int(struct dtl_ir_graph *graph, int64_t value) {
 
     expression = &graph->to_space.expressions[graph->to_space.expressions_length];
 
-    expression->value.as_int = value;
+    expression->value.as_int64 = value;
 }
 
 static void
@@ -275,22 +275,22 @@ dtl_ir_expression_get_dtype(
 }
 
 static int64_t
-dtl_ir_space_get_expression_value_as_int(
+dtl_ir_space_get_expression_value_as_int64(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    return dtl_ir_space_get_expression_pointer(space, expression)->value.as_int;
+    return dtl_ir_space_get_expression_pointer(space, expression)->value.as_int64;
 }
 
 static int64_t
-dtl_ir_expression_get_value_as_int(
+dtl_ir_expression_get_value_as_int64(
     struct dtl_ir_graph *graph,
     struct dtl_ir_ref expression
 ) {
     if (graph->transforming) {
         dtl_ir_graph_remap_ref(graph, &expression);
     }
-    return dtl_ir_space_get_expression_value_as_int(&graph->to_space, expression);
+    return dtl_ir_space_get_expression_value_as_int64(&graph->to_space, expression);
 }
 
 static double
@@ -755,22 +755,22 @@ dtl_ir_array_expression_get_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref 
 /* --- Integer Constant Expressions ------------------------------------------------------------- */
 
 struct dtl_ir_ref
-dtl_ir_int_constant_expression_create(
+dtl_ir_int64_constant_expression_create(
     struct dtl_ir_graph *graph,
     struct dtl_ir_ref shape,
-    uint64_t value
+    int64_t value
 ) {
     assert(graph != NULL);
     assert(dtl_ir_is_shape_expression(graph, shape));
 
-    dtl_ir_scratch_begin(graph, DTL_IR_OP_CONSTANT, DTL_DTYPE_INT);
-    dtl_ir_scratch_set_int(graph, value);
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_CONSTANT, DTL_DTYPE_INT64);
+    dtl_ir_scratch_set_int64(graph, value);
     dtl_ir_scratch_add_dependency(graph, shape);
     return dtl_ir_scratch_end(graph);
 }
 
 bool
-dtl_ir_is_int_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+dtl_ir_is_int64_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     enum dtl_ir_op op;
     enum dtl_dtype dtype;
 
@@ -782,19 +782,19 @@ dtl_ir_is_int_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref 
     }
 
     dtype = dtl_ir_expression_get_dtype(graph, expression);
-    if (dtype != DTL_DTYPE_INT) {
+    if (dtype != DTL_DTYPE_INT64) {
         return false;
     }
 
     return true;
 }
 
-uint64_t
-dtl_ir_int_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+int64_t
+dtl_ir_int64_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_int_constant_expression(graph, expression));
+    assert(dtl_ir_is_int64_constant_expression(graph, expression));
 
-    return dtl_ir_expression_get_value_as_int(graph, expression);
+    return dtl_ir_expression_get_value_as_int64(graph, expression);
 }
 
 /* --- Double Constant Expressions ------------------------------------------------------------- */
@@ -808,7 +808,7 @@ dtl_ir_double_constant_expression_create(
     assert(graph != NULL);
     assert(dtl_ir_is_shape_expression(graph, shape));
 
-    dtl_ir_scratch_begin(graph, DTL_IR_OP_CONSTANT, DTL_DTYPE_INT);
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_CONSTANT, DTL_DTYPE_DOUBLE);
     dtl_ir_scratch_set_double(graph, value);
     dtl_ir_scratch_add_dependency(graph, shape);
     return dtl_ir_scratch_end(graph);
@@ -834,10 +834,10 @@ dtl_ir_is_double_constant_expression(struct dtl_ir_graph *graph, struct dtl_ir_r
     return true;
 }
 
-uint64_t
+double
 dtl_ir_double_constant_expression_get_value(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
-    assert(dtl_ir_is_int_constant_expression(graph, expression));
+    assert(dtl_ir_is_double_constant_expression(graph, expression));
 
     return dtl_ir_expression_get_value_as_double(graph, expression);
 }
@@ -1153,7 +1153,7 @@ dtl_ir_equal_to_expression_create(
     assert(dtl_ir_is_array_expression(graph, right));
 
     input_dtype = dtl_ir_expression_get_dtype(graph, left);
-    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(input_dtype == DTL_DTYPE_INT64_ARRAY); // TODO
     assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
 
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
@@ -1207,7 +1207,7 @@ dtl_ir_less_than_expression_create(
     assert(dtl_ir_is_array_expression(graph, right));
 
     input_dtype = dtl_ir_expression_get_dtype(graph, left);
-    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(input_dtype == DTL_DTYPE_INT64_ARRAY); // TODO
     assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
 
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
@@ -1261,7 +1261,7 @@ dtl_ir_less_than_or_equal_to_expression_create(
     assert(dtl_ir_is_array_expression(graph, right));
 
     input_dtype = dtl_ir_expression_get_dtype(graph, left);
-    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(input_dtype == DTL_DTYPE_INT64_ARRAY); // TODO
     assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
 
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
@@ -1315,7 +1315,7 @@ dtl_ir_greater_than_expression_create(
     assert(dtl_ir_is_array_expression(graph, right));
 
     input_dtype = dtl_ir_expression_get_dtype(graph, left);
-    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(input_dtype == DTL_DTYPE_INT64_ARRAY); // TODO
     assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
 
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
@@ -1369,7 +1369,7 @@ dtl_ir_greater_than_or_equal_to_expression_create(
     assert(dtl_ir_is_array_expression(graph, right));
 
     input_dtype = dtl_ir_expression_get_dtype(graph, left);
-    assert(input_dtype == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(input_dtype == DTL_DTYPE_INT64_ARRAY); // TODO
     assert(dtl_ir_expression_get_dtype(graph, right) == input_dtype);
 
     assert(dtl_ir_ref_equal(graph, dtl_ir_array_expression_get_shape(graph, left), shape));
@@ -1417,7 +1417,7 @@ dtl_ir_add_expression_create(
     struct dtl_ir_ref right
 ) {
     assert(graph != NULL);
-    assert(dtype == DTL_DTYPE_INT_ARRAY || dtype == DTL_DTYPE_DOUBLE_ARRAY);
+    assert(dtype == DTL_DTYPE_INT64_ARRAY || dtype == DTL_DTYPE_DOUBLE_ARRAY);
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));
@@ -1466,7 +1466,7 @@ dtl_ir_subtract_expression_create(
     struct dtl_ir_ref left, struct dtl_ir_ref right
 ) {
     assert(graph != NULL);
-    assert(dtype == DTL_DTYPE_INT || dtype == DTL_DTYPE_DOUBLE);
+    assert(dtype == DTL_DTYPE_INT64 || dtype == DTL_DTYPE_DOUBLE);
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));
@@ -1515,7 +1515,7 @@ dtl_ir_multiply_expression_create(
     struct dtl_ir_ref left, struct dtl_ir_ref right
 ) {
     assert(graph != NULL);
-    assert(dtype == DTL_DTYPE_INT || dtype == DTL_DTYPE_DOUBLE);
+    assert(dtype == DTL_DTYPE_INT64 || dtype == DTL_DTYPE_DOUBLE);
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));
@@ -1566,7 +1566,7 @@ dtl_ir_divide_expression_create(
     struct dtl_ir_ref right
 ) {
     assert(graph != NULL);
-    assert(dtype == DTL_DTYPE_INT || dtype == DTL_DTYPE_DOUBLE);
+    assert(dtype == DTL_DTYPE_INT64 || dtype == DTL_DTYPE_DOUBLE);
     assert(dtl_ir_is_shape_expression(graph, shape));
     assert(dtl_ir_is_array_expression(graph, left));
     assert(dtl_ir_is_array_expression(graph, right));

@@ -20,15 +20,15 @@ dtl_array_set_bool(void *data, size_t index, bool value) {
     }
 }
 
-uint64_t
-dtl_array_get_int(void const *data, size_t index) {
-    uint64_t const *values = data;
+int64_t
+dtl_array_get_int64(void const *data, size_t index) {
+    int64_t const *values = data;
     return values[index];
 }
 
 void
-dtl_array_set_int(void *data, size_t index, uint64_t value) {
-    uint64_t *values = data;
+dtl_array_set_int64(void *data, size_t index, int64_t value) {
+    int64_t *values = data;
     values[index] = value;
 }
 

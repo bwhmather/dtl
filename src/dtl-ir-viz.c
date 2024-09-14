@@ -17,8 +17,8 @@ dtl_ir_viz_get_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     if (dtl_ir_is_join_shape_expression(graph, expression)) {
         return "Join (Shape)";
     }
-    if (dtl_ir_is_int_constant_expression(graph, expression)) {
-        return "Int";
+    if (dtl_ir_is_int64_constant_expression(graph, expression)) {
+        return "Int64";
     }
     if (dtl_ir_is_double_constant_expression(graph, expression)) {
         return "Double";
@@ -79,8 +79,8 @@ dtl_ir_viz_get_dtype_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expressi
     switch (dtl_ir_expression_get_dtype(graph, expression)) {
     case DTL_DTYPE_BOOL:
         return "BOOL";
-    case DTL_DTYPE_INT:
-        return "INT";
+    case DTL_DTYPE_INT64:
+        return "INT64";
     case DTL_DTYPE_DOUBLE:
         return "DOUBLE";
     case DTL_DTYPE_TEXT:
@@ -94,8 +94,8 @@ dtl_ir_viz_get_dtype_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expressi
 
     case DTL_DTYPE_BOOL_ARRAY:
         return "BOOL[]";
-    case DTL_DTYPE_INT_ARRAY:
-        return "INT[]";
+    case DTL_DTYPE_INT64_ARRAY:
+        return "INT64[]";
     case DTL_DTYPE_DOUBLE_ARRAY:
         return "DOUBLE[]";
     case DTL_DTYPE_TEXT_ARRAY:

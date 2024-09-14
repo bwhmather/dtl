@@ -65,9 +65,9 @@ dtl_eval_context_load_bool_array(struct dtl_eval_context *context, struct dtl_ir
 }
 
 static int64_t *
-dtl_eval_context_load_int_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
-    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY);
-    return dtl_eval_context_load_value(context, expression).as_int_array;
+dtl_eval_context_load_int64_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY);
+    return dtl_eval_context_load_value(context, expression).as_int64_array;
 }
 
 static struct dtl_io_table *
@@ -109,13 +109,13 @@ dtl_eval_context_store_bool_array(
 }
 
 static void
-dtl_eval_context_store_int_array(
+dtl_eval_context_store_int64_array(
     struct dtl_eval_context *context,
     struct dtl_ir_ref expression,
     int64_t *array
 ) {
-    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY);
-    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_int_array = array});
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY);
+    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_int64_array = array});
 }
 
 static void
@@ -146,8 +146,8 @@ dtl_eval_context_clear(
     case DTL_DTYPE_BOOL:
         value->as_bool = false;
         break;
-    case DTL_DTYPE_INT:
-        value->as_int = 0;
+    case DTL_DTYPE_INT64:
+        value->as_int64 = 0;
         break;
     case DTL_DTYPE_DOUBLE:
         value->as_double = 0.0;
@@ -169,9 +169,9 @@ dtl_eval_context_clear(
         free(value->as_bool_array);
         value->as_bool_array = NULL;
         break;
-    case DTL_DTYPE_INT_ARRAY:
-        free(value->as_int_array);
-        value->as_int_array = NULL;
+    case DTL_DTYPE_INT64_ARRAY:
+        free(value->as_int64_array);
+        value->as_int64_array = NULL;
         break;
     case DTL_DTYPE_DOUBLE_ARRAY:
         free(value->as_double_array);
@@ -311,8 +311,8 @@ dtl_eval_read_column_expression(
 
     column_name = dtl_ir_read_column_expression_get_column_name(context->graph, expression);
 
-    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY); // TODO
-    data = calloc(shape, sizeof(uint64_t));
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY); // TODO
+    data = calloc(shape, sizeof(int64_t));
 
     for (i = 0; i < dtl_io_table_get_num_columns(table); i++) {
         if (strcmp(dtl_io_table_get_column_name(table, i), column_name) == 0) {
@@ -325,7 +325,7 @@ dtl_eval_read_column_expression(
         }
     }
 
-    dtl_eval_context_store_int_array(context, expression, data);
+    dtl_eval_context_store_int64_array(context, expression, data);
     return DTL_STATUS_OK;
 }
 
@@ -470,8 +470,8 @@ dtl_eval_export_table_get_column_data(
     case DTL_DTYPE_BOOL_ARRAY:
         assert(false); // TODO
         break;
-    case DTL_DTYPE_INT_ARRAY:
-        memcpy(dest, value.as_int_array + offset, sizeof(int64_t) * size);
+    case DTL_DTYPE_INT64_ARRAY:
+        memcpy(dest, value.as_int64_array + offset, sizeof(int64_t) * size);
         break;
     case DTL_DTYPE_DOUBLE_ARRAY:
         memcpy(dest, value.as_double_array + offset, sizeof(double) * size);
@@ -605,7 +605,7 @@ dtl_eval_where_expression(
     mask_data = dtl_eval_context_load_bool_array(context, mask_expression);
 
     source_expression = dtl_ir_where_expression_get_source(context->graph, expression);
-    source_data = dtl_eval_context_load_int_array(context, source_expression); // TODO
+    source_data = dtl_eval_context_load_int64_array(context, source_expression); // TODO
 
     data = calloc(shape, sizeof(int64_t)); // TODO
 
@@ -617,7 +617,7 @@ dtl_eval_where_expression(
         }
     }
 
-    dtl_eval_context_store_int_array(context, expression, data);
+    dtl_eval_context_store_int64_array(context, expression, data);
     return DTL_STATUS_OK;
 }
 
@@ -645,10 +645,10 @@ dtl_eval_equal_to_expression(
     shape = dtl_eval_context_load_index(context, shape_expression);
 
     left_expression = dtl_ir_equal_to_expression_left(context->graph, expression);
-    left_data = dtl_eval_context_load_int_array(context, left_expression);
+    left_data = dtl_eval_context_load_int64_array(context, left_expression);
 
     right_expression = dtl_ir_equal_to_expression_right(context->graph, expression);
-    right_data = dtl_eval_context_load_int_array(context, right_expression);
+    right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
     bool *data = calloc(shape, sizeof(bool));
 
@@ -682,10 +682,10 @@ dtl_eval_less_than_expression(
     shape = dtl_eval_context_load_index(context, shape_expression);
 
     left_expression = dtl_ir_less_than_expression_left(context->graph, expression);
-    left_data = dtl_eval_context_load_int_array(context, left_expression);
+    left_data = dtl_eval_context_load_int64_array(context, left_expression);
 
     right_expression = dtl_ir_less_than_expression_right(context->graph, expression);
-    right_data = dtl_eval_context_load_int_array(context, right_expression);
+    right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
     bool *data = calloc(shape, sizeof(bool));
 
@@ -719,10 +719,10 @@ dtl_eval_less_than_or_equal_to_expression(
     shape = dtl_eval_context_load_index(context, shape_expression);
 
     left_expression = dtl_ir_less_than_or_equal_to_expression_left(context->graph, expression);
-    left_data = dtl_eval_context_load_int_array(context, left_expression);
+    left_data = dtl_eval_context_load_int64_array(context, left_expression);
 
     right_expression = dtl_ir_less_than_or_equal_to_expression_right(context->graph, expression);
-    right_data = dtl_eval_context_load_int_array(context, right_expression);
+    right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
     bool *data = calloc(shape, sizeof(bool));
 
@@ -756,10 +756,10 @@ dtl_eval_greater_than_expression(
     shape = dtl_eval_context_load_index(context, shape_expression);
 
     left_expression = dtl_ir_greater_than_expression_left(context->graph, expression);
-    left_data = dtl_eval_context_load_int_array(context, left_expression);
+    left_data = dtl_eval_context_load_int64_array(context, left_expression);
 
     right_expression = dtl_ir_greater_than_expression_right(context->graph, expression);
-    right_data = dtl_eval_context_load_int_array(context, right_expression);
+    right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
     bool *data = calloc(shape, sizeof(bool));
 
@@ -793,10 +793,10 @@ dtl_eval_greater_than_or_equal_to_expression(
     shape = dtl_eval_context_load_index(context, shape_expression);
 
     left_expression = dtl_ir_greater_than_or_equal_to_expression_left(context->graph, expression);
-    left_data = dtl_eval_context_load_int_array(context, left_expression);
+    left_data = dtl_eval_context_load_int64_array(context, left_expression);
 
     right_expression = dtl_ir_greater_than_or_equal_to_expression_right(context->graph, expression);
-    right_data = dtl_eval_context_load_int_array(context, right_expression);
+    right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
     bool *data = calloc(shape, sizeof(bool));
 
@@ -824,24 +824,24 @@ dtl_eval_add_expression(
     (void)error;
 
     assert(dtl_ir_is_add_expression(context->graph, expression));
-    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT_ARRAY); // TODO
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY); // TODO
 
     shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
     shape = dtl_eval_context_load_index(context, shape_expression);
 
     left_expression = dtl_ir_add_expression_left(context->graph, expression);
-    left_data = dtl_eval_context_load_int_array(context, left_expression);
+    left_data = dtl_eval_context_load_int64_array(context, left_expression);
 
     right_expression = dtl_ir_add_expression_right(context->graph, expression);
-    right_data = dtl_eval_context_load_int_array(context, right_expression);
+    right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
-    int64_t *data = calloc(shape, sizeof(uint64_t));
+    int64_t *data = calloc(shape, sizeof(int64_t));
 
     for (size_t j = 0; j < shape; j++) {
         data[j] = left_data[j] + right_data[j];
     }
 
-    dtl_eval_context_store_int_array(context, expression, data);
+    dtl_eval_context_store_int64_array(context, expression, data);
     return DTL_STATUS_OK;
 }
 
@@ -955,7 +955,7 @@ dtl_eval(
             assert(false); // Not implemented.
         }
 
-        if (dtl_ir_is_int_constant_expression(graph, expression)) {
+        if (dtl_ir_is_int64_constant_expression(graph, expression)) {
             assert(false); // Not implemented.
         }
 
