@@ -104,7 +104,7 @@ dtl_io_filesystem_table_get_column_dtype(struct dtl_io_table* table, size_t inde
 
 struct  dtl_io_filesystem_table_get_column_data_visitor : arrow::ScalarVisitor {
     enum dtl_dtype dtype;
-    union dtl_value value;
+    struct dtl_value value;
 
     arrow::Status Visit(const arrow::Int32Scalar &scalar) {
         dtype = DTL_DTYPE_INT64;

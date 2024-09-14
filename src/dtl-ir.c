@@ -40,7 +40,7 @@ struct dtl_ir_expression {
 
     uint32_t dependencies_end;
 
-    union dtl_value value;
+    struct dtl_value value;
 };
 
 struct dtl_ir_space {

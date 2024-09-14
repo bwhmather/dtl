@@ -38,12 +38,12 @@ struct dtl_eval_context {
     size_t num_columns;
     struct dtl_eval_context_column *columns;
 
-    union dtl_value *values;
+    struct dtl_value *values;
 };
 
 /* --- Load ------------------------------------------------------------------------------------- */
 
-static union dtl_value
+static struct dtl_value
 dtl_eval_context_load_value(
     struct dtl_eval_context *context,
     struct dtl_ir_ref expression
@@ -82,7 +82,7 @@ static void
 dtl_eval_context_store_value(
     struct dtl_eval_context *context,
     struct dtl_ir_ref expression,
-    union dtl_value value
+    struct dtl_value value
 ) {
     size_t index = dtl_ir_ref_to_index(context->graph, expression);
     context->values[index] = value;
@@ -95,7 +95,7 @@ dtl_eval_context_store_index(
     size_t index
 ) {
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INDEX);
-    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_index = index});
+    dtl_eval_context_store_value(context, expression, (struct dtl_value){.as_index = index});
 }
 
 static void
@@ -105,7 +105,7 @@ dtl_eval_context_store_bool_array(
     bool *array
 ) {
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
-    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_bool_array = array});
+    dtl_eval_context_store_value(context, expression, (struct dtl_value){.as_bool_array = array});
 }
 
 static void
@@ -115,7 +115,7 @@ dtl_eval_context_store_int64_array(
     int64_t *array
 ) {
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY);
-    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_int64_array = array});
+    dtl_eval_context_store_value(context, expression, (struct dtl_value){.as_int64_array = array});
 }
 
 static void
@@ -125,7 +125,7 @@ dtl_eval_context_store_table(
     struct dtl_io_table *table
 ) {
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_TABLE);
-    dtl_eval_context_store_value(context, expression, (union dtl_value){.as_table = table});
+    dtl_eval_context_store_value(context, expression, (struct dtl_value){.as_table = table});
 }
 
 /* --- Clear ------------------------------------------------------------------------------------ */
@@ -137,7 +137,7 @@ dtl_eval_context_clear(
 ) {
     // TODO context values array is _sort of_ type erased.  This breaks that property.
     size_t index;
-    union dtl_value *value;
+    struct dtl_value *value;
 
     index = dtl_ir_ref_to_index(context->graph, expression);
     value = &context->values[index];
@@ -433,7 +433,7 @@ dtl_eval_export_table_get_column_data(
     struct dtl_eval_context_column *column;
     enum dtl_dtype dtype;
     size_t num_rows;
-    union dtl_value value;
+    struct dtl_value value;
 
     (void)error;
 
@@ -922,7 +922,7 @@ dtl_eval(
     // === Evaluate the Command List ===============================================================
     size_t num_expressions = dtl_ir_graph_get_size(graph);
 
-    context.values = calloc(num_expressions, sizeof(union dtl_value));
+    context.values = calloc(num_expressions, sizeof(struct dtl_value));
     for (size_t i = 0; i < num_expressions; i++) {
         struct dtl_ir_ref expression = dtl_ir_index_to_ref(graph, i);
 
