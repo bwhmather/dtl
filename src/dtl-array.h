@@ -20,9 +20,9 @@ void
 dtl_array_set_double(void *data, size_t index, double value);
 
 char const *
-dtl_array_get_text(void const *data, size_t index);
+dtl_array_get_string(void const *data, size_t index);
 void
-dtl_array_set_text(void *data, size_t index, char const *value);
+dtl_array_set_string(void *data, size_t index, char const *value);
 
 // TODO decide byte representation.
 

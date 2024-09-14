@@ -152,7 +152,7 @@ dtl_eval_context_clear(
     case DTL_DTYPE_DOUBLE:
         value->as_double = 0.0;
         break;
-    case DTL_DTYPE_TEXT:
+    case DTL_DTYPE_STRING:
         assert(false);
         break;
     case DTL_DTYPE_INDEX:
@@ -174,7 +174,7 @@ dtl_eval_context_clear(
         free(value->as_double_array);
         value->as_double_array = NULL;
         break;
-    case DTL_DTYPE_TEXT_ARRAY:
+    case DTL_DTYPE_STRING_ARRAY:
         assert(false);
         break;
     case DTL_DTYPE_INDEX_ARRAY:
@@ -470,8 +470,8 @@ dtl_eval_export_table_get_column_data(
     case DTL_DTYPE_DOUBLE_ARRAY:
         memcpy(dest, value.as_double_array + offset, sizeof(double) * size);
         break;
-    case DTL_DTYPE_TEXT_ARRAY:
-        memcpy(dest, value.as_text_array + offset, sizeof(char *) * size);
+    case DTL_DTYPE_STRING_ARRAY:
+        memcpy(dest, value.as_string_array + offset, sizeof(char *) * size);
         break;
     case DTL_DTYPE_INDEX_ARRAY:
         memcpy(dest, value.as_index_array + offset, sizeof(size_t) * size);
