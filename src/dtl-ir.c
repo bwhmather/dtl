@@ -40,7 +40,10 @@ struct dtl_ir_expression {
 
     uint32_t dependencies_end;
 
-    struct dtl_value value;
+    union {
+        char const *ident;
+        struct dtl_value value;
+    };
 };
 
 struct dtl_ir_space {
@@ -161,7 +164,7 @@ dtl_ir_scratch_set_double(struct dtl_ir_graph *graph, double value) {
 
     expression = &graph->to_space.expressions[graph->to_space.expressions_length];
 
-    expression->value.as_double = value;
+    dtl_value_set_double(&expression->value, value);
 }
 
 /*
@@ -176,7 +179,6 @@ dtl_ir_scratch_set_pointer(struct dtl_ir_graph *graph, void const *value) {
 
     expression->value.as_pointer = value;
 }
-*/
 
 static void
 dtl_ir_scratch_set_string(struct dtl_ir_graph *graph, char const *value) {
@@ -187,7 +189,20 @@ dtl_ir_scratch_set_string(struct dtl_ir_graph *graph, char const *value) {
 
     expression = &graph->to_space.expressions[graph->to_space.expressions_length];
 
-    expression->value.as_string = dtl_string_interner_intern(graph->interner, value);
+    dtl_value_set_string(&expression->value, value);
+}
+*/
+
+static void
+dtl_ir_scratch_set_ident(struct dtl_ir_graph *graph, char const *value) {
+    struct dtl_ir_expression *expression;
+
+    assert(graph != NULL);
+    assert(graph->writing);
+
+    expression = &graph->to_space.expressions[graph->to_space.expressions_length];
+
+    expression->ident = dtl_string_interner_intern(graph->interner, value);
 }
 
 static void
@@ -334,7 +349,6 @@ dtl_ir_expression_get_value_as_pointer(
     }
     return dtl_ir_space_get_expression_value_as_pointer(&graph->to_space, expression);
 }
-*/
 
 static void const *
 dtl_ir_space_get_expression_value_as_string(
@@ -353,6 +367,26 @@ dtl_ir_expression_get_value_as_string(
         dtl_ir_graph_remap_ref(graph, &expression);
     }
     return dtl_ir_space_get_expression_value_as_string(&graph->to_space, expression);
+}
+*/
+
+static void const *
+dtl_ir_space_get_expression_ident(
+    struct dtl_ir_space *space,
+    struct dtl_ir_ref expression
+) {
+    return dtl_ir_space_get_expression_pointer(space, expression)->ident;
+}
+
+static void const *
+dtl_ir_expression_get_ident(
+    struct dtl_ir_graph *graph,
+    struct dtl_ir_ref expression
+) {
+    if (graph->transforming) {
+        dtl_ir_graph_remap_ref(graph, &expression);
+    }
+    return dtl_ir_space_get_expression_ident(&graph->to_space, expression);
 }
 
 static size_t
@@ -850,7 +884,7 @@ dtl_ir_open_table_expression_create(struct dtl_ir_graph *graph, const char *path
     assert(path != NULL);
 
     dtl_ir_scratch_begin(graph, DTL_IR_OP_OPEN_TABLE, DTL_DTYPE_TABLE);
-    dtl_ir_scratch_set_string(graph, path);
+    dtl_ir_scratch_set_ident(graph, path);
     return dtl_ir_scratch_end(graph);
 }
 
@@ -865,7 +899,7 @@ dtl_ir_open_table_expression_get_path(struct dtl_ir_graph *graph, struct dtl_ir_
     assert(graph != NULL);
     assert(dtl_ir_is_open_table_expression(graph, expression));
 
-    return dtl_ir_expression_get_value_as_string(graph, expression);
+    return dtl_ir_expression_get_ident(graph, expression);
 }
 
 /* --- Read Column Expressions ------------------------------------------------------------------ */
@@ -885,7 +919,7 @@ dtl_ir_read_column_expression_create(
     assert(column_name != NULL);
 
     dtl_ir_scratch_begin(graph, DTL_IR_OP_READ_COLUMN, dtype);
-    dtl_ir_scratch_set_string(graph, column_name);
+    dtl_ir_scratch_set_ident(graph, column_name);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, table);
     return dtl_ir_scratch_end(graph);
@@ -910,7 +944,7 @@ dtl_ir_read_column_expression_get_column_name(struct dtl_ir_graph *graph, struct
     assert(graph != NULL);
     assert(dtl_ir_is_read_column_expression(graph, expression));
 
-    return dtl_ir_expression_get_value_as_string(graph, expression);
+    return dtl_ir_expression_get_ident(graph, expression);
 }
 
 /* --- Where Expressions ------------------------------------------------------------------------ */
