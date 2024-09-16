@@ -294,7 +294,7 @@ dtl_ir_space_get_expression_value_as_int64(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    return dtl_ir_space_get_expression_pointer(space, expression)->value.as_int64;
+    return dtl_value_get_int64(&dtl_ir_space_get_expression_pointer(space, expression)->value);
 }
 
 static int64_t
@@ -313,7 +313,7 @@ dtl_ir_space_get_expression_value_as_double(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    return dtl_ir_space_get_expression_pointer(space, expression)->value.as_double;
+    return dtl_value_get_double(&dtl_ir_space_get_expression_pointer(space, expression)->value);
 }
 
 static double
@@ -328,34 +328,13 @@ dtl_ir_expression_get_value_as_double(
 }
 
 /*
-static void const *
-dtl_ir_space_get_expression_value_as_pointer(
-    struct dtl_ir_space *space,
-    struct dtl_ir_ref expression
-) {
-    assert(expression.space == space->id);
-    assert(expression.offset < space->expressions_length);
-
-    return dtl_ir_space_get_expression_pointer(space, expression)->alue.as_pointer;
-}
-
-static void const *
-dtl_ir_expression_get_value_as_pointer(
-    struct dtl_ir_graph *graph,
-    struct dtl_ir_ref expression
-) {
-    if (graph->transforming) {
-        dtl_ir_graph_remap_ref(graph, &expression);
-    }
-    return dtl_ir_space_get_expression_value_as_pointer(&graph->to_space, expression);
-}
 
 static void const *
 dtl_ir_space_get_expression_value_as_string(
     struct dtl_ir_space *space,
     struct dtl_ir_ref expression
 ) {
-    return dtl_ir_space_get_expression_pointer(space, expression)->value.as_string;
+    return dtl_ir_value_get_string(&dtl_ir_space_get_expression_pointer(space, expression)->value);
 }
 
 static void const *

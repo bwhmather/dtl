@@ -43,59 +43,75 @@ struct dtl_eval_context {
 
 /* --- Load ------------------------------------------------------------------------------------- */
 
-static struct dtl_value
-dtl_eval_context_load_value(
-    struct dtl_eval_context *context,
-    struct dtl_ir_ref expression
-) {
-    size_t index = dtl_ir_ref_to_index(context->graph, expression);
-    return context->values[index];
-}
-
 static size_t
 dtl_eval_context_load_index(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INDEX);
-    return dtl_eval_context_load_value(context, expression).as_index;
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    return dtl_value_get_index(&context->values[index]);
 }
 
 static bool *
 dtl_eval_context_load_bool_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
-    return dtl_eval_context_load_value(context, expression).as_bool_array;
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    return dtl_value_get_bool_array(&context->values[index]);
 }
 
 static int64_t *
 dtl_eval_context_load_int64_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY);
-    return dtl_eval_context_load_value(context, expression).as_int64_array;
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    return dtl_value_get_int64_array(&context->values[index]);
 }
+
+static size_t *
+dtl_eval_context_load_index_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    size_t index;
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INDEX_ARRAY);
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    return dtl_value_get_index_array(&context->values[index]);
+}
+
+static double *
+dtl_eval_context_load_double_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    size_t index;
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_DOUBLE_ARRAY);
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    return dtl_value_get_double_array(&context->values[index]);
+}
+
+static char **
+dtl_eval_context_load_string_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    size_t index;
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_STRING_ARRAY);
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    return dtl_value_get_string_array(&context->values[index]);
+}
+
 
 static struct dtl_io_table *
 dtl_eval_context_load_table(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
+    size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_TABLE);
-    return dtl_eval_context_load_value(context, expression).as_table;
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    return dtl_value_get_table(&context->values[index]);
 }
 
 /* --- Store ------------------------------------------------------------------------------------ */
 
 static void
-dtl_eval_context_store_value(
-    struct dtl_eval_context *context,
-    struct dtl_ir_ref expression,
-    struct dtl_value value
-) {
-    size_t index = dtl_ir_ref_to_index(context->graph, expression);
-    context->values[index] = value;
-}
-
-static void
 dtl_eval_context_store_index(
     struct dtl_eval_context *context,
     struct dtl_ir_ref expression,
-    size_t index
+    size_t value
 ) {
+    size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INDEX);
-    dtl_eval_context_store_value(context, expression, (struct dtl_value){.as_index = index});
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    dtl_value_set_index(&context->values[index], value);
 }
 
 static void
@@ -104,8 +120,10 @@ dtl_eval_context_store_bool_array(
     struct dtl_ir_ref expression,
     bool *array
 ) {
+    size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
-    dtl_eval_context_store_value(context, expression, (struct dtl_value){.as_bool_array = array});
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    dtl_value_take_bool_array(&context->values[index], array);
 }
 
 static void
@@ -114,8 +132,10 @@ dtl_eval_context_store_int64_array(
     struct dtl_ir_ref expression,
     int64_t *array
 ) {
+    size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY);
-    dtl_eval_context_store_value(context, expression, (struct dtl_value){.as_int64_array = array});
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    dtl_value_take_int64_array(&context->values[index], array);
 }
 
 static void
@@ -124,8 +144,10 @@ dtl_eval_context_store_table(
     struct dtl_ir_ref expression,
     struct dtl_io_table *table
 ) {
+    size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_TABLE);
-    dtl_eval_context_store_value(context, expression, (struct dtl_value){.as_table = table});
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    dtl_value_take_table(&context->values[index], table);
 }
 
 /* --- Clear ------------------------------------------------------------------------------------ */
@@ -144,23 +166,22 @@ dtl_eval_context_clear(
 
     switch (dtl_ir_expression_get_dtype(context->graph, expression)) {
     case DTL_DTYPE_BOOL:
-        value->as_bool = false;
+        dtl_value_clear_bool(value);
         break;
     case DTL_DTYPE_INT64:
-        value->as_int64 = 0;
+        dtl_value_clear_int64(value);
         break;
     case DTL_DTYPE_DOUBLE:
-        value->as_double = 0.0;
+        dtl_value_clear_double(value);
         break;
     case DTL_DTYPE_STRING:
-        assert(false);
+        dtl_value_clear_string(value);
         break;
     case DTL_DTYPE_INDEX:
-        value->as_index = 0;
+        dtl_value_clear_index(value);
         break;
     case DTL_DTYPE_TABLE:
-        dtl_io_table_destroy(value->as_table);
-        value->as_table = NULL;
+        dtl_value_clear_table(value);
         break;
     case DTL_DTYPE_BOOL_ARRAY:
         free(value->as_bool_array);
@@ -433,7 +454,6 @@ dtl_eval_export_table_get_column_data(
     struct dtl_eval_context_column *column;
     enum dtl_dtype dtype;
     size_t num_rows;
-    struct dtl_value value;
 
     (void)error;
 
@@ -458,23 +478,21 @@ dtl_eval_export_table_get_column_data(
     dtype = dtl_ir_expression_get_dtype(context->graph, column->value);
     assert(dtl_dtype_is_array_type(dtype));
 
-    value = dtl_eval_context_load_value(context, column->value);
-
     switch (dtype) {
     case DTL_DTYPE_BOOL_ARRAY:
         assert(false); // TODO
         break;
     case DTL_DTYPE_INT64_ARRAY:
-        memcpy(dest, value.as_int64_array + offset, sizeof(int64_t) * size);
+        memcpy(dest, dtl_eval_context_load_int64_array(context, column->value)+ offset, sizeof(int64_t) * size);
         break;
     case DTL_DTYPE_DOUBLE_ARRAY:
-        memcpy(dest, value.as_double_array + offset, sizeof(double) * size);
+        memcpy(dest, dtl_eval_context_load_double_array(context, column->value) + offset, sizeof(double) * size);
         break;
     case DTL_DTYPE_STRING_ARRAY:
-        memcpy(dest, value.as_string_array + offset, sizeof(char *) * size);
+        memcpy(dest, dtl_eval_context_load_string_array(context, column->value) + offset, sizeof(char *) * size);
         break;
     case DTL_DTYPE_INDEX_ARRAY:
-        memcpy(dest, value.as_index_array + offset, sizeof(size_t) * size);
+        memcpy(dest, dtl_eval_context_load_index_array(context, column->value) + offset, sizeof(size_t) * size);
         break;
 
     default:

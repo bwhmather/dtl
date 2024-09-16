@@ -225,7 +225,7 @@ dtl_value_get_table(struct dtl_value *value) {
 void
 dtl_value_clear_table(struct dtl_value *value) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_INDEX);
+    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_TABLE);
 
 #ifndef NDEBUG
     value->dtype = 0;
