@@ -5,7 +5,10 @@
 #include "dtl-ast.h"
 
 void
-dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_node *, void *), void *user_data) {
+dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(char const *, void *), void *user_data) {
+    struct dtl_ast_node *path_node;
+    char const *path;
+
     if (node == NULL) {
         return;
     }
@@ -231,7 +234,9 @@ dtl_ast_find_imports(struct dtl_ast_node *node, void (*callback)(struct dtl_ast_
     }
 
     if (dtl_ast_node_is_import_expression(node)) {
-        callback(node, user_data);
+        path_node = dtl_ast_import_expression_node_get_path(node);
+        path = dtl_ast_string_literal_node_get_value(path_node);
+        callback(path, user_data);
         return;
     }
 

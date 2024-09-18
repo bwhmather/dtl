@@ -6,10 +6,10 @@
 #include "dtl-test.h"
 
 static void
-count_imports(struct dtl_ast_node *node, void *user_data) {
+count_imports(char const *path, void *user_data) {
     int *count = (int *) user_data;
 
-    (void) node;
+    (void) path;
 
     *count += 1;
 }
