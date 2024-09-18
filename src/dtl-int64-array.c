@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 int64_t *
 dtl_int64_array_create(size_t size) {
@@ -26,4 +27,13 @@ int64_t
 dtl_int64_array_get(int64_t *array, size_t index) {
     assert(array != NULL);
     return array[index];
+}
+
+int64_t *
+dtl_int64_array_copy(int64_t *array, size_t size) {
+    int64_t *dest;
+    assert(array != NULL);
+    dest = calloc(size, sizeof(int64_t));
+    memcpy(dest, array, size * sizeof(int64_t));
+    return dest;
 }

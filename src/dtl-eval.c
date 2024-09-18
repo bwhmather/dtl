@@ -12,6 +12,7 @@
 #include "dtl-ast.h"
 #include "dtl-dtype.h"
 #include "dtl-error.h"
+#include "dtl-int64-array.h"
 #include "dtl-io.h"
 #include "dtl-ir-viz.h"
 #include "dtl-ir.h"
@@ -67,6 +68,7 @@ dtl_eval_context_load_int64_array(struct dtl_eval_context *context, struct dtl_i
     return dtl_value_get_int64_array(&context->values[index]);
 }
 
+/*
 static size_t *
 dtl_eval_context_load_index_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
     size_t index;
@@ -90,7 +92,7 @@ dtl_eval_context_load_string_array(struct dtl_eval_context *context, struct dtl_
     index = dtl_ir_ref_to_index(context->graph, expression);
     return dtl_value_get_string_array(&context->values[index]);
 }
-
+*/
 
 static struct dtl_io_table *
 dtl_eval_context_load_table(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
@@ -306,32 +308,28 @@ dtl_eval_read_column_expression(
     struct dtl_ir_ref expression,
     struct dtl_error **error
 ) {
-    struct dtl_ir_ref shape_expression;
-    size_t shape;
     struct dtl_ir_ref table_expression;
     struct dtl_io_table *table;
+    struct dtl_io_schema *schema;
     char const *column_name;
-    int64_t *data;
     size_t i;
+    struct dtl_value value = {0};
     enum dtl_status status;
 
     assert(context != NULL);
     assert(dtl_ir_is_read_column_expression(context->graph, expression));
 
-    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
-    shape = dtl_eval_context_load_index(context, shape_expression);
-
     table_expression = dtl_ir_read_column_expression_get_table(context->graph, expression);
     table = dtl_eval_context_load_table(context, table_expression);
+    schema = dtl_io_table_get_schema(table);
 
     column_name = dtl_ir_read_column_expression_get_column_name(context->graph, expression);
 
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY); // TODO
-    data = calloc(shape, sizeof(int64_t));
 
-    for (i = 0; i < dtl_io_table_get_num_columns(table); i++) {
-        if (strcmp(dtl_io_table_get_column_name(table, i), column_name) == 0) {
-            status = dtl_io_table_get_column_data(table, i, data, 0, shape, error);
+    for (i = 0; i < dtl_io_schema_get_num_columns(schema); i++) {
+        if (strcmp(dtl_io_schema_get_column_name(schema, i), column_name) == 0) {
+            status = dtl_io_table_read_column_data(table, i, &value, error);
             if (status != DTL_STATUS_OK) {
                 return status;
             }
@@ -340,7 +338,7 @@ dtl_eval_read_column_expression(
         }
     }
 
-    dtl_eval_context_store_int64_array(context, expression, data);
+    dtl_eval_context_store_int64_array(context, expression, value.as_int64_array);
     return DTL_STATUS_OK;
 }
 
@@ -351,7 +349,6 @@ struct dtl_eval_export_table {
 
     struct dtl_eval_context *context;
 
-    size_t num_columns;
     size_t columns[]; // Array of indexes into the context columns array.
 };
 
@@ -368,7 +365,7 @@ dtl_eval_export_table_get_num_rows(struct dtl_io_table *table) {
     context = eval_table->context;
     assert(context != NULL);
 
-    if (eval_table->num_columns == 0) {
+    if (dtl_io_schema_get_num_columns(table->schema) == 0) {
         return 0;
     }
 
@@ -381,71 +378,11 @@ dtl_eval_export_table_get_num_rows(struct dtl_io_table *table) {
     return dtl_eval_context_load_index(context, column->shape);
 }
 
-static size_t
-dtl_eval_export_table_get_num_columns(struct dtl_io_table *table) {
-    struct dtl_eval_export_table *eval_table;
-
-    assert(table != NULL);
-    eval_table = (struct dtl_eval_export_table *)table;
-
-    return eval_table->num_columns;
-}
-
-static char const *
-dtl_eval_export_table_get_column_name(struct dtl_io_table *table, size_t table_column_index) {
-    struct dtl_eval_export_table *eval_table;
-    struct dtl_eval_context *context;
-    size_t context_column_index;
-    struct dtl_eval_context_column *column;
-
-    assert(table != NULL);
-    eval_table = (struct dtl_eval_export_table *)table;
-
-    context = eval_table->context;
-    assert(context != NULL);
-
-    assert(table_column_index < eval_table->num_columns);
-    context_column_index = eval_table->columns[table_column_index];
-
-    assert(context_column_index < context->num_columns);
-    column = &context->columns[context_column_index];
-
-    return column->column_name;
-}
-
-static enum dtl_dtype
-dtl_eval_export_table_get_column_dtype(struct dtl_io_table *table, size_t table_column_index) {
-    struct dtl_eval_export_table *eval_table;
-    struct dtl_eval_context *context;
-    size_t context_column_index;
-    struct dtl_eval_context_column *column;
-    enum dtl_dtype dtype;
-
-    assert(table != NULL);
-    eval_table = (struct dtl_eval_export_table *)table;
-
-    context = eval_table->context;
-    assert(context != NULL);
-
-    assert(table_column_index < eval_table->num_columns);
-    context_column_index = eval_table->columns[table_column_index];
-
-    assert(context_column_index < context->num_columns);
-    column = &context->columns[context_column_index];
-
-    dtype = dtl_ir_expression_get_dtype(context->graph, column->value);
-    assert(dtl_dtype_is_array_type(dtype));
-
-    return dtype;
-}
-
 static enum dtl_status
-dtl_eval_export_table_get_column_data(
+dtl_eval_export_table_read_column_data(
     struct dtl_io_table *table,
     size_t table_column_index,
-    void *dest,
-    size_t offset,
-    size_t size,
+    struct dtl_value *dest,
     struct dtl_error **error
 ) {
     struct dtl_eval_export_table *eval_table;
@@ -454,6 +391,7 @@ dtl_eval_export_table_get_column_data(
     struct dtl_eval_context_column *column;
     enum dtl_dtype dtype;
     size_t num_rows;
+    int64_t *int64_array;
 
     (void)error;
 
@@ -463,7 +401,7 @@ dtl_eval_export_table_get_column_data(
     context = eval_table->context;
     assert(context != NULL);
 
-    assert(table_column_index < eval_table->num_columns);
+    assert(table_column_index < dtl_io_schema_get_num_columns(table->schema));
     context_column_index = eval_table->columns[table_column_index];
 
     assert(context_column_index < context->num_columns);
@@ -471,9 +409,6 @@ dtl_eval_export_table_get_column_data(
 
     assert(dtl_ir_expression_get_dtype(context->graph, column->shape) == DTL_DTYPE_INDEX);
     num_rows = dtl_eval_context_load_index(context, column->shape);
-
-    assert(SIZE_MAX - size > offset);
-    assert(offset + size <= num_rows);
 
     dtype = dtl_ir_expression_get_dtype(context->graph, column->value);
     assert(dtl_dtype_is_array_type(dtype));
@@ -483,16 +418,18 @@ dtl_eval_export_table_get_column_data(
         assert(false); // TODO
         break;
     case DTL_DTYPE_INT64_ARRAY:
-        memcpy(dest, dtl_eval_context_load_int64_array(context, column->value)+ offset, sizeof(int64_t) * size);
+        int64_array = dtl_eval_context_load_int64_array(context, column->value);
+        int64_array = dtl_int64_array_copy(int64_array, num_rows); // TODO
+        dtl_value_take_int64_array(dest, int64_array);
         break;
     case DTL_DTYPE_DOUBLE_ARRAY:
-        memcpy(dest, dtl_eval_context_load_double_array(context, column->value) + offset, sizeof(double) * size);
+        assert(false); // TODO
         break;
     case DTL_DTYPE_STRING_ARRAY:
-        memcpy(dest, dtl_eval_context_load_string_array(context, column->value) + offset, sizeof(char *) * size);
+        assert(false); // TODO
         break;
     case DTL_DTYPE_INDEX_ARRAY:
-        memcpy(dest, dtl_eval_context_load_index_array(context, column->value) + offset, sizeof(size_t) * size);
+        assert(false); // TODO
         break;
 
     default:
@@ -516,33 +453,38 @@ dtl_eval_export_table(
     struct dtl_error **error
 ) {
     struct dtl_eval_export_table *eval_table;
+    struct dtl_io_schema *schema;
     size_t i;
     struct dtl_eval_context_column *context_column;
+    char const *column_name;
+    enum dtl_dtype column_dtype;
     enum dtl_status status;
 
     assert(context != NULL);
     assert(table_name != NULL);
 
-    // Overallocated.  Could be shared.
     eval_table = malloc(sizeof(struct dtl_eval_export_table) + context->num_columns * sizeof(size_t));
     eval_table->base.get_num_rows = dtl_eval_export_table_get_num_rows;
-    eval_table->base.get_num_columns = dtl_eval_export_table_get_num_columns;
-    eval_table->base.get_column_name = dtl_eval_export_table_get_column_name;
-    eval_table->base.get_column_dtype = dtl_eval_export_table_get_column_dtype;
-    eval_table->base.get_column_data = dtl_eval_export_table_get_column_data;
+    eval_table->base.read_column_data = dtl_eval_export_table_read_column_data;
     eval_table->base.destroy = dtl_eval_export_table_destroy;
 
     eval_table->context = context;
 
-    eval_table->num_columns = 0;
+    schema = dtl_io_schema_create();
     for (i = 0; i < context->num_columns; i++) {
         context_column = &context->columns[i];
         if (strcmp(context_column->table_name, table_name) != 0) {
             continue;
         }
-        eval_table->num_columns += 1;
-        eval_table->columns[eval_table->num_columns - 1] = i;
+
+        eval_table->columns[dtl_io_schema_get_num_columns(schema)] = i;
+
+        column_name = context_column->column_name;
+        column_dtype = dtl_ir_expression_get_dtype(context->graph, context_column->value);
+
+        schema = dtl_io_schema_add_column(schema, column_name, column_dtype);
     }
+    eval_table->base.schema = schema;
 
     status = dtl_io_exporter_export_table(exporter, table_name, &eval_table->base, error);
 

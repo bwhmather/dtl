@@ -25,7 +25,6 @@ parser_source = custom_target(
 )
 
 lib_sources = [
-  'src/dtl-array.c',
   'src/dtl-ast.c',
   'src/dtl-ast-find-imports.c',
   'src/dtl-ast-to-ir.c',

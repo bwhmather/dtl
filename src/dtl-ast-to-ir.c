@@ -848,6 +848,7 @@ dtl_ast_to_ir_compile_import_expression(
     struct dtl_ast_node *path_expression;
     char const *path;
     struct dtl_io_table *io_table;
+    struct dtl_io_schema *io_schema;
     struct dtl_ir_ref table;
     struct dtl_ir_ref table_shape;
     struct dtl_ast_to_ir_scope *table_scope;
@@ -871,16 +872,18 @@ dtl_ast_to_ir_compile_import_expression(
     if (io_table == NULL) {
         return NULL;
     }
+    io_schema = dtl_io_table_get_schema(io_table);
 
     table = dtl_ir_open_table_expression_create(context->graph, path);
     table_shape = dtl_ir_table_shape_expression_create(context->graph, table);
 
     table_scope = dtl_ast_to_ir_scope_create();
-    for (i = 0; i < dtl_io_table_get_num_columns(io_table); i++) {
-        column_name = dtl_io_table_get_column_name(io_table, i);
+
+    for (i = 0; i < dtl_io_schema_get_num_columns(io_schema); i++) {
+        column_name = dtl_io_schema_get_column_name(io_schema, i);
         assert(column_name != NULL); // TODO validate properly.
 
-        column_dtype = dtl_io_table_get_column_dtype(io_table, i);
+        column_dtype = dtl_io_schema_get_column_dtype(io_schema, i);
         assert(dtl_dtype_is_array_type(column_dtype));
 
         column = dtl_ir_read_column_expression_create(

@@ -6,32 +6,47 @@
 #include "dtl-dtype.h"
 #include "dtl-error.h"
 #include "dtl-location.h"
+#include "dtl-value.h"
+
+/* === Schema =================================================================================== */
+
+struct dtl_io_schema;
+
+struct dtl_io_schema *
+dtl_io_schema_create(void);
+
+struct dtl_io_schema *
+dtl_io_schema_add_column(struct dtl_io_schema *schema, char const *name, enum dtl_dtype dtype);
+
+size_t
+dtl_io_schema_get_num_columns(struct dtl_io_schema *schema);
+
+char const *
+dtl_io_schema_get_column_name(struct dtl_io_schema *schema, size_t index);
+
+enum dtl_dtype
+dtl_io_schema_get_column_dtype(struct dtl_io_schema *schema, size_t index);
+
+void
+dtl_io_schema_destroy(struct dtl_io_schema *schema);
 
 /* === Tables =================================================================================== */
 
 struct dtl_io_table {
-    size_t (*get_num_rows)(struct dtl_io_table *);
-    size_t (*get_num_columns)(struct dtl_io_table *);
-    char const *(*get_column_name)(struct dtl_io_table *, size_t);
-    enum dtl_dtype (*get_column_dtype)(struct dtl_io_table *, size_t);
-    enum dtl_status (*get_column_data)(struct dtl_io_table *, size_t, void *, size_t, size_t, struct dtl_error **);
+    struct dtl_io_schema *schema;
+    size_t (*get_num_rows)(struct dtl_io_table *table);
+    enum dtl_status (*read_column_data)(struct dtl_io_table *table, size_t col_index, struct dtl_value *out, struct dtl_error **error);
     void (*destroy)(struct dtl_io_table *);
 };
 
-size_t
-dtl_io_table_get_num_rows(struct dtl_io_table *);
+struct dtl_io_schema *
+dtl_io_table_get_schema(struct dtl_io_table *table);
 
 size_t
-dtl_io_table_get_num_columns(struct dtl_io_table *);
-
-char const *
-dtl_io_table_get_column_name(struct dtl_io_table *, size_t);
-
-enum dtl_dtype
-dtl_io_table_get_column_dtype(struct dtl_io_table *, size_t);
+dtl_io_table_get_num_rows(struct dtl_io_table *table);
 
 enum dtl_status
-dtl_io_table_get_column_data(struct dtl_io_table *, size_t col, void *dest, size_t offset, size_t size, struct dtl_error **);
+dtl_io_table_read_column_data(struct dtl_io_table *table, size_t col_index, struct dtl_value *out, struct dtl_error **error);
 
 void
 dtl_io_table_destroy(struct dtl_io_table *);

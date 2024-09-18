@@ -14,3 +14,6 @@ dtl_int64_array_set(int64_t *array, size_t index, int64_t value);
 
 int64_t
 dtl_int64_array_get(int64_t *array, size_t index);
+
+int64_t *
+dtl_int64_array_copy(int64_t *array, size_t size);

@@ -16,7 +16,8 @@ extern "C" {
 
 extern "C" {
 #include "dtl-io.h"
-#include "dtl-array.h"
+#include "dtl-bool-array.h"
+#include "dtl-int64-array.h"
 #include "dtl-value.h"
 #include "dtl-dtype.h"
 }
@@ -31,19 +32,10 @@ dtl_io_filesystem_set_error_from_arrow_status(struct dtl_error **error, arrow::S
 
 /* === Importer ================================================================================= */
 
-struct dtl_io_filesystem_column {
-    std::string name;
-    enum dtl_dtype dtype;
-    // The importer will silently skip columns it doesn't understand.  This is the original column
-    // index.
-    size_t arrow_index;
-};
-
 struct dtl_io_filesystem_table {
     struct dtl_io_table base;
 
     std::shared_ptr<arrow::Table> arrow_table;
-    std::vector<struct dtl_io_filesystem_column> columns;
 };
 
 struct dtl_io_filesystem_importer {
@@ -64,89 +56,53 @@ dtl_io_filesystem_table_get_num_rows(struct dtl_io_table* table) {
     return fs_table->arrow_table->num_rows();
 }
 
-static size_t
-dtl_io_filesystem_table_get_num_columns(struct dtl_io_table* table) {
-    struct dtl_io_filesystem_table *fs_table;
-
-    assert(table != NULL);
-    assert(table->get_num_columns == dtl_io_filesystem_table_get_num_columns);
-
-    fs_table = (struct dtl_io_filesystem_table *) table;
-
-    return fs_table->columns.size();
-}
-
-static char const*
-dtl_io_filesystem_table_get_column_name(struct dtl_io_table* table, size_t index) {
-    struct dtl_io_filesystem_table *fs_table;
-
-    assert(table != NULL);
-    assert(table->get_column_name == dtl_io_filesystem_table_get_column_name);
-
-    fs_table = (struct dtl_io_filesystem_table *) table;
-    assert(index < fs_table->columns.size());
-
-    return fs_table->columns[index].name.c_str();
-}
-
-static enum dtl_dtype
-dtl_io_filesystem_table_get_column_dtype(struct dtl_io_table* table, size_t index) {
-    struct dtl_io_filesystem_table *fs_table;
-
-    assert(table != NULL);
-    assert(table->get_column_dtype == dtl_io_filesystem_table_get_column_dtype);
-
-    fs_table = (struct dtl_io_filesystem_table *) table;
-    assert(index < fs_table->columns.size());
-
-    return fs_table->columns[index].dtype;
-}
-
-struct  dtl_io_filesystem_table_get_column_data_visitor : arrow::ScalarVisitor {
+struct dtl_io_filesystem_table_get_column_data_visitor : arrow::ScalarVisitor {
     enum dtl_dtype dtype;
     struct dtl_value value;
 
     arrow::Status Visit(const arrow::Int32Scalar &scalar) {
         dtype = DTL_DTYPE_INT64;
-        value.as_int64 = scalar.value;
+        dtl_value_set_int64(&value, scalar.value);
         return arrow::Status::OK();
     }
 
     arrow::Status Visit(const arrow::Int64Scalar &scalar) {
         dtype = DTL_DTYPE_INT64;
-        value.as_int64 = scalar.value;
+        dtl_value_set_int64(&value, scalar.value);
         return arrow::Status::OK();
     }
 };
 
-
 static enum dtl_status
-dtl_io_filesystem_table_get_column_data(
+dtl_io_filesystem_table_read_column_data(
     struct dtl_io_table* table,
-     size_t col_index,
-      void *dest,
-      size_t offset,
-      size_t size,
-       struct dtl_error **error
+    size_t col_index,
+    struct dtl_value *out,
+    struct dtl_error **error
 ) {
     enum dtl_dtype dtype;
     struct dtl_io_filesystem_table *fs_table;
     std::shared_ptr<arrow::ChunkedArray> arrow_column;
+    size_t size;
+    int64_t *array;
     size_t i;
     arrow::Result<std::shared_ptr<arrow::Scalar>> arrow_scalar_result;
     struct dtl_io_filesystem_table_get_column_data_visitor visitor;
     arrow::Status arrow_status;
 
     assert(table != NULL);
-    assert(table->get_column_data == dtl_io_filesystem_table_get_column_data);
+    assert(table->read_column_data == dtl_io_filesystem_table_read_column_data);
 
-    dtype = dtl_io_table_get_column_dtype(table, col_index);
+    dtype = dtl_io_schema_get_column_dtype(table->schema, col_index);
     dtype = dtl_dtype_get_scalar_type(dtype);
 
     fs_table = (struct dtl_io_filesystem_table*)table;
     arrow_column = fs_table->arrow_table->column(col_index);
 
-    for (i = offset; i < offset + size; i++) {
+    size = fs_table->arrow_table->num_rows();
+    array = dtl_int64_array_create(size);  // TODO
+
+    for (i = 0; i < size; i++) {
         // TODO this is fucking insane.  There must be a better way to do this.
         arrow_scalar_result = arrow_column->GetScalar(i);
         if (!arrow_scalar_result.ok()) {
@@ -166,12 +122,15 @@ dtl_io_filesystem_table_get_column_data(
 
         switch (dtype) {
         case DTL_DTYPE_INT64:
-            ((int64_t*) dest)[offset + i] = visitor.value.as_int64;
+            dtl_int64_array_set(array, i, dtl_value_get_int64(&visitor.value));
+            dtl_value_clear_int64(&visitor.value);
             break;
         default:
             assert(false);
         }
     }
+
+    dtl_value_take_int64_array(out, array);
 
     return DTL_STATUS_OK;
 }
@@ -182,6 +141,8 @@ dtl_io_filesystem_table_destroy(struct dtl_io_table* table) {
 
     assert(table != NULL);
     assert(table->destroy == dtl_io_filesystem_table_destroy);
+
+    dtl_io_schema_destroy(table->schema);
 
     fs_table = (struct dtl_io_filesystem_table*)table;
     delete fs_table;
@@ -219,29 +180,25 @@ dtl_io_filesystem_importer_import_table(
     status = arrow_reader->ReadTable(&arrow_table);
     assert(status.ok()); // TODO
 
-    fs_table = new struct dtl_io_filesystem_table;
-
-    fs_table->base.get_num_rows = dtl_io_filesystem_table_get_num_rows;
-    fs_table->base.get_num_columns = dtl_io_filesystem_table_get_num_columns;
-    fs_table->base.get_column_name = dtl_io_filesystem_table_get_column_name;
-    fs_table->base.get_column_dtype = dtl_io_filesystem_table_get_column_dtype;
-    fs_table->base.get_column_data = dtl_io_filesystem_table_get_column_data;
-    fs_table->base.destroy = dtl_io_filesystem_table_destroy;
-
-    fs_table->arrow_table = arrow_table;
-
+    auto schema = dtl_io_schema_create();
     auto arrow_schema = arrow_table->schema();
     for (int i = 0; i < arrow_schema->num_fields(); i++) {
         auto arrow_field = arrow_schema->field(i);
-        struct dtl_io_filesystem_column column;
-        column.name = arrow_field->name();
-        // TODO arrow_field->type()) {
 
-        column.dtype = DTL_DTYPE_INT64_ARRAY;
-        column.arrow_index = i;
+        char const *column_name = arrow_field->name().c_str();
+        enum dtl_dtype column_dtype = DTL_DTYPE_INT64_ARRAY;  // TODO
 
-        fs_table->columns.push_back(column);
+        schema = dtl_io_schema_add_column(schema, column_name, column_dtype);
     }
+
+    fs_table = new struct dtl_io_filesystem_table;
+
+    fs_table->base.get_num_rows = dtl_io_filesystem_table_get_num_rows;
+    fs_table->base.read_column_data = dtl_io_filesystem_table_read_column_data;
+    fs_table->base.destroy = dtl_io_filesystem_table_destroy;
+
+    fs_table->base.schema = schema;
+    fs_table->arrow_table = arrow_table;
 
     return &fs_table->base;
 }
@@ -287,6 +244,7 @@ dtl_io_filesystem_exporter_export_table(
     struct dtl_error **error
 ) {
     struct dtl_io_filesystem_exporter* fs_exporter;
+    struct dtl_io_schema *schema;
     size_t num_rows;
     size_t col;
     size_t row;
@@ -311,6 +269,8 @@ dtl_io_filesystem_exporter_export_table(
 
     fs_exporter = (struct dtl_io_filesystem_exporter*)exporter;
 
+    schema = dtl_io_table_get_schema(table);
+
     pool = arrow::default_memory_pool();
 
     num_rows = dtl_io_table_get_num_rows(table);
@@ -318,9 +278,9 @@ dtl_io_filesystem_exporter_export_table(
     std::vector<std::shared_ptr<arrow::Field>> schema_columns;
     std::vector<std::shared_ptr<arrow::Array>> table_columns;
 
-    for (col = 0; col < dtl_io_table_get_num_columns(table); col++) {
-        col_dtype = dtl_io_table_get_column_dtype(table, col);
-        col_name = dtl_io_table_get_column_name(table, col);
+    for (col = 0; col < dtl_io_schema_get_num_columns(schema); col++) {
+        col_dtype = dtl_io_schema_get_column_dtype(schema, col);
+        col_name = dtl_io_schema_get_column_name(schema, col);
 
         switch (col_dtype) {
         case DTL_DTYPE_BOOL_ARRAY: {
@@ -328,19 +288,23 @@ dtl_io_filesystem_exporter_export_table(
             arrow_status = builder.Resize(num_rows);
             assert(arrow_status.ok()); // TODO
 
-            col_data = realloc(col_data, ((num_rows + 1) / 8) + 1);
-            status = dtl_io_table_get_column_data(table, col, col_data, 0, num_rows, error);
+            struct dtl_value value;
+            status = dtl_io_table_read_column_data(table, col, &value, error);
             if (status != DTL_STATUS_OK) {
                 return status;
             }
 
+            void *array = dtl_value_get_bool_array(&value);
+
             for (row = 0; row < num_rows; row++) {
-                arrow_status = builder.Append(dtl_array_get_bool(col_data, row));
+                arrow_status = builder.Append(dtl_bool_array_get(array, row));
                 assert(arrow_status.ok());
             }
 
             arrow_status = builder.Finish(&arrow_array);
             assert(arrow_status.ok()); // TODO
+
+            dtl_value_clear_bool_array(&value, num_rows);
 
             break;
         }
@@ -350,19 +314,23 @@ dtl_io_filesystem_exporter_export_table(
             arrow_status = builder.Resize(num_rows);
             assert(arrow_status.ok()); // TODO
 
-            col_data = realloc(col_data, num_rows * sizeof(int64_t));
-            status = dtl_io_table_get_column_data(table, col, col_data, 0, num_rows, error);
+            struct dtl_value value;
+            status = dtl_io_table_read_column_data(table, col, &value, error);
             if (status != DTL_STATUS_OK) {
                 return status;
             }
 
+            int64_t *array = dtl_value_get_int64_array(&value);
+
             for (row = 0; row < num_rows; row++) {
-                arrow_status = builder.Append(dtl_array_get_int64(col_data, row));
+                arrow_status = builder.Append(dtl_int64_array_get(array, row));
                 assert(arrow_status.ok());
             }
 
             arrow_status = builder.Finish(&arrow_array);
             assert(arrow_status.ok()); // TODO
+
+            dtl_value_clear_int64_array(&value, num_rows);
 
             break;
         }
