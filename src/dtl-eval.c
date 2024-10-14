@@ -23,6 +23,11 @@
 
 /* === Context ================================================================================== */
 
+struct dtl_eval_context_import {
+    char const *name;
+    struct dtl_io_table *table;
+};
+
 struct dtl_eval_context_column {
     char const *table_name;
     char const *column_name;
@@ -35,6 +40,9 @@ struct dtl_eval_context {
     struct dtl_io_exporter *exporter;
 
     struct dtl_ir_graph *graph;
+
+    size_t num_imports;
+    struct dtl_eval_context_import *imports;
 
     size_t num_columns;
     struct dtl_eval_context_column *columns;
@@ -208,6 +216,46 @@ dtl_eval_context_clear(
 }
 
 /* === Compilation ============================================================================== */
+
+static struct dtl_io_schema *
+dtl_eval_ast_to_ir_import_callback(
+    char const *table_name,
+    struct dtl_error **error,
+    void *user_data
+) {
+    struct dtl_eval_context *context = (struct dtl_eval_context *)user_data;
+    size_t i;
+    struct dtl_eval_context_import *candidate_import;
+    struct dtl_eval_context_import *import = NULL;
+
+    assert(table_name != NULL);
+    assert(context != NULL);
+
+    for (i = 0; i < context->num_imports; i++) {
+        candidate_import = &context->imports[i];
+
+        if (candidate_import->name == table_name) { // Name _should_ be interned.
+            import = candidate_import;
+            break;
+        }
+    }
+    if (import == NULL) {
+        context->imports = realloc(
+            context->imports, sizeof(struct dtl_eval_context_import) * context->num_imports + 1
+        );
+        import = &context->imports[context->num_imports];
+
+        import->name = table_name;
+        import->table = dtl_io_importer_import_table(context->importer, table_name, error);
+        if (import->table == NULL) {
+            return NULL;
+        }
+
+        context->num_imports += 1;
+    }
+
+    return dtl_io_table_get_schema(import->table);
+}
 
 static void
 dtl_eval_ast_to_ir_column_callback(
@@ -831,7 +879,9 @@ dtl_eval(
         .graph = graph,
     };
     status = dtl_ast_to_ir(
-        root, graph, importer,
+        root,
+        graph,
+        dtl_eval_ast_to_ir_import_callback,
         dtl_eval_ast_to_ir_column_callback,
         dtl_eval_ast_to_ir_trace_callback,
         &context,

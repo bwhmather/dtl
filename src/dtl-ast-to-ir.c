@@ -200,7 +200,7 @@ dtl_ast_to_ir_scope_pick_namespace(struct dtl_ast_to_ir_scope *scope, char const
 
 struct dtl_ast_to_ir_context {
     struct dtl_ir_graph *graph;
-    struct dtl_io_importer *importer;
+    struct dtl_io_schema *(*import_callback)(char const *, struct dtl_error **, void *);
     void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *);
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *);
     void *user_data;
@@ -847,7 +847,6 @@ dtl_ast_to_ir_compile_import_expression(
 ) {
     struct dtl_ast_node *path_expression;
     char const *path;
-    struct dtl_io_table *io_table;
     struct dtl_io_schema *io_schema;
     struct dtl_ir_ref table;
     struct dtl_ir_ref table_shape;
@@ -868,11 +867,11 @@ dtl_ast_to_ir_compile_import_expression(
     path = dtl_ir_graph_intern(context->graph, path);
     assert(path != NULL);
 
-    io_table = dtl_io_importer_import_table(context->importer, path, error);
-    if (io_table == NULL) {
+    // Note that we do not free the schema.
+    io_schema = context->import_callback(path, error, context->user_data);
+    if (io_schema == NULL) {
         return NULL;
     }
-    io_schema = dtl_io_table_get_schema(io_table);
 
     table = dtl_ir_open_table_expression_create(context->graph, path);
     table_shape = dtl_ir_table_shape_expression_create(context->graph, table);
@@ -895,8 +894,6 @@ dtl_ast_to_ir_compile_import_expression(
 
         table_scope = dtl_ast_to_ir_scope_add(table_scope, column_name, NULL, column);
     }
-
-    dtl_io_table_destroy(io_table);
 
     return table_scope;
 }
@@ -1096,7 +1093,7 @@ enum dtl_status
 dtl_ast_to_ir(
     struct dtl_ast_node *root,
     struct dtl_ir_graph *graph,
-    struct dtl_io_importer *importer,
+    struct dtl_io_schema *(*import_callback)(char const *, struct dtl_error **, void *),
     void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *),
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *),
     void *user_data,
@@ -1113,7 +1110,7 @@ dtl_ast_to_ir(
 
     context = calloc(1, sizeof(struct dtl_ast_to_ir_context));
     context->graph = graph;
-    context->importer = importer;
+    context->import_callback = import_callback;
     context->column_callback = column_callback;
     context->trace_callback = trace_callback;
     context->user_data = user_data;
