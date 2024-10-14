@@ -259,31 +259,36 @@ dtl_eval_ast_to_ir_import_callback(
 }
 
 static void
-dtl_eval_ast_to_ir_column_callback(
+dtl_eval_ast_to_ir_export_callback(
     char const *table_name,
-    char const *column_name,
-    struct dtl_ir_ref column_expression,
+    struct dtl_schema *schema,
+    struct dtl_ir_ref *expressions,
     void *user_data
 ) {
+    size_t i;
     struct dtl_eval_context *context = (struct dtl_eval_context *)user_data;
     struct dtl_ir_graph *graph;
     size_t column_index;
 
     assert(context != NULL);
+    assert(schema != NULL);
 
     graph = context->graph;
     assert(graph != NULL);
 
-    assert(dtl_ir_is_array_expression(graph, column_expression));
+    for (i = 0; i < dtl_schema_get_num_columns(schema); i++) {
+        context->num_columns += 1;
+        context->columns = realloc(context->columns, sizeof(struct dtl_eval_context_column) * context->num_columns);
 
-    context->num_columns += 1;
-    context->columns = realloc(context->columns, sizeof(struct dtl_eval_context_column) * context->num_columns);
+        assert(dtl_ir_is_array_expression(graph, expressions[i]));
 
-    column_index = context->num_columns - 1;
-    context->columns[column_index].table_name = table_name;
-    context->columns[column_index].column_name = column_name;
-    context->columns[column_index].shape = dtl_ir_array_expression_get_shape(graph, column_expression);
-    context->columns[column_index].value = column_expression;
+        column_index = context->num_columns - 1;
+        context->columns[column_index].table_name = table_name;
+        context->columns[column_index].column_name = dtl_schema_get_column_name(schema, i);
+        ;
+        context->columns[column_index].shape = dtl_ir_array_expression_get_shape(graph, expressions[i]);
+        context->columns[column_index].value = expressions[i];
+    }
 }
 
 static void
@@ -883,7 +888,7 @@ dtl_eval(
         root,
         graph,
         dtl_eval_ast_to_ir_import_callback,
-        dtl_eval_ast_to_ir_column_callback,
+        dtl_eval_ast_to_ir_export_callback,
         dtl_eval_ast_to_ir_trace_callback,
         &context,
         error

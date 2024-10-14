@@ -198,15 +198,23 @@ dtl_ast_to_ir_scope_pick_namespace(struct dtl_ast_to_ir_scope *scope, char const
 
 /* === Contexts ================================================================================= */
 
+struct dtl_ast_to_ir_export {
+    char const *name;
+    struct dtl_schema *schema;
+    struct dtl_ir_ref *expressions;
+};
+
 struct dtl_ast_to_ir_context {
     struct dtl_ir_graph *graph;
     struct dtl_schema *(*import_callback)(char const *, struct dtl_error **, void *);
-    void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *);
+    void (*export_callback)(char const *, struct dtl_schema *, struct dtl_ir_ref *, void *);
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *);
     void *user_data;
 
     struct dtl_ast_to_ir_scope *globals;
-    struct dtl_ast_to_ir_scope *exports;
+
+    size_t num_exports;
+    struct dtl_ast_to_ir_export *exports;
 };
 
 static void
@@ -229,26 +237,54 @@ dtl_ast_to_ir_context_export_table(
     char const *path,
     struct dtl_ast_to_ir_scope *table
 ) {
+    struct dtl_schema *schema;
+    struct dtl_ir_ref *expressions;
     size_t i;
     char const *column_name;
     char const *column_namespace;
     struct dtl_ir_ref column_expression;
+    enum dtl_dtype column_dtype;
+    struct dtl_ast_to_ir_export *candidate_export;
+    struct dtl_ast_to_ir_export *export = NULL;
 
-    context->exports = dtl_ast_to_ir_scope_filter_namespace(context->exports, path);
+    schema = dtl_schema_create();
+    expressions = calloc(table->num_columns, sizeof(struct dtl_ir_ref));
+
     for (i = 0; i < table->num_columns; i++) {
         column_name = table->columns[i].name;
         column_namespace = table->columns[i].namespace;
         column_expression = table->columns[i].expression;
+        column_dtype = dtl_ir_expression_get_dtype(context->graph, column_expression);
 
         assert(column_namespace == NULL); // TODO might be safe to skip if not NULL.
 
-        context->exports = dtl_ast_to_ir_scope_add_unsafe(
-            context->exports,
-            column_name,
-            path,
-            column_expression
-        );
+        schema = dtl_schema_add_column(schema, column_name, column_dtype);
+        expressions[i] = column_expression;
     }
+
+    for (i = 0; i < context->num_exports; i++) {
+        candidate_export = &context->exports[i];
+
+        if (candidate_export->name == path) { // Name _should_ be interned.
+            export = candidate_export;
+
+            dtl_schema_destroy(export->schema);
+            free(export->expressions);
+
+            break;
+        }
+    }
+    if (export == NULL) {
+        context->exports = realloc(
+            context->exports, sizeof(struct dtl_ast_to_ir_export) * context->num_exports + 1
+        );
+        context->num_exports += 1;
+        export = &context->exports[context->num_exports - 1];
+    }
+
+    export->name = path;
+    export->schema = schema;
+    export->expressions = expressions;
 }
 
 /* === Compilation ============================================================================== */
@@ -1094,7 +1130,7 @@ dtl_ast_to_ir(
     struct dtl_ast_node *root,
     struct dtl_ir_graph *graph,
     struct dtl_schema *(*import_callback)(char const *, struct dtl_error **, void *),
-    void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *),
+    void (*export_callback)(char const *, struct dtl_schema *, struct dtl_ir_ref *, void *),
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *),
     void *user_data,
     struct dtl_error **error
@@ -1104,18 +1140,16 @@ dtl_ast_to_ir(
     struct dtl_ast_node *statements;
     struct dtl_ast_node *statement;
     enum dtl_status status = DTL_STATUS_OK;
-    char const *column_name;
-    char const *column_namespace;
-    struct dtl_ir_ref column_expression;
 
     context = calloc(1, sizeof(struct dtl_ast_to_ir_context));
     context->graph = graph;
     context->import_callback = import_callback;
-    context->column_callback = column_callback;
+    context->export_callback = export_callback;
     context->trace_callback = trace_callback;
     context->user_data = user_data;
     context->globals = dtl_ast_to_ir_scope_create();
-    context->exports = dtl_ast_to_ir_scope_create();
+    context->num_exports = 0;
+    context->exports = NULL;
 
     //    dtl_ast_find_imports();
     //    dtl_ast_find_imports(root, void (*callback)(struct dtl_ast_node *, void *), void *user_data) {
@@ -1129,16 +1163,17 @@ dtl_ast_to_ir(
         }
     }
 
-    for (i = 0; i < context->exports->num_columns; i++) {
-        column_name = context->exports->columns[i].name;
-        column_namespace = context->exports->columns[i].namespace;
-        column_expression = context->exports->columns[i].expression;
+    for (i = 0; i < context->num_exports; i++) {
+        context->export_callback(
 
-        context->column_callback(column_namespace, column_name, column_expression, context->user_data);
+            context->exports[i].name,
+            context->exports[i].schema,
+            context->exports[i].expressions, context->user_data
+        );
     }
 
     dtl_ast_to_ir_scope_destroy(context->globals);
-    dtl_ast_to_ir_scope_destroy(context->exports);
+    free(context->exports);
     free(context);
 
     return status;
