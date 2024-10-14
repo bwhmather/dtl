@@ -9,9 +9,9 @@
 #include "dtl-ast.h"
 #include "dtl-dtype.h"
 #include "dtl-error.h"
-#include "dtl-io.h"
 #include "dtl-ir.h"
 #include "dtl-location.h"
+#include "dtl-schema.h"
 
 /* === Scopes =================================================================================== */
 
@@ -200,7 +200,7 @@ dtl_ast_to_ir_scope_pick_namespace(struct dtl_ast_to_ir_scope *scope, char const
 
 struct dtl_ast_to_ir_context {
     struct dtl_ir_graph *graph;
-    struct dtl_io_schema *(*import_callback)(char const *, struct dtl_error **, void *);
+    struct dtl_schema *(*import_callback)(char const *, struct dtl_error **, void *);
     void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *);
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *);
     void *user_data;
@@ -847,7 +847,7 @@ dtl_ast_to_ir_compile_import_expression(
 ) {
     struct dtl_ast_node *path_expression;
     char const *path;
-    struct dtl_io_schema *io_schema;
+    struct dtl_schema *schema;
     struct dtl_ir_ref table;
     struct dtl_ir_ref table_shape;
     struct dtl_ast_to_ir_scope *table_scope;
@@ -868,8 +868,8 @@ dtl_ast_to_ir_compile_import_expression(
     assert(path != NULL);
 
     // Note that we do not free the schema.
-    io_schema = context->import_callback(path, error, context->user_data);
-    if (io_schema == NULL) {
+    schema = context->import_callback(path, error, context->user_data);
+    if (schema == NULL) {
         return NULL;
     }
 
@@ -878,11 +878,11 @@ dtl_ast_to_ir_compile_import_expression(
 
     table_scope = dtl_ast_to_ir_scope_create();
 
-    for (i = 0; i < dtl_io_schema_get_num_columns(io_schema); i++) {
-        column_name = dtl_io_schema_get_column_name(io_schema, i);
+    for (i = 0; i < dtl_schema_get_num_columns(schema); i++) {
+        column_name = dtl_schema_get_column_name(schema, i);
         assert(column_name != NULL); // TODO validate properly.
 
-        column_dtype = dtl_io_schema_get_column_dtype(io_schema, i);
+        column_dtype = dtl_schema_get_column_dtype(schema, i);
         assert(dtl_dtype_is_array_type(column_dtype));
 
         column = dtl_ir_read_column_expression_create(
@@ -1093,7 +1093,7 @@ enum dtl_status
 dtl_ast_to_ir(
     struct dtl_ast_node *root,
     struct dtl_ir_graph *graph,
-    struct dtl_io_schema *(*import_callback)(char const *, struct dtl_error **, void *),
+    struct dtl_schema *(*import_callback)(char const *, struct dtl_error **, void *),
     void (*column_callback)(char const *, char const *, struct dtl_ir_ref, void *),
     void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *),
     void *user_data,

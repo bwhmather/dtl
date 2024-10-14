@@ -20,6 +20,7 @@ extern "C" {
 #include "dtl-int64-array.h"
 #include "dtl-value.h"
 #include "dtl-dtype.h"
+#include "dtl-schema.h"
 }
 
 
@@ -93,7 +94,7 @@ dtl_io_filesystem_table_read_column_data(
     assert(table != NULL);
     assert(table->read_column_data == dtl_io_filesystem_table_read_column_data);
 
-    dtype = dtl_io_schema_get_column_dtype(table->schema, col_index);
+    dtype = dtl_schema_get_column_dtype(table->schema, col_index);
     dtype = dtl_dtype_get_scalar_type(dtype);
 
     fs_table = (struct dtl_io_filesystem_table*)table;
@@ -142,7 +143,7 @@ dtl_io_filesystem_table_destroy(struct dtl_io_table* table) {
     assert(table != NULL);
     assert(table->destroy == dtl_io_filesystem_table_destroy);
 
-    dtl_io_schema_destroy(table->schema);
+    dtl_schema_destroy(table->schema);
 
     fs_table = (struct dtl_io_filesystem_table*)table;
     delete fs_table;
@@ -180,7 +181,7 @@ dtl_io_filesystem_importer_import_table(
     status = arrow_reader->ReadTable(&arrow_table);
     assert(status.ok()); // TODO
 
-    auto schema = dtl_io_schema_create();
+    auto schema = dtl_schema_create();
     auto arrow_schema = arrow_table->schema();
     for (int i = 0; i < arrow_schema->num_fields(); i++) {
         auto arrow_field = arrow_schema->field(i);
@@ -188,7 +189,7 @@ dtl_io_filesystem_importer_import_table(
         char const *column_name = arrow_field->name().c_str();
         enum dtl_dtype column_dtype = DTL_DTYPE_INT64_ARRAY;  // TODO
 
-        schema = dtl_io_schema_add_column(schema, column_name, column_dtype);
+        schema = dtl_schema_add_column(schema, column_name, column_dtype);
     }
 
     fs_table = new struct dtl_io_filesystem_table;
@@ -244,7 +245,7 @@ dtl_io_filesystem_exporter_export_table(
     struct dtl_error **error
 ) {
     struct dtl_io_filesystem_exporter* fs_exporter;
-    struct dtl_io_schema *schema;
+    struct dtl_schema *schema;
     size_t num_rows;
     size_t col;
     size_t row;
@@ -278,9 +279,9 @@ dtl_io_filesystem_exporter_export_table(
     std::vector<std::shared_ptr<arrow::Field>> schema_columns;
     std::vector<std::shared_ptr<arrow::Array>> table_columns;
 
-    for (col = 0; col < dtl_io_schema_get_num_columns(schema); col++) {
-        col_dtype = dtl_io_schema_get_column_dtype(schema, col);
-        col_name = dtl_io_schema_get_column_name(schema, col);
+    for (col = 0; col < dtl_schema_get_num_columns(schema); col++) {
+        col_dtype = dtl_schema_get_column_dtype(schema, col);
+        col_name = dtl_schema_get_column_name(schema, col);
 
         switch (col_dtype) {
         case DTL_DTYPE_BOOL_ARRAY: {

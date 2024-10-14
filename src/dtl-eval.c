@@ -18,6 +18,7 @@
 #include "dtl-ir.h"
 #include "dtl-location.h"
 #include "dtl-parser.h"
+#include "dtl-schema.h"
 #include "dtl-tokenizer.h"
 #include "dtl-value.h"
 
@@ -217,7 +218,7 @@ dtl_eval_context_clear(
 
 /* === Compilation ============================================================================== */
 
-static struct dtl_io_schema *
+static struct dtl_schema *
 dtl_eval_ast_to_ir_import_callback(
     char const *table_name,
     struct dtl_error **error,
@@ -358,7 +359,7 @@ dtl_eval_read_column_expression(
 ) {
     struct dtl_ir_ref table_expression;
     struct dtl_io_table *table;
-    struct dtl_io_schema *schema;
+    struct dtl_schema *schema;
     char const *column_name;
     size_t i;
     struct dtl_value value = {0};
@@ -375,8 +376,8 @@ dtl_eval_read_column_expression(
 
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY); // TODO
 
-    for (i = 0; i < dtl_io_schema_get_num_columns(schema); i++) {
-        if (strcmp(dtl_io_schema_get_column_name(schema, i), column_name) == 0) {
+    for (i = 0; i < dtl_schema_get_num_columns(schema); i++) {
+        if (strcmp(dtl_schema_get_column_name(schema, i), column_name) == 0) {
             status = dtl_io_table_read_column_data(table, i, &value, error);
             if (status != DTL_STATUS_OK) {
                 return status;
@@ -413,7 +414,7 @@ dtl_eval_export_table_get_num_rows(struct dtl_io_table *table) {
     context = eval_table->context;
     assert(context != NULL);
 
-    if (dtl_io_schema_get_num_columns(table->schema) == 0) {
+    if (dtl_schema_get_num_columns(table->schema) == 0) {
         return 0;
     }
 
@@ -449,7 +450,7 @@ dtl_eval_export_table_read_column_data(
     context = eval_table->context;
     assert(context != NULL);
 
-    assert(table_column_index < dtl_io_schema_get_num_columns(table->schema));
+    assert(table_column_index < dtl_schema_get_num_columns(table->schema));
     context_column_index = eval_table->columns[table_column_index];
 
     assert(context_column_index < context->num_columns);
@@ -501,7 +502,7 @@ dtl_eval_export_table(
     struct dtl_error **error
 ) {
     struct dtl_eval_export_table *eval_table;
-    struct dtl_io_schema *schema;
+    struct dtl_schema *schema;
     size_t i;
     struct dtl_eval_context_column *context_column;
     char const *column_name;
@@ -518,19 +519,19 @@ dtl_eval_export_table(
 
     eval_table->context = context;
 
-    schema = dtl_io_schema_create();
+    schema = dtl_schema_create();
     for (i = 0; i < context->num_columns; i++) {
         context_column = &context->columns[i];
         if (strcmp(context_column->table_name, table_name) != 0) {
             continue;
         }
 
-        eval_table->columns[dtl_io_schema_get_num_columns(schema)] = i;
+        eval_table->columns[dtl_schema_get_num_columns(schema)] = i;
 
         column_name = context_column->column_name;
         column_dtype = dtl_ir_expression_get_dtype(context->graph, context_column->value);
 
-        schema = dtl_io_schema_add_column(schema, column_name, column_dtype);
+        schema = dtl_schema_add_column(schema, column_name, column_dtype);
     }
     eval_table->base.schema = schema;
 
