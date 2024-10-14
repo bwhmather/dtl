@@ -26,7 +26,6 @@ parser_source = custom_target(
 
 lib_sources = [
   'src/dtl-ast.c',
-  'src/dtl-ast-find-imports.c',
   'src/dtl-ast-to-ir.c',
   'src/dtl-bool-array.c',
   'src/dtl-double-array.c',
@@ -71,9 +70,6 @@ exe = executable(
 test_includes = include_directories('src', 'tests')
 
 test_suites = {
-  'ast': [
-    'find-imports',
-  ],
   'string-interner': [
     'intern',
     'reallocate',

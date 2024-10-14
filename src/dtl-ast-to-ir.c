@@ -1151,9 +1151,6 @@ dtl_ast_to_ir(
     context->num_exports = 0;
     context->exports = NULL;
 
-    //    dtl_ast_find_imports();
-    //    dtl_ast_find_imports(root, void (*callback)(struct dtl_ast_node *, void *), void *user_data) {
-
     statements = dtl_ast_script_node_get_statements(root);
     for (i = 0; i < dtl_ast_statement_list_node_get_num_statements(statements); i++) {
         statement = dtl_ast_statement_list_node_get_statement(statements, i);
