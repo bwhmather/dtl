@@ -1081,6 +1081,11 @@ dtl_eval(
     }
     free(context.values);
 
+    for (size_t i = 0; i < context.num_imports; i++) {
+        dtl_io_table_destroy(context.imports[i].table);
+    }
+    free(context.imports);
+
     free(context.columns);
 
     dtl_ir_graph_destroy(graph);
