@@ -276,7 +276,7 @@ dtl_ast_to_ir_context_export_table(
     }
     if (export == NULL) {
         context->exports = realloc(
-            context->exports, sizeof(struct dtl_ast_to_ir_export) * context->num_exports + 1
+            context->exports, sizeof(struct dtl_ast_to_ir_export) * (context->num_exports + 1)
         );
         context->num_exports += 1;
         export = &context->exports[context->num_exports - 1];

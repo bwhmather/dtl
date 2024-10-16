@@ -42,11 +42,11 @@ dtl_io_importer_import_table(struct dtl_io_importer *, char const *, struct dtl_
 /* === Exporters ================================================================================ */
 
 struct dtl_io_exporter {
-    enum dtl_status (*export_table)(struct dtl_io_exporter *, char const *, struct dtl_io_table *, struct dtl_error **);
+    enum dtl_status (*export_table)(struct dtl_io_exporter *, char const *, struct dtl_schema *, size_t, struct dtl_value **, struct dtl_error **);
 };
 
 enum dtl_status
-dtl_io_exporter_export_table(struct dtl_io_exporter *, char const *, struct dtl_io_table *, struct dtl_error **);
+dtl_io_exporter_export_table(struct dtl_io_exporter *, char const *, struct dtl_schema *, size_t, struct dtl_value **, struct dtl_error **);
 
 /* === Tracers ================================================================================== */
 

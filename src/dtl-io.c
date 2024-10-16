@@ -64,13 +64,21 @@ dtl_io_importer_import_table(struct dtl_io_importer *importer, char const *name,
 /* === Exporters ================================================================================ */
 
 enum dtl_status
-dtl_io_exporter_export_table(struct dtl_io_exporter *exporter, char const *name, struct dtl_io_table *table, struct dtl_error **error) {
+dtl_io_exporter_export_table(
+    struct dtl_io_exporter *exporter,
+    char const *name,
+    struct dtl_schema *schema,
+    size_t num_rows,
+    struct dtl_value **values,
+    struct dtl_error **error
+) {
     assert(exporter != NULL);
     assert(exporter->export_table != NULL);
     assert(name != NULL);
-    assert(table != NULL);
+    assert(schema != NULL);
+    assert(values != NULL);
 
-    return exporter->export_table(exporter, name, table, error);
+    return exporter->export_table(exporter, name, schema, num_rows, values, error);
 }
 
 /* === Tracers ================================================================================== */

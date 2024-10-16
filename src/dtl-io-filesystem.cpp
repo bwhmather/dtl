@@ -241,12 +241,12 @@ static enum dtl_status
 dtl_io_filesystem_exporter_export_table(
     struct dtl_io_exporter* exporter,
     char const* table_name,
-    struct dtl_io_table* table,
+    struct dtl_schema *schema,
+    size_t num_rows,
+    struct dtl_value **values,
     struct dtl_error **error
 ) {
     struct dtl_io_filesystem_exporter* fs_exporter;
-    struct dtl_schema *schema;
-    size_t num_rows;
     size_t col;
     size_t row;
     enum dtl_dtype col_dtype;
@@ -259,22 +259,18 @@ dtl_io_filesystem_exporter_export_table(
     std::shared_ptr<arrow::Table> arrow_table;
     std::filesystem::path output_path;
     std::shared_ptr<arrow::io::FileOutputStream> outfile;
-    enum dtl_status status;
 
     (void) error;
 
     assert(exporter != NULL);
     assert(exporter->export_table == dtl_io_filesystem_exporter_export_table);
     assert(table_name != NULL);
-    assert(table != NULL);
+    assert(schema != NULL);
+    assert(values != NULL);
 
     fs_exporter = (struct dtl_io_filesystem_exporter*)exporter;
 
-    schema = dtl_io_table_get_schema(table);
-
     pool = arrow::default_memory_pool();
-
-    num_rows = dtl_io_table_get_num_rows(table);
 
     std::vector<std::shared_ptr<arrow::Field>> schema_columns;
     std::vector<std::shared_ptr<arrow::Array>> table_columns;
@@ -287,25 +283,26 @@ dtl_io_filesystem_exporter_export_table(
         case DTL_DTYPE_BOOL_ARRAY: {
             arrow::BooleanBuilder builder(pool);
             arrow_status = builder.Resize(num_rows);
-            assert(arrow_status.ok()); // TODO
-
-            struct dtl_value value;
-            status = dtl_io_table_read_column_data(table, col, &value, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
+            if (!arrow_status.ok()) {
+                dtl_io_filesystem_set_error_from_arrow_status(error, arrow_status);
+                return DTL_STATUS_ERROR;
             }
 
-            void *array = dtl_value_get_bool_array(&value);
+            void *array = dtl_value_get_bool_array(values[col]);
 
             for (row = 0; row < num_rows; row++) {
                 arrow_status = builder.Append(dtl_bool_array_get(array, row));
-                assert(arrow_status.ok());
+                if (!arrow_status.ok()) {
+                    dtl_io_filesystem_set_error_from_arrow_status(error, arrow_status);
+                    return DTL_STATUS_ERROR;
+                }
             }
 
             arrow_status = builder.Finish(&arrow_array);
-            assert(arrow_status.ok()); // TODO
-
-            dtl_value_clear_bool_array(&value, num_rows);
+            if (!arrow_status.ok()) {
+               dtl_io_filesystem_set_error_from_arrow_status(error, arrow_status);
+               return DTL_STATUS_ERROR;
+            }
 
             break;
         }
@@ -313,25 +310,26 @@ dtl_io_filesystem_exporter_export_table(
             arrow::Int64Builder builder(pool);
 
             arrow_status = builder.Resize(num_rows);
-            assert(arrow_status.ok()); // TODO
-
-            struct dtl_value value;
-            status = dtl_io_table_read_column_data(table, col, &value, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
+            if (!arrow_status.ok()) {
+                dtl_io_filesystem_set_error_from_arrow_status(error, arrow_status);
+                return DTL_STATUS_ERROR;
             }
 
-            int64_t *array = dtl_value_get_int64_array(&value);
+            int64_t *array = dtl_value_get_int64_array(values[col]);
 
             for (row = 0; row < num_rows; row++) {
                 arrow_status = builder.Append(dtl_int64_array_get(array, row));
-                assert(arrow_status.ok());
+                if (!arrow_status.ok()) {
+                    dtl_io_filesystem_set_error_from_arrow_status(error, arrow_status);
+                    return DTL_STATUS_ERROR;
+                }
             }
 
             arrow_status = builder.Finish(&arrow_array);
-            assert(arrow_status.ok()); // TODO
-
-            dtl_value_clear_int64_array(&value, num_rows);
+            if (!arrow_status.ok()) {
+                dtl_io_filesystem_set_error_from_arrow_status(error, arrow_status);
+                return DTL_STATUS_ERROR;
+            }
 
             break;
         }
