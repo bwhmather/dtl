@@ -106,6 +106,7 @@ py_test_suites = {
     'export-twice',
     'less-than',
     'rename-columns',
+    'split-columns',
     'subset-columns',
   ],
   'lint': [
