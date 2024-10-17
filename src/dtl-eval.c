@@ -745,6 +745,14 @@ dtl_eval(
     dtl_ast_node_destroy(root);
     dtl_ir_viz(stderr, graph);
 
+    // === Generate Mappings =======================================================================
+
+    // Generate initial mappings for all reachable expressions pairs.
+    // TODO
+
+    // Merge mappings between expressions that aren't in the roots list.
+    // TODO
+
     // === Optimise IR =============================================================================
 
     // Optimise regular joins to iteration on one side and lookup on index on other.
@@ -756,15 +764,7 @@ dtl_eval(
     // Drop unreachable IR expressions.
     // TODO
 
-    // After this point the expression graph is frozen.  We no longer need to update mappings.
-
-    // === Generate Mappings =======================================================================
-
-    // Generate initial mappings for all reachable expressions pairs.
-    // TODO
-
-    // Merge mappings between expressions that aren't in the roots list.
-    // TODO
+    // After this point the expression graph is frozen.  We no longer need to update roots.
 
     // === Compile Reachable Expressions to Command List ===========================================
     // TODO
