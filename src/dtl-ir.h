@@ -47,7 +47,7 @@ dtl_ir_graph_get_size(struct dtl_ir_graph *graph);
 /* --- Lifecycle -------------------------------------------------------------------------------- */
 
 struct dtl_ir_graph *
-dtl_ir_graph_create(size_t nodes_capacity, size_t deps_capacity);
+dtl_ir_graph_create(void);
 
 void
 dtl_ir_graph_destroy(struct dtl_ir_graph *graph);

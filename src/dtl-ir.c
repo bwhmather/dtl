@@ -126,7 +126,13 @@ dtl_ir_scratch_begin(struct dtl_ir_graph *graph, enum dtl_ir_op op, enum dtl_dty
     assert(op != 0);
     assert(dtype != 0);
 
-    assert(graph->to_space.expressions_length < graph->to_space.expressions_capacity); // TODO runtime error.
+    if (graph->to_space.expressions_length == graph->to_space.expressions_capacity) {
+        graph->to_space.expressions_capacity *= 3;
+        graph->to_space.expressions_capacity /= 2;
+        graph->to_space.expressions = realloc(
+            graph->to_space.expressions, sizeof(struct dtl_ir_expression) * graph->to_space.expressions_capacity
+        );
+    }
 
     expression = &graph->to_space.expressions[graph->to_space.expressions_length];
     memset(expression, 0, sizeof(struct dtl_ir_expression));
@@ -210,7 +216,13 @@ dtl_ir_scratch_add_dependency(struct dtl_ir_graph *graph, struct dtl_ir_ref depe
     assert(graph != NULL);
     assert(graph->writing);
 
-    assert(graph->to_space.dependencies_length < graph->to_space.dependencies_capacity); // TODO runtime error.
+    if (graph->to_space.dependencies_length == graph->to_space.dependencies_capacity) {
+        graph->to_space.dependencies_capacity *= 3;
+        graph->to_space.dependencies_capacity /= 2;
+        graph->to_space.dependencies = realloc(
+            graph->to_space.dependencies, sizeof(struct dtl_ir_ref) * graph->to_space.dependencies_capacity
+        );
+    }
 
     if (graph->transforming) {
         dtl_ir_graph_remap_ref(graph, &dependency);
@@ -458,7 +470,9 @@ dtl_ir_graph_get_size(struct dtl_ir_graph *graph) {
 /* --- Lifecycle -------------------------------------------------------------------------------- */
 
 struct dtl_ir_graph *
-dtl_ir_graph_create(size_t expressions_capacity, size_t dependencies_capacity) {
+dtl_ir_graph_create(void) {
+    size_t expressions_capacity;
+    size_t dependencies_capacity;
     struct dtl_ir_graph *graph = NULL;
     struct dtl_ir_expression *to_expressions = NULL;
     struct dtl_ir_ref *to_dependencies = NULL;
@@ -467,8 +481,8 @@ dtl_ir_graph_create(size_t expressions_capacity, size_t dependencies_capacity) {
     uint64_t *marks = NULL;
     struct dtl_ir_ref *relocations = NULL;
 
-    assert(expressions_capacity < (1 << 30));
-    assert(dependencies_capacity < (1 << 30));
+    expressions_capacity = 32;
+    dependencies_capacity = 32;
 
     to_expressions = calloc(expressions_capacity, sizeof(struct dtl_ir_expression));
     if (to_expressions == NULL) {

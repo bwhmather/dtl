@@ -721,7 +721,7 @@ dtl_eval(
 
     // === Compile AST to List of Tables Referencing IR Expressions ================================
 
-    graph = dtl_ir_graph_create(1024, 1024);
+    graph = dtl_ir_graph_create();
     context = (struct dtl_eval_context){
         .importer = importer,
         .exporter = exporter,
