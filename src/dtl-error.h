@@ -23,6 +23,9 @@ void
 dtl_error_set_location(struct dtl_error *error, struct dtl_location start, struct dtl_location end);
 
 void
+dtl_error_shrink_location(struct dtl_error *error, struct dtl_location start, struct dtl_location end);
+
+void
 dtl_set_error(struct dtl_error **error, struct dtl_error *value);
 
 void

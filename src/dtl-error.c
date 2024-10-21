@@ -48,6 +48,20 @@ dtl_error_set_location(struct dtl_error *error, struct dtl_location start, struc
 }
 
 void
+dtl_error_shrink_location(struct dtl_error *error, struct dtl_location start, struct dtl_location end) {
+    assert(error != NULL);
+    assert(start.filename == end.filename);
+
+    if (error->start.filename != start.filename || error->start.offset < start.offset) {
+        error->start = start;
+    }
+
+    if (error->end.filename != end.filename || error->end.offset > end.offset) {
+        error->end = end;
+    }
+}
+
+void
 dtl_set_error(struct dtl_error **error, struct dtl_error *value) {
     if (*error == value) {
         return;

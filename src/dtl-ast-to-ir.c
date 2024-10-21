@@ -412,6 +412,7 @@ dtl_ast_to_ir_compile_equal_to_expression(
     right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
     if (left_dtype != right_dtype) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -419,6 +420,7 @@ dtl_ast_to_ir_compile_equal_to_expression(
     right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
     if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -462,6 +464,7 @@ dtl_ast_to_ir_compile_less_than_expression(
     right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
     if (left_dtype != right_dtype) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -469,6 +472,7 @@ dtl_ast_to_ir_compile_less_than_expression(
     right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
     if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -512,6 +516,7 @@ dtl_ast_to_ir_compile_less_than_or_equal_to_expression(
     right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
     if (left_dtype != right_dtype) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -519,6 +524,7 @@ dtl_ast_to_ir_compile_less_than_or_equal_to_expression(
     right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
     if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -562,6 +568,7 @@ dtl_ast_to_ir_compile_greater_than_expression(
     right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
     if (left_dtype != right_dtype) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -569,6 +576,7 @@ dtl_ast_to_ir_compile_greater_than_expression(
     right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
     if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -612,6 +620,7 @@ dtl_ast_to_ir_compile_greater_than_or_equal_to_expression(
     right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
     if (left_dtype != right_dtype) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -619,6 +628,7 @@ dtl_ast_to_ir_compile_greater_than_or_equal_to_expression(
     right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
     if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -662,6 +672,7 @@ dtl_ast_to_ir_compile_add_expression(
     right_dtype = dtl_ir_expression_get_dtype(context->graph, right_expression);
     if (left_dtype != right_dtype) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -669,6 +680,7 @@ dtl_ast_to_ir_compile_add_expression(
     right_shape = dtl_ir_array_expression_get_shape(context->graph, right_expression);
     if (!dtl_ir_ref_equal(context->graph, left_shape, right_shape)) {
         dtl_set_error(error, dtl_error_create("mismatched shapes"));
+        dtl_error_shrink_location(*error, dtl_ast_node_get_start(expression_node), dtl_ast_node_get_end(expression_node));
         return DTL_IR_NULL_REF;
     }
 
@@ -838,7 +850,8 @@ dtl_ast_to_ir_compile_select_expression(
             binding_name = dtl_ast_to_ir_expression_name(binding_expression_node);
             if (binding_name == NULL) {
                 dtl_set_error(error, dtl_error_create("column has no obvious name"));
-                return NULL; // TODO set error.
+                dtl_error_shrink_location(*error, dtl_ast_node_get_start(binding_expression_node), dtl_ast_node_get_end(binding_expression_node));
+                return NULL;
             }
             binding_name = dtl_ir_graph_intern(context->graph, binding_name);
             binding_namespace = NULL;
