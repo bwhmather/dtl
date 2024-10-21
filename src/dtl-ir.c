@@ -665,7 +665,7 @@ dtl_ir_is_shape_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref express
 struct dtl_ir_ref
 dtl_ir_table_shape_expression_create(struct dtl_ir_graph *graph, struct dtl_ir_ref table) {
     assert(graph != NULL);
-    assert(dtl_ir_expression_get_dtype(graph, table) == DTL_DTYPE_TABLE);
+    assert(dtl_ir_expression_get_dtype(graph, table) == DTL_DTYPE_INDEX);
 
     dtl_ir_scratch_begin(graph, DTL_IR_OP_TABLE_SHAPE, DTL_DTYPE_INDEX);
     dtl_ir_scratch_add_dependency(graph, table);
@@ -876,7 +876,7 @@ dtl_ir_open_table_expression_create(struct dtl_ir_graph *graph, const char *path
     assert(graph != NULL);
     assert(path != NULL);
 
-    dtl_ir_scratch_begin(graph, DTL_IR_OP_OPEN_TABLE, DTL_DTYPE_TABLE);
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_OPEN_TABLE, DTL_DTYPE_INDEX);
     dtl_ir_scratch_set_ident(graph, path);
     return dtl_ir_scratch_end(graph);
 }
@@ -908,7 +908,7 @@ dtl_ir_read_column_expression_create(
     assert(graph != NULL);
     assert(dtl_dtype_is_array_type(dtype));
     assert(dtl_ir_is_shape_expression(graph, shape));
-    assert(dtl_ir_expression_get_dtype(graph, table) == DTL_DTYPE_TABLE);
+    assert(dtl_ir_expression_get_dtype(graph, table) == DTL_DTYPE_INDEX);
     assert(column_name != NULL);
 
     dtl_ir_scratch_begin(graph, DTL_IR_OP_READ_COLUMN, dtype);

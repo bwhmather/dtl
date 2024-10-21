@@ -108,14 +108,6 @@ dtl_eval_context_load_string_array(struct dtl_eval_context *context, struct dtl_
 }
 */
 
-static struct dtl_io_table *
-dtl_eval_context_load_table(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
-    size_t index;
-    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_TABLE);
-    index = dtl_ir_ref_to_index(context->graph, expression);
-    return dtl_value_get_table(&context->values[index]);
-}
-
 /* --- Store ------------------------------------------------------------------------------------ */
 
 static void
@@ -154,18 +146,6 @@ dtl_eval_context_store_int64_array(
     dtl_value_take_int64_array(&context->values[index], array);
 }
 
-static void
-dtl_eval_context_store_table(
-    struct dtl_eval_context *context,
-    struct dtl_ir_ref expression,
-    struct dtl_io_table *table
-) {
-    size_t index;
-    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_TABLE);
-    index = dtl_ir_ref_to_index(context->graph, expression);
-    dtl_value_take_table(&context->values[index], table);
-}
-
 /* --- Clear ------------------------------------------------------------------------------------ */
 
 static void
@@ -195,9 +175,6 @@ dtl_eval_context_clear(
         break;
     case DTL_DTYPE_INDEX:
         dtl_value_clear_index(value);
-        break;
-    case DTL_DTYPE_TABLE:
-        dtl_value_clear_table(value);
         break;
     case DTL_DTYPE_BOOL_ARRAY:
         free(value->as_bool_array);
@@ -311,6 +288,7 @@ dtl_eval_table_shape_expression(
     struct dtl_error **error
 ) {
     struct dtl_ir_ref table_expression;
+    size_t table_index;
     struct dtl_io_table *table;
     size_t table_size;
 
@@ -320,7 +298,10 @@ dtl_eval_table_shape_expression(
     assert(dtl_ir_is_table_shape_expression(context->graph, expression));
 
     table_expression = dtl_ir_table_shape_expression_get_table(context->graph, expression);
-    table = dtl_eval_context_load_table(context, table_expression);
+    table_index = dtl_eval_context_load_index(context, table_expression);
+
+    assert(table_index < context->num_imports);
+    table = context->imports[table_index].table;
 
     table_size = dtl_io_table_get_num_rows(table);
 
@@ -334,20 +315,23 @@ dtl_eval_open_table_expression(
     struct dtl_ir_ref expression,
     struct dtl_error **error
 ) {
+    size_t i;
     char const *path;
-    struct dtl_io_table *table;
+
+    (void) error;
 
     assert(context != NULL);
     assert(dtl_ir_is_open_table_expression(context->graph, expression));
 
     path = dtl_ir_open_table_expression_get_path(context->graph, expression);
-    table = dtl_io_importer_import_table(context->importer, path, error);
-    if (table == NULL) {
-        return DTL_STATUS_ERROR;
+    for (i = 0; i < context->num_imports; i++) {
+        if (path == context->imports[i].name) { // Interned.
+            dtl_eval_context_store_index(context, expression, i);
+            return DTL_STATUS_OK;
+        }
     }
 
-    dtl_eval_context_store_table(context, expression, table);
-    return DTL_STATUS_OK;
+    assert(false);  // Should not be possible.
 }
 
 static enum dtl_status
@@ -357,6 +341,7 @@ dtl_eval_read_column_expression(
     struct dtl_error **error
 ) {
     struct dtl_ir_ref table_expression;
+    size_t table_index;
     struct dtl_io_table *table;
     struct dtl_schema *schema;
     char const *column_name;
@@ -368,7 +353,11 @@ dtl_eval_read_column_expression(
     assert(dtl_ir_is_read_column_expression(context->graph, expression));
 
     table_expression = dtl_ir_read_column_expression_get_table(context->graph, expression);
-    table = dtl_eval_context_load_table(context, table_expression);
+    table_index = dtl_eval_context_load_index(context, table_expression);
+
+    assert(table_index < context->num_imports);
+    table = context->imports[table_index].table;
+
     schema = dtl_io_table_get_schema(table);
 
     column_name = dtl_ir_read_column_expression_get_column_name(context->graph, expression);

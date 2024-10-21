@@ -12,7 +12,6 @@
 #include "dtl-dtype.h"
 #include "dtl-index-array.h"
 #include "dtl-int64-array.h"
-#include "dtl-io.h"
 #include "dtl-string-array.h"
 
 /* --- Booleans --------------------------------------------------------------------------------- */
@@ -198,41 +197,6 @@ dtl_value_clear_index(struct dtl_value *value) {
 #endif
 
     value->as_index = 0;
-}
-
-/* --- Tables ----------------------------------------------------------------------------------- */
-
-void
-dtl_value_take_table(struct dtl_value *value, struct dtl_io_table *table) {
-    assert(value != NULL);
-    assert(value->dtype == 0);
-
-#ifndef NDEBUG
-    value->dtype = DTL_DTYPE_TABLE;
-#endif
-
-    value->as_table = table;
-}
-
-struct dtl_io_table *
-dtl_value_get_table(struct dtl_value *value) {
-    assert(value != NULL);
-    assert(value->dtype == DTL_DTYPE_TABLE);
-
-    return value->as_table;
-}
-
-void
-dtl_value_clear_table(struct dtl_value *value) {
-    assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_TABLE);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
-
-    dtl_io_table_destroy(value->as_table);
-    value->as_table = NULL;
 }
 
 /* --- Boolean Arrays --------------------------------------------------------------------------- */

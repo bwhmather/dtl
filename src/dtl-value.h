@@ -17,7 +17,6 @@ struct dtl_value {
         double as_double;
         char *as_string;
         size_t as_index;
-        struct dtl_io_table *as_table;
 
         bool *as_bool_array;
         int64_t *as_int64_array;
@@ -84,17 +83,6 @@ dtl_value_get_index(struct dtl_value *value);
 
 void
 dtl_value_clear_index(struct dtl_value *value);
-
-/* --- Tables ----------------------------------------------------------------------------------- */
-
-void
-dtl_value_take_table(struct dtl_value *value, struct dtl_io_table *table);
-
-struct dtl_io_table *
-dtl_value_get_table(struct dtl_value *value);
-
-void
-dtl_value_clear_table(struct dtl_value *value);
 
 /* --- Boolean Arrays --------------------------------------------------------------------------- */
 

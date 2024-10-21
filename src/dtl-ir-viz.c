@@ -87,8 +87,6 @@ dtl_ir_viz_get_dtype_name(struct dtl_ir_graph *graph, struct dtl_ir_ref expressi
         return "STRING";
     case DTL_DTYPE_INDEX:
         return "INDEX";
-    case DTL_DTYPE_TABLE:
-        return "TABLE";
 
     case DTL_DTYPE_BOOL_ARRAY:
         return "BOOL[]";
