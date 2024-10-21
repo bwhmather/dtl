@@ -1194,7 +1194,6 @@ dtl_ast_to_ir(
 
     for (i = 0; i < context->num_exports; i++) {
         context->export_callback(
-
             context->exports[i].name,
             context->exports[i].schema,
             context->exports[i].expressions, context->user_data

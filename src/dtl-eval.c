@@ -318,7 +318,7 @@ dtl_eval_open_table_expression(
     size_t i;
     char const *path;
 
-    (void) error;
+    (void)error;
 
     assert(context != NULL);
     assert(dtl_ir_is_open_table_expression(context->graph, expression));
@@ -331,7 +331,7 @@ dtl_eval_open_table_expression(
         }
     }
 
-    assert(false);  // Should not be possible.
+    assert(false); // Should not be possible.
 }
 
 static enum dtl_status
