@@ -5,6 +5,8 @@
 #include <stdint.h>
 
 struct dtl_location {
+    char const *filename;
+
     /* Byte offset of the beginning character in the string. */
     size_t offset;
 
@@ -15,7 +17,7 @@ struct dtl_location {
     size_t column;
 };
 
-static const struct dtl_location DTL_LOCATION_NULL = {.offset = SIZE_MAX, .lineno = SIZE_MAX, .column = SIZE_MAX};
+static const struct dtl_location DTL_LOCATION_NULL = {.filename = NULL, .offset = SIZE_MAX, .lineno = SIZE_MAX, .column = SIZE_MAX};
 
 bool
 dtl_location_is_null(struct dtl_location location);

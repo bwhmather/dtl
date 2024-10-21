@@ -687,6 +687,7 @@ dtl_eval_add_expression(
 enum dtl_status
 dtl_eval(
     char const *source,
+    char const *filename,
     struct dtl_io_importer *importer,
     struct dtl_io_exporter *exporter,
     struct dtl_io_tracer *tracer,
@@ -703,7 +704,7 @@ dtl_eval(
 
     // === Parse Source Code =======================================================================
 
-    tokenizer = dtl_tokenizer_create(source);
+    tokenizer = dtl_tokenizer_create(source, filename);
     parse_result = dtl_parser_parse(tokenizer, &root);
     assert(parse_result == 0);
     dtl_tokenizer_destroy(tokenizer);

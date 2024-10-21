@@ -13,15 +13,18 @@ struct dtl_tokenizer {
     char const *input;
     char const *next;
 
+    char const *filename;
+
     size_t lineno;
     size_t column;
 };
 
 struct dtl_tokenizer *
-dtl_tokenizer_create(char const *input) {
+dtl_tokenizer_create(char const *input, char const *filename) {
     struct dtl_tokenizer *tokenizer = calloc(1, sizeof(struct dtl_tokenizer));
     tokenizer->input = input;
     tokenizer->next = input;
+    tokenizer->filename = filename;
     return tokenizer;
 }
 
@@ -357,6 +360,7 @@ dtl_tokenizer_next_type(struct dtl_tokenizer *tokenizer) {
 struct dtl_token
 dtl_tokenizer_next_token(struct dtl_tokenizer *tokenizer) {
     struct dtl_location start = {
+        .filename = tokenizer->filename,
         .offset = tokenizer->next - tokenizer->input,
         .lineno = tokenizer->lineno,
         .column = tokenizer->column,
@@ -365,6 +369,7 @@ dtl_tokenizer_next_token(struct dtl_tokenizer *tokenizer) {
     enum dtl_token_type type = dtl_tokenizer_next_type(tokenizer);
 
     struct dtl_location end = {
+        .filename = tokenizer->filename,
         .offset = tokenizer->next - tokenizer->input,
         .lineno = tokenizer->lineno,
         .column = tokenizer->column,

@@ -41,6 +41,8 @@ dtl_error_destroy(struct dtl_error *error) {
 void
 dtl_error_set_location(struct dtl_error *error, struct dtl_location start, struct dtl_location end) {
     assert(error != NULL);
+    assert(start.filename == end.filename);
+
     error->start = start;
     error->end = end;
 }

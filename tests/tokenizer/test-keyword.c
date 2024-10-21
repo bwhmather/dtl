@@ -6,10 +6,11 @@
 int
 main(void) {
     char const *source = "AS";
+    char const *filename = "keyword.dtl";
     struct dtl_tokenizer *tokenizer;
     struct dtl_token token;
 
-    tokenizer = dtl_tokenizer_create(source);
+    tokenizer = dtl_tokenizer_create(source, filename);
 
     token = dtl_tokenizer_next_token(tokenizer);
     dtl_assert(token.type == DTL_TOKEN_AS);

@@ -10,10 +10,11 @@ main(void) {
         "output = SELECT old_column AS new_column FROM input;\n"
         "EXPORT output TO 'output';\n"
     );
+    char const *filename = "basic.dtl";
     struct dtl_tokenizer *tokenizer;
     size_t count = 0;
 
-    tokenizer = dtl_tokenizer_create(source);
+    tokenizer = dtl_tokenizer_create(source, filename);
 
     while (dtl_tokenizer_next_token(tokenizer).type != DTL_TOKEN_END_OF_FILE) {
         count++;

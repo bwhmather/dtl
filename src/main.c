@@ -109,7 +109,7 @@ main(int argc, char **argv) {
     exporter = dtl_io_filesystem_exporter_create(output_path);
     tracer = dtl_io_filesystem_tracer_create(trace_path);
 
-    status = dtl_eval(source, importer, exporter, tracer, &error);
+    status = dtl_eval(source, source_path, importer, exporter, tracer, &error);
 
     free(source);
 

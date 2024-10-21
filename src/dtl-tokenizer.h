@@ -5,7 +5,7 @@
 struct dtl_tokenizer;
 
 struct dtl_tokenizer *
-dtl_tokenizer_create(char const *input);
+dtl_tokenizer_create(char const *input, char const *filename);
 
 void
 dtl_tokenizer_destroy(struct dtl_tokenizer *tokenizer);

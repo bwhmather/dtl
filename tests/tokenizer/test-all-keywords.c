@@ -23,9 +23,10 @@ main(void) {
         "WHERE\n"
         "WITH"
     );
+    char const *filename = "all-keywords.dtl";
     struct dtl_tokenizer *tokenizer;
 
-    tokenizer = dtl_tokenizer_create(source);
+    tokenizer = dtl_tokenizer_create(source, filename);
 
     dtl_assert(dtl_tokenizer_next_token(tokenizer).type == DTL_TOKEN_AS);
     dtl_assert(dtl_tokenizer_next_token(tokenizer).type == DTL_TOKEN_WHITESPACE);
