@@ -238,13 +238,24 @@ dtl_ast_to_ir_context_trace_statement(
     struct dtl_ast_to_ir_context *context,
     struct dtl_location start,
     struct dtl_location end,
-    struct dtl_ast_to_ir_scope *table
+    struct dtl_ast_to_ir_scope *scope
 ) {
-    // TODO
-    (void)context;
-    (void)start;
-    (void)end;
-    (void)table;
+    size_t i;
+    struct dtl_ast_to_ir_scope_column *column;
+
+    assert(context != NULL);
+    assert(start.filename == end.filename);
+    assert(scope != NULL);
+
+    if (context->trace_callback == NULL) {
+        return;
+    }
+
+    for (i = 0; i < scope->num_columns; i++) {
+        column = &scope->columns[i];
+        // TODO what should be done with column namespace?
+        context->trace_callback(start, end, column->name, column->expression, context->user_data);
+    }
 }
 
 static void
