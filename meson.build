@@ -39,6 +39,7 @@ lib_sources = [
   'src/dtl-ir.c',
   'src/dtl-ir-viz.c',
   'src/dtl-location.c',
+  'src/dtl-manifest.c',
   'src/dtl-schema.c',
   'src/dtl-string-array.c',
   'src/dtl-string-interner.c',
