@@ -1,1 +1,3 @@
 __pycache__/
+/subprojects/packagecache/
+/subprojects/libduckdb-1.1.2/

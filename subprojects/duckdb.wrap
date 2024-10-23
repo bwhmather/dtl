@@ -1,0 +1,10 @@
+[wrap-file]
+directory = libduckdb-1.1.2
+source_url = https://github.com/duckdb/duckdb/releases/download/v1.1.2/libduckdb-src.zip
+source_filename = libduckdb-1.1.2.zip
+source_hash = 8b30ec65addfe423fc18f8403bd958953d01a3193ec8b3bc2e43073433d94e47
+lead_directory_missing = true
+patch_directory = duckdb
+
+[provide]
+duckdb = duckdb_dep

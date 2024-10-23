@@ -6,11 +6,12 @@ cc = meson.get_compiler('cpp')
 
 m_dep = cc.find_library('m', required : false)
 arrow_dep = dependency('arrow')
+duckdb_dep = dependency('duckdb')
 parquet_dep = dependency('parquet')
 uuid_dep = dependency('uuid')
 xxhash_dep = dependency('libxxhash')
 
-dependencies = [m_dep, arrow_dep, parquet_dep, uuid_dep, xxhash_dep]
+dependencies = [m_dep, arrow_dep, duckdb_dep, parquet_dep, uuid_dep, xxhash_dep]
 
 includes = include_directories('src')
 
