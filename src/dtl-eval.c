@@ -700,7 +700,10 @@ dtl_eval(
     struct dtl_ir_graph *graph;
     struct dtl_eval_context context;
 
-    (void)tracer;
+    status = dtl_io_tracer_record_source(tracer, source, filename, error);
+    if (status != DTL_STATUS_OK) {
+        return status;
+    }
 
     // === Parse Source Code =======================================================================
 

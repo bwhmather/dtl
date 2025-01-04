@@ -10,6 +10,7 @@
 
 #include "dtl-error.h"
 #include "dtl-eval.h"
+#include "dtl-io-duckdb.h"
 #include "dtl-io-filesystem.h"
 #include "dtl-io.h"
 
@@ -107,13 +108,25 @@ main(int argc, char **argv) {
 
     importer = dtl_io_filesystem_importer_create(input_path);
     exporter = dtl_io_filesystem_exporter_create(output_path);
-    tracer = dtl_io_filesystem_tracer_create(trace_path);
+    tracer = dtl_io_duckdb_tracer_create(trace_path, &error);
+    if (tracer == NULL) {
+        dtl_print_error(error);
+        dtl_clear_error(&error);
+        return 1;
+
+    }
 
     status = dtl_eval(source, source_path, importer, exporter, tracer, &error);
 
     free(source);
 
-    dtl_io_filesystem_tracer_destroy(tracer);
+    status = dtl_io_duckdb_tracer_destroy(tracer, &error);
+    if (status != DTL_STATUS_OK) {
+        dtl_print_error(error);
+        dtl_clear_error(&error);
+        return 1;
+    }
+
     dtl_io_filesystem_exporter_destroy(exporter);
     dtl_io_filesystem_importer_destroy(importer);
 

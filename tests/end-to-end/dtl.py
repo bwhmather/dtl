@@ -23,8 +23,7 @@ def run(source, /, *, inputs):
         output_path = root_path / "output"
         output_path.mkdir()
 
-        trace_path = root_path / "trace"
-        trace_path.mkdir()
+        trace_path = root_path / "trace.duckdb"
 
         subprocess.run(
             [_DTL, source_path, input_path, output_path, trace_path]

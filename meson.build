@@ -36,6 +36,7 @@ lib_sources = [
   'src/dtl-index-array.c',
   'src/dtl-int64-array.c',
   'src/dtl-io.c',
+  'src/dtl-io-duckdb.c',
   'src/dtl-io-filesystem.cpp',
   'src/dtl-ir.c',
   'src/dtl-ir-viz.c',
