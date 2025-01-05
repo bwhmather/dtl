@@ -12,7 +12,7 @@ dtl_ast_to_ir(
     struct dtl_ir_graph *graph,
     struct dtl_schema *(*import_callback)(char const *, struct dtl_error **, void *),
     void (*export_callback)(char const *, struct dtl_schema *, struct dtl_ir_ref *, void *),
-    void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *),
+    void (*trace_callback)(struct dtl_location, struct dtl_location, struct dtl_schema *, struct dtl_ir_ref *, void *),
     void *user_data,
     struct dtl_error **error
 );

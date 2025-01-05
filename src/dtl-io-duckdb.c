@@ -65,6 +65,7 @@ dtl_io_duckdb_tracer_record_input(
         state |= duckdb_append_varchar(tracer->input_appender, input_name);
         state |= duckdb_append_varchar(tracer->input_appender, column_name);
         state |= duckdb_append_int64(tracer->input_appender, array_ids[i]);
+        state |= duckdb_appender_end_row(tracer->input_appender);
     }
 
     if (state == DuckDBError) {
@@ -94,6 +95,7 @@ dtl_io_duckdb_tracer_record_output(
         state |= duckdb_append_varchar(tracer->output_appender, output_name);
         state |= duckdb_append_varchar(tracer->output_appender, column_name);
         state |= duckdb_append_int64(tracer->output_appender, array_ids[i]);
+        state |= duckdb_appender_end_row(tracer->output_appender);
     }
 
     if (state == DuckDBError) {
@@ -113,14 +115,26 @@ dtl_io_duckdb_tracer_record_trace(
     uint64_t *array_ids,
     struct dtl_error **error
 ) {
+    duckdb_state state = DuckDBSuccess;
     struct dtl_io_duckdb_tracer *tracer = (struct dtl_io_duckdb_tracer *)base_tracer;
+    size_t i;
+    char const *column_name;
 
-    (void)tracer;
-    (void)start;
-    (void)end;
-    (void)schema;
-    (void)array_ids;
-    (void)error;
+    for (i = 0; i < dtl_schema_get_num_columns(schema); i++) {
+        column_name = dtl_schema_get_column_name(schema, i);
+
+        state |= duckdb_append_varchar(tracer->trace_appender, start.filename);
+        state |= duckdb_append_int64(tracer->trace_appender, start.offset);
+        state |= duckdb_append_int64(tracer->trace_appender, end.offset);
+        state |= duckdb_append_varchar(tracer->trace_appender, column_name);
+        state |= duckdb_append_int64(tracer->trace_appender, array_ids[i]);
+        state |= duckdb_appender_end_row(tracer->trace_appender);
+    }
+
+    if (state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Could not append trace details: %s", duckdb_appender_error(tracer->trace_appender)));
+        return DTL_STATUS_ERROR;
+    }
 
     return DTL_STATUS_OK;
 }
@@ -299,10 +313,10 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
     db_state = duckdb_query(
         db_con,
         "CREATE TABLE mapping (\n"
-        "    src_expression INT NOT NULL,\n"  // Reference to expression table by index.
-        "    tgt_expression INT NOT NULL,\n"  // Reference to expression table by index.
+        "    src_expression INT NOT NULL,\n" // Reference to expression table by index.
+        "    tgt_expression INT NOT NULL,\n" // Reference to expression table by index.
         "    src_mapping_expression INT\n,"  // Reference to expression table by index.
-        "    tgt_mapping_expression INT\n"  // Reference to expression table by index.
+        "    tgt_mapping_expression INT\n"   // Reference to expression table by index.
         ");",
         &db_result
     );
@@ -333,25 +347,25 @@ dtl_io_duckdb_tracer_destroy(struct dtl_io_tracer *base_tracer, struct dtl_error
 
     db_state = duckdb_appender_close(tracer->mapping_appender);
     if (db_state == DuckDBError) {
-        dtl_set_error(error, dtl_error_create("Error flushing mappings"));
+        dtl_set_error(error, dtl_error_create("Error flushing mappings: %s", duckdb_appender_error(tracer->mapping_appender)));
         goto cleanup;
     }
 
     db_state = duckdb_appender_close(tracer->trace_appender);
     if (db_state == DuckDBError) {
-        dtl_set_error(error, dtl_error_create("Error flushing traces"));
+        dtl_set_error(error, dtl_error_create("Error flushing traces: %s", duckdb_appender_error(tracer->trace_appender)));
         goto cleanup;
     }
 
     db_state = duckdb_appender_close(tracer->output_appender);
     if (db_state == DuckDBError) {
-        dtl_set_error(error, dtl_error_create("Error flushing outputs"));
+        dtl_set_error(error, dtl_error_create("Error flushing outputs: %s", duckdb_appender_error(tracer->output_appender)));
         goto cleanup;
     }
 
     db_state = duckdb_appender_close(tracer->input_appender);
     if (db_state == DuckDBError) {
-        dtl_set_error(error, dtl_error_create("Error flushing inputs"));
+        dtl_set_error(error, dtl_error_create("Error flushing inputs: %s", duckdb_appender_error(tracer->input_appender)));
         goto cleanup;
     }
 

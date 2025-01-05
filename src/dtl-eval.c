@@ -34,11 +34,11 @@ struct dtl_eval_context_export {
     struct dtl_ir_ref *expressions;
 };
 
-struct dtl_eval_context_column {
-    char const *table_name;
-    char const *column_name;
-    struct dtl_ir_ref shape;
-    struct dtl_ir_ref value;
+struct dtl_eval_context_trace {
+    struct dtl_location start;
+    struct dtl_location end;
+    struct dtl_schema *schema;
+    struct dtl_ir_ref *expressions;
 };
 
 struct dtl_eval_context {
@@ -52,6 +52,9 @@ struct dtl_eval_context {
 
     size_t num_exports;
     struct dtl_eval_context_export *exports;
+
+    size_t num_traces;
+    struct dtl_eval_context_trace *traces;
 
     struct dtl_value *values;
 };
@@ -266,15 +269,23 @@ static void
 dtl_eval_ast_to_ir_trace_callback(
     struct dtl_location start,
     struct dtl_location end,
-    char const *column_name,
-    struct dtl_ir_ref column_expression,
+    struct dtl_schema *schema,
+    struct dtl_ir_ref *expressions,
     void *user_data
 ) {
-    (void)start;
-    (void)end;
-    (void)column_name;
-    (void)column_expression;
-    (void)user_data;
+    struct dtl_eval_context *context = (struct dtl_eval_context *)user_data;
+    struct dtl_eval_context_trace *trace;
+
+    assert(context != NULL);
+
+    context->traces = realloc(context->traces, sizeof(struct dtl_eval_context_trace) * (context->num_traces + 1));
+    context->num_traces += 1;
+
+    trace = &context->traces[context->num_traces - 1];
+    trace->start = start;
+    trace->end = end;
+    trace->schema = schema;
+    trace->expressions = expressions;
 }
 
 /* === Operations =============================================================================== */
@@ -766,7 +777,20 @@ dtl_eval(
     // TODO
 
     // === Setup Tracing ===========================================================================
-    // TODO
+    for (size_t i = 0; i < context.num_traces; i++) {
+        struct dtl_eval_context_trace *trace = &context.traces[context.num_traces - 1];
+
+        uint64_t *array_ids = calloc(dtl_schema_get_num_columns(trace->schema), sizeof(uint64_t));
+        for (size_t j = 0; j < dtl_schema_get_num_columns(trace->schema); j++) {
+            array_ids[j] = dtl_ir_ref_to_index(graph, trace->expressions[j]);
+        }
+
+        status = dtl_io_tracer_record_trace(tracer, trace->start, trace->end, trace->schema, array_ids, error);
+        if (status != DTL_STATUS_OK) {
+            return status;
+        }
+        free(array_ids);
+    }
 
     // === Inject Commands to Collect Arrays After Use =============================================
     // TODO
@@ -960,6 +984,11 @@ dtl_eval(
     for (size_t i = 0; i < context.num_exports; i++) {
         dtl_schema_destroy(context.exports[i].schema);
         free(context.exports[i].expressions);
+    }
+
+    for (size_t i = 0; i < context.num_traces; i++) {
+        dtl_schema_destroy(context.traces[i].schema);
+        free(context.traces[i].expressions);
     }
 
     dtl_ir_graph_destroy(graph);

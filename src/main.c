@@ -113,7 +113,6 @@ main(int argc, char **argv) {
         dtl_print_error(error);
         dtl_clear_error(&error);
         return 1;
-
     }
 
     status = dtl_eval(source, source_path, importer, exporter, tracer, &error);

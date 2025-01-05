@@ -224,7 +224,7 @@ struct dtl_ast_to_ir_context {
     struct dtl_ir_graph *graph;
     struct dtl_schema *(*import_callback)(char const *, struct dtl_error **, void *);
     void (*export_callback)(char const *, struct dtl_schema *, struct dtl_ir_ref *, void *);
-    void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *);
+    void (*trace_callback)(struct dtl_location, struct dtl_location, struct dtl_schema *, struct dtl_ir_ref *, void *);
     void *user_data;
 
     struct dtl_ast_to_ir_scope *globals;
@@ -240,8 +240,13 @@ dtl_ast_to_ir_context_trace_statement(
     struct dtl_location end,
     struct dtl_ast_to_ir_scope *scope
 ) {
+    struct dtl_schema *schema;
+    struct dtl_ir_ref *expressions;
     size_t i;
-    struct dtl_ast_to_ir_scope_column *column;
+    char const *column_name;
+    // char const *column_namespace; TODO
+    struct dtl_ir_ref column_expression;
+    enum dtl_dtype column_dtype;
 
     assert(context != NULL);
     assert(start.filename == end.filename);
@@ -251,11 +256,21 @@ dtl_ast_to_ir_context_trace_statement(
         return;
     }
 
+    schema = dtl_schema_create();
+    expressions = calloc(scope->num_columns, sizeof(struct dtl_ir_ref));
+
+    // TODO deduplicate where namespaced and unnamespaced versions of same column exist.
     for (i = 0; i < scope->num_columns; i++) {
-        column = &scope->columns[i];
-        // TODO what should be done with column namespace?
-        context->trace_callback(start, end, column->name, column->expression, context->user_data);
+        column_name = scope->columns[i].name;
+        // column_namespace = scope->columns[i].namespace; TODO
+        column_expression = scope->columns[i].expression;
+        column_dtype = dtl_ir_expression_get_dtype(context->graph, column_expression);
+
+        schema = dtl_schema_add_column(schema, column_name, column_dtype);
+        expressions[i] = column_expression;
     }
+
+    context->trace_callback(start, end, schema, expressions, context->user_data);
 }
 
 static void
@@ -1174,7 +1189,7 @@ dtl_ast_to_ir(
     struct dtl_ir_graph *graph,
     struct dtl_schema *(*import_callback)(char const *, struct dtl_error **, void *),
     void (*export_callback)(char const *, struct dtl_schema *, struct dtl_ir_ref *, void *),
-    void (*trace_callback)(struct dtl_location, struct dtl_location, char const *, struct dtl_ir_ref, void *),
+    void (*trace_callback)(struct dtl_location, struct dtl_location, struct dtl_schema *, struct dtl_ir_ref *, void *),
     void *user_data,
     struct dtl_error **error
 ) {
