@@ -44,6 +44,7 @@ struct dtl_eval_context_trace {
 struct dtl_eval_context {
     struct dtl_io_importer *importer;
     struct dtl_io_exporter *exporter;
+    struct dtl_io_tracer *tracer;
 
     struct dtl_ir_graph *graph;
 
@@ -693,6 +694,76 @@ dtl_eval_add_expression(
     return DTL_STATUS_OK;
 }
 
+/* === Tracing ================================================================================== */
+
+static enum dtl_status
+dtl_eval_tracing_record_import_metadata(struct dtl_eval_context *context, struct dtl_error **error) {
+    (void)context;
+    (void)error;
+
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_tracing_record_export_metadata(struct dtl_eval_context *context, struct dtl_error **error) {
+    size_t i;
+    size_t j;
+    struct dtl_eval_context_export *export;
+    uint64_t *array_ids;
+    enum dtl_status status;
+
+    if (context->tracer == NULL) {
+        return DTL_STATUS_OK;
+    }
+
+    for (i = 0; i < context->num_exports; i++) {
+        export = &context->exports[context->num_exports - 1];
+
+        array_ids = calloc(dtl_schema_get_num_columns(export->schema), sizeof(uint64_t));
+        for (j = 0; j < dtl_schema_get_num_columns(export->schema); j++) {
+            array_ids[j] = dtl_ir_ref_to_index(context->graph, export->expressions[j]);
+        }
+
+        status = dtl_io_tracer_record_output(context->tracer, export->name, export->schema, array_ids, error);
+        if (status != DTL_STATUS_OK) {
+            return status;
+        }
+        free(array_ids);
+    }
+
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_tracing_record_trace_metadata(struct dtl_eval_context *context, struct dtl_error **error) {
+    size_t i;
+    size_t j;
+    struct dtl_eval_context_trace *trace;
+    uint64_t *array_ids;
+    enum dtl_status status;
+
+    if (context->tracer == NULL) {
+        return DTL_STATUS_OK;
+    }
+
+    for (i = 0; i < context->num_traces; i++) {
+        trace = &context->traces[context->num_traces - 1];
+
+        array_ids = calloc(dtl_schema_get_num_columns(trace->schema), sizeof(uint64_t));
+        for (j = 0; j < dtl_schema_get_num_columns(trace->schema); j++) {
+            array_ids[j] = dtl_ir_ref_to_index(context->graph, trace->expressions[j]);
+        }
+
+        status = dtl_io_tracer_record_trace(context->tracer, trace->start, trace->end, trace->schema, array_ids, error);
+        if (status != DTL_STATUS_OK) {
+            return status;
+        }
+        free(array_ids);
+    }
+
+    return DTL_STATUS_OK;
+}
+
 /* === Eval ===================================================================================== */
 
 enum dtl_status
@@ -777,19 +848,19 @@ dtl_eval(
     // TODO
 
     // === Setup Tracing ===========================================================================
-    for (size_t i = 0; i < context.num_traces; i++) {
-        struct dtl_eval_context_trace *trace = &context.traces[context.num_traces - 1];
+    status = dtl_eval_tracing_record_import_metadata(&context, error);
+    if (status != DTL_STATUS_OK) {
+        return status;
+    }
 
-        uint64_t *array_ids = calloc(dtl_schema_get_num_columns(trace->schema), sizeof(uint64_t));
-        for (size_t j = 0; j < dtl_schema_get_num_columns(trace->schema); j++) {
-            array_ids[j] = dtl_ir_ref_to_index(graph, trace->expressions[j]);
-        }
+    status = dtl_eval_tracing_record_export_metadata(&context, error);
+    if (status != DTL_STATUS_OK) {
+        return status;
+    }
 
-        status = dtl_io_tracer_record_trace(tracer, trace->start, trace->end, trace->schema, array_ids, error);
-        if (status != DTL_STATUS_OK) {
-            return status;
-        }
-        free(array_ids);
+    status = dtl_eval_tracing_record_trace_metadata(&context, error);
+    if (status != DTL_STATUS_OK) {
+        return status;
     }
 
     // === Inject Commands to Collect Arrays After Use =============================================
