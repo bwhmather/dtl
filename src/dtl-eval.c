@@ -765,6 +765,30 @@ dtl_eval_tracing_record_trace_metadata(struct dtl_eval_context *context, struct 
     return DTL_STATUS_OK;
 }
 
+static void *
+dtl_eval_tracing_mark_dependencies(struct dtl_eval_context *context) {
+    size_t i;
+    size_t j;
+    struct dtl_eval_context_trace *trace;
+    void *mask;
+
+    if (context->tracer == NULL) {
+        return NULL;
+    }
+
+    mask = dtl_bool_array_create(dtl_ir_graph_get_size(context->graph));
+
+    for (i = 0; i < context->num_traces; i++) {
+        trace = &context->traces[context->num_traces - 1];
+
+        for (j = 0; j < dtl_schema_get_num_columns(trace->schema); j++) {
+            dtl_bool_array_set(mask, dtl_ir_ref_to_index(context->graph, trace->expressions[j]), true);
+        }
+    }
+
+    return mask;
+}
+
 /* === Eval ===================================================================================== */
 
 enum dtl_status
@@ -801,6 +825,7 @@ dtl_eval(
     context = (struct dtl_eval_context){
         .importer = importer,
         .exporter = exporter,
+        .tracer = tracer,
         .graph = graph,
     };
     status = dtl_ast_to_ir(
@@ -863,6 +888,8 @@ dtl_eval(
     if (status != DTL_STATUS_OK) {
         return status;
     }
+
+    void *traced_expressions = dtl_eval_tracing_mark_dependencies(&context);
 
     // === Inject Commands to Collect Arrays After Use =============================================
     // TODO
@@ -1001,6 +1028,31 @@ dtl_eval(
             assert(false); // Not implemented.
         }
         assert(false);
+    }
+
+    for (size_t i = 0; i < num_expressions; i++) {
+        assert(context.tracer != NULL);
+        assert(traced_expressions != NULL);
+        if (traced_expressions == NULL || !dtl_bool_array_get(traced_expressions, i)) {
+            continue;
+        }
+
+        struct dtl_ir_ref expression = dtl_ir_index_to_ref(graph, i);
+
+        struct dtl_ir_ref shape_expression = dtl_ir_array_expression_get_shape(context.graph, expression);
+        size_t num_rows = dtl_eval_context_load_index(&context, shape_expression);
+
+        status = dtl_io_tracer_record_value(
+            context.tracer,
+            i,
+            dtl_ir_expression_get_dtype(context.graph, expression),
+            num_rows,
+            &context.values[i],
+            error
+        );
+        if (status != DTL_STATUS_OK) {
+            return status;
+        }
     }
 
     for (size_t i = 0; i < context.num_exports; i++) {

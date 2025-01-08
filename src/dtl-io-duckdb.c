@@ -3,8 +3,10 @@
 #include <duckdb.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
+#include "dtl-bool-array.h"
 #include "dtl-dtype.h"
 #include "dtl-error.h"
 #include "dtl-io.h"
@@ -16,7 +18,7 @@ struct dtl_io_duckdb_tracer {
     struct dtl_io_tracer base;
 
     duckdb_database db;
-    duckdb_connection con;
+    duckdb_connection db_conn;
 
     duckdb_appender source_appender;
     duckdb_appender trace_appender;
@@ -161,6 +163,126 @@ dtl_io_duckdb_tracer_record_mapping(
 }
 
 static enum dtl_status
+dtl_io_duckdb_tracer_record_bool_array(
+    struct dtl_io_duckdb_tracer *tracer,
+    uint64_t id,
+    size_t size,
+    void *array,
+    struct dtl_error **error
+) {
+    char *query = NULL;
+    char *table_name;
+    duckdb_result db_result;
+    duckdb_state db_state;
+    duckdb_appender appender;
+    size_t i;
+
+    asprintf(
+        &query,
+        "CREATE TABLE expression_%li (\n"
+        "    data bool NOT NULL\n"
+        ");",
+        id
+    );
+    db_state = duckdb_query(tracer->db_conn, query, &db_result);
+    if (db_state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Failed to create input table: %s", duckdb_result_error(&db_result)));
+        duckdb_destroy_result(&db_result);
+        free(query);
+        return DTL_STATUS_ERROR;
+    }
+    duckdb_destroy_result(&db_result);
+    free(query);
+
+    asprintf(&table_name, "expression_%li", id);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, table_name, &appender);
+    if (db_state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Failed to create appender"));
+        free(table_name);
+        return DTL_STATUS_ERROR;
+    }
+    free(table_name);
+
+    for (i = 0; i < size; i++) {
+        db_state |= duckdb_append_bool(appender, dtl_bool_array_get(array, i));
+        db_state |= duckdb_appender_end_row(appender);
+    }
+
+    if (db_state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Could not append trace data: %s", duckdb_appender_error(appender)));
+        return DTL_STATUS_ERROR;
+    }
+
+    db_state = duckdb_appender_close(appender);
+    if (db_state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Error flushing trace data: %s", duckdb_appender_error(appender)));
+        return DTL_STATUS_ERROR;
+    }
+
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_io_duckdb_tracer_record_int64_array(
+    struct dtl_io_duckdb_tracer *tracer,
+    uint64_t id,
+    size_t size,
+    int64_t *array,
+    struct dtl_error **error
+) {
+    char *query = NULL;
+    char *table_name;
+    duckdb_result db_result;
+    duckdb_state db_state;
+    duckdb_appender appender;
+    size_t i;
+
+    asprintf(
+        &query,
+        "CREATE TABLE expression_%li (\n"
+        "    data int64 NOT NULL\n"
+        ");",
+        id
+    );
+    db_state = duckdb_query(tracer->db_conn, query, &db_result);
+    if (db_state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Failed to create input table: %s", duckdb_result_error(&db_result)));
+        duckdb_destroy_result(&db_result);
+        free(query);
+        return DTL_STATUS_ERROR;
+    }
+    duckdb_destroy_result(&db_result);
+    free(query);
+
+    asprintf(&table_name, "expression_%li", id);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, table_name, &appender);
+    if (db_state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Failed to create appender"));
+        free(table_name);
+        return DTL_STATUS_ERROR;
+    }
+    free(table_name);
+
+    for (i = 0; i < size; i++) {
+        db_state |= duckdb_append_int64(appender, array[i]);
+        db_state |= duckdb_appender_end_row(appender);
+    }
+
+    if (db_state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Could not append trace data: %s", duckdb_appender_error(appender)));
+        return DTL_STATUS_ERROR;
+    }
+
+    db_state = duckdb_appender_close(appender);
+    if (db_state == DuckDBError) {
+        dtl_set_error(error, dtl_error_create("Error flushing trace data: %s", duckdb_appender_error(appender)));
+        return DTL_STATUS_ERROR;
+    }
+
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
 dtl_io_duckdb_tracer_record_value(
     struct dtl_io_tracer *base_tracer,
     uint64_t id,
@@ -171,20 +293,23 @@ dtl_io_duckdb_tracer_record_value(
 ) {
     struct dtl_io_duckdb_tracer *tracer = (struct dtl_io_duckdb_tracer *)base_tracer;
 
-    (void)tracer;
-    (void)id;
-    (void)dtype;
-    (void)size;
-    (void)value;
-    (void)error;
-
-    return DTL_STATUS_OK;
+    switch (dtype) {
+    case DTL_DTYPE_BOOL_ARRAY:
+        return dtl_io_duckdb_tracer_record_bool_array(
+            tracer, id, size, dtl_value_get_bool_array(value), error
+        );
+    case DTL_DTYPE_INT64_ARRAY:
+        return dtl_io_duckdb_tracer_record_int64_array(
+            tracer, id, size, dtl_value_get_int64_array(value), error
+        );
+    default:
+        return DTL_STATUS_OK;
+    }
 }
 
 struct dtl_io_tracer *
 dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
     duckdb_database db;
-    duckdb_connection db_con;
     duckdb_result db_result;
     duckdb_state db_state;
     char *errstr = NULL;
@@ -203,14 +328,14 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
     tracer->base.record_mapping = dtl_io_duckdb_tracer_record_mapping;
     tracer->base.record_value = dtl_io_duckdb_tracer_record_value;
 
-    db_state = duckdb_open_ext(path, &db, NULL, &errstr);
+    db_state = duckdb_open_ext(path, &tracer->db, NULL, &errstr);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Couldn't open %s: %s", path, errstr));
         duckdb_free(errstr);
         goto cleanup;
     }
 
-    db_state = duckdb_connect(db, &db_con);
+    db_state = duckdb_connect(tracer->db, &tracer->db_conn);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to open connection to duckdb"));
         duckdb_close(&db);
@@ -219,7 +344,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
 
     // --- Source files --------------------------------------------------------------------------------------
     db_state = duckdb_query(
-        db_con,
+        tracer->db_conn,
         "CREATE TABLE source (\n"
         "    text VARCHAR NOT NULL,\n"
         "    filename VARCHAR NOT NULL\n"
@@ -232,7 +357,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(db_con, NULL, "source", &tracer->source_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "source", &tracer->source_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create source appender"));
         goto cleanup;
@@ -240,7 +365,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
 
     // --- Inputs --------------------------------------------------------------------------------------------
     db_state = duckdb_query(
-        db_con,
+        tracer->db_conn,
         "CREATE TABLE input (\n"
         "    input_name VARCHAR NOT NULL,\n"
         "    column_name VARCHAR NOT NULL,\n"
@@ -254,7 +379,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(db_con, NULL, "input", &tracer->input_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "input", &tracer->input_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create input appender"));
         goto cleanup;
@@ -263,7 +388,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
     // --- Outputs -------------------------------------------------------------------------------------------
 
     db_state = duckdb_query(
-        db_con,
+        tracer->db_conn,
         "CREATE TABLE output (\n"
         "    output_name VARCHAR NOT NULL,\n"
         "    column_name VARCHAR NOT NULL,\n"
@@ -277,7 +402,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(db_con, NULL, "output", &tracer->output_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "output", &tracer->output_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create output appender"));
         goto cleanup;
@@ -286,7 +411,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
     // --- Traces --------------------------------------------------------------------------------------------
 
     db_state = duckdb_query(
-        db_con,
+        tracer->db_conn,
         "CREATE TABLE trace(\n"
         "    filename VARCHAR NOT NULL,\n"
         "    start_offset INT NOT NULL,\n"
@@ -302,7 +427,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(db_con, NULL, "trace", &tracer->trace_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "trace", &tracer->trace_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create trace appender"));
         goto cleanup;
@@ -311,7 +436,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
     // --- Mappings ------------------------------------------------------------------------------------------
 
     db_state = duckdb_query(
-        db_con,
+        tracer->db_conn,
         "CREATE TABLE mapping (\n"
         "    src_expression INT NOT NULL,\n" // Reference to expression table by index.
         "    tgt_expression INT NOT NULL,\n" // Reference to expression table by index.
@@ -326,7 +451,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(db_con, NULL, "mapping", &tracer->mapping_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "mapping", &tracer->mapping_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create mapping appender"));
         goto cleanup;
@@ -384,7 +509,7 @@ cleanup:
     duckdb_appender_destroy(&tracer->input_appender);
     duckdb_appender_destroy(&tracer->source_appender);
 
-    duckdb_disconnect(&tracer->con);
+    duckdb_disconnect(&tracer->db_conn);
     duckdb_close(&tracer->db);
 
     return result;
