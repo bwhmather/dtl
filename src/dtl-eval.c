@@ -10,6 +10,7 @@
 
 #include "dtl-ast-to-ir.h"
 #include "dtl-ast.h"
+#include "dtl-bool-array.h"
 #include "dtl-dtype.h"
 #include "dtl-error.h"
 #include "dtl-io.h"
@@ -70,7 +71,7 @@ dtl_eval_context_load_index(struct dtl_eval_context *context, struct dtl_ir_ref 
     return dtl_value_get_index(&context->values[index]);
 }
 
-static bool *
+static void *
 dtl_eval_context_load_bool_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
     size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
@@ -130,7 +131,7 @@ static void
 dtl_eval_context_store_bool_array(
     struct dtl_eval_context *context,
     struct dtl_ir_ref expression,
-    bool *array
+    void *array
 ) {
     size_t index;
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_BOOL_ARRAY);
@@ -400,7 +401,7 @@ dtl_eval_where_shape_expression(
     struct dtl_error **error
 ) {
     struct dtl_ir_ref mask_expression;
-    bool *mask_data;
+    void *mask_data;
     struct dtl_ir_ref mask_shape_expression;
     size_t mask_shape;
     size_t shape;
@@ -418,7 +419,7 @@ dtl_eval_where_shape_expression(
 
     shape = 0;
     for (i = 0; i < mask_shape; i++) {
-        if (mask_data[i]) {
+        if (dtl_bool_array_get(mask_data, i)) {
             shape++;
         }
     }
@@ -436,7 +437,7 @@ dtl_eval_where_expression(
     struct dtl_ir_ref shape_expression;
     size_t shape;
     struct dtl_ir_ref mask_expression;
-    bool *mask_data;
+    void *mask_data;
     struct dtl_ir_ref source_expression;
     int64_t *source_data;
     int64_t *data;
@@ -460,7 +461,7 @@ dtl_eval_where_expression(
 
     cursor = 0;
     for (i = 0; i < shape; i++) {
-        if (mask_data[i]) {
+        if (dtl_bool_array_get(mask_data, i)) {
             data[cursor] = source_data[i];
             cursor += 1;
         }
@@ -499,10 +500,10 @@ dtl_eval_equal_to_expression(
     right_expression = dtl_ir_equal_to_expression_right(context->graph, expression);
     right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
-    bool *data = calloc(shape, sizeof(bool));
+    void *data = dtl_bool_array_create(shape);
 
     for (size_t i = 0; i < shape; i++) {
-        data[i] = left_data[i] == right_data[i];
+        dtl_bool_array_set(data, i, left_data[i] == right_data[i]);
     }
 
     dtl_eval_context_store_bool_array(context, expression, data);
@@ -536,10 +537,10 @@ dtl_eval_less_than_expression(
     right_expression = dtl_ir_less_than_expression_right(context->graph, expression);
     right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
-    bool *data = calloc(shape, sizeof(bool));
+    void *data = dtl_bool_array_create(shape);
 
     for (size_t i = 0; i < shape; i++) {
-        data[i] = left_data[i] < right_data[i];
+        dtl_bool_array_set(data, i, left_data[i] < right_data[i]);
     }
 
     dtl_eval_context_store_bool_array(context, expression, data);
@@ -573,10 +574,10 @@ dtl_eval_less_than_or_equal_to_expression(
     right_expression = dtl_ir_less_than_or_equal_to_expression_right(context->graph, expression);
     right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
-    bool *data = calloc(shape, sizeof(bool));
+    void *data = dtl_bool_array_create(shape);
 
     for (size_t i = 0; i < shape; i++) {
-        data[i] = left_data[i] <= right_data[i];
+        dtl_bool_array_set(data, i, left_data[i] <= right_data[i]);
     }
 
     dtl_eval_context_store_bool_array(context, expression, data);
@@ -610,10 +611,10 @@ dtl_eval_greater_than_expression(
     right_expression = dtl_ir_greater_than_expression_right(context->graph, expression);
     right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
-    bool *data = calloc(shape, sizeof(bool));
+    void *data = dtl_bool_array_create(shape);
 
     for (size_t i = 0; i < shape; i++) {
-        data[i] = left_data[i] > right_data[i];
+        dtl_bool_array_set(data, i, left_data[i] > right_data[i]);
     }
 
     dtl_eval_context_store_bool_array(context, expression, data);
@@ -647,10 +648,10 @@ dtl_eval_greater_than_or_equal_to_expression(
     right_expression = dtl_ir_greater_than_or_equal_to_expression_right(context->graph, expression);
     right_data = dtl_eval_context_load_int64_array(context, right_expression);
 
-    bool *data = calloc(shape, sizeof(bool));
+    void *data = dtl_bool_array_create(shape);
 
     for (size_t i = 0; i < shape; i++) {
-        data[i] = left_data[i] >= right_data[i];
+        dtl_bool_array_set(data, i, left_data[i] >= right_data[i]);
     }
 
     dtl_eval_context_store_bool_array(context, expression, data);
