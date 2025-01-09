@@ -234,7 +234,7 @@ struct dtl_ast_to_ir_context {
 };
 
 static void
-dtl_ast_to_ir_context_trace_statement(
+dtl_ast_to_ir_context_trace(
     struct dtl_ast_to_ir_context *context,
     struct dtl_location start,
     struct dtl_location end,
@@ -929,6 +929,10 @@ dtl_ast_to_ir_compile_select_expression(
 
     dtl_ast_to_ir_scope_destroy(source_scope);
 
+    dtl_ast_to_ir_context_trace(
+        context, dtl_ast_node_get_start(select_node), dtl_ast_node_get_end(select_node), output_scope
+    );
+
     return output_scope;
 }
 
@@ -989,6 +993,10 @@ dtl_ast_to_ir_compile_import_expression(
         table_scope = dtl_ast_to_ir_scope_add(table_scope, column_name, NULL, column);
     }
 
+    dtl_ast_to_ir_context_trace(
+        context, dtl_ast_node_get_start(expression), dtl_ast_node_get_end(expression), table_scope
+    );
+
     return table_scope;
 }
 
@@ -1020,6 +1028,10 @@ dtl_ast_to_ir_compile_table_reference_expression(
     for (i = 0; i < result->num_columns; i++) {
         result->columns[i].namespace = NULL;
     }
+
+    dtl_ast_to_ir_context_trace(
+        context, dtl_ast_node_get_start(expression), dtl_ast_node_get_end(expression), result
+    );
 
     return result;
 }
@@ -1084,7 +1096,7 @@ dtl_ast_to_ir_compile_assignment_statement(
 
     expression_scope = dtl_ast_to_ir_scope_pick_namespace(expression_scope, NULL);
 
-    dtl_ast_to_ir_context_trace_statement(
+    dtl_ast_to_ir_context_trace(
         context, dtl_ast_node_get_start(statement), dtl_ast_node_get_end(statement), expression_scope
     );
 
@@ -1132,7 +1144,7 @@ dtl_ast_to_ir_compile_export_statement(
     }
     expression_scope = dtl_ast_to_ir_scope_pick_namespace(expression_scope, NULL);
 
-    dtl_ast_to_ir_context_trace_statement(
+    dtl_ast_to_ir_context_trace(
         context, dtl_ast_node_get_start(statement), dtl_ast_node_get_end(statement), expression_scope
     );
 
