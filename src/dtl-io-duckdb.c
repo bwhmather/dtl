@@ -366,7 +366,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
     // --- Inputs --------------------------------------------------------------------------------------------
     db_state = duckdb_query(
         tracer->db_conn,
-        "CREATE TABLE input (\n"
+        "CREATE TABLE input_meta (\n"
         "    input_name VARCHAR NOT NULL,\n"
         "    column_name VARCHAR NOT NULL,\n"
         "    expression INT NOT NULL,\n"
@@ -379,7 +379,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(tracer->db_conn, NULL, "input", &tracer->input_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "input_meta", &tracer->input_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create input appender"));
         goto cleanup;
@@ -389,7 +389,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
 
     db_state = duckdb_query(
         tracer->db_conn,
-        "CREATE TABLE output (\n"
+        "CREATE TABLE output_meta (\n"
         "    output_name VARCHAR NOT NULL,\n"
         "    column_name VARCHAR NOT NULL,\n"
         "    expression INT NOT NULL,\n"
@@ -402,7 +402,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(tracer->db_conn, NULL, "output", &tracer->output_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "output_meta", &tracer->output_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create output appender"));
         goto cleanup;
@@ -412,7 +412,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
 
     db_state = duckdb_query(
         tracer->db_conn,
-        "CREATE TABLE trace(\n"
+        "CREATE TABLE trace_meta(\n"
         "    filename VARCHAR NOT NULL,\n"
         "    start_offset INT NOT NULL,\n"
         "    end_offset INT NOT NULL,\n"
@@ -427,7 +427,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(tracer->db_conn, NULL, "trace", &tracer->trace_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "trace_meta", &tracer->trace_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create trace appender"));
         goto cleanup;
@@ -437,7 +437,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
 
     db_state = duckdb_query(
         tracer->db_conn,
-        "CREATE TABLE mapping (\n"
+        "CREATE TABLE mapping_meta (\n"
         "    src_expression INT NOT NULL,\n" // Reference to expression table by index.
         "    tgt_expression INT NOT NULL,\n" // Reference to expression table by index.
         "    src_mapping_expression INT\n,"  // Reference to expression table by index.
@@ -451,7 +451,7 @@ dtl_io_duckdb_tracer_create(char const *path, struct dtl_error **error) {
         goto cleanup;
     }
 
-    db_state = duckdb_appender_create(tracer->db_conn, NULL, "mapping", &tracer->mapping_appender);
+    db_state = duckdb_appender_create(tracer->db_conn, NULL, "mapping_meta", &tracer->mapping_appender);
     if (db_state == DuckDBError) {
         dtl_set_error(error, dtl_error_create("Failed to create mapping appender"));
         goto cleanup;
