@@ -405,7 +405,6 @@ dtl_eval_where_shape_expression(
     struct dtl_ir_ref mask_shape_expression;
     size_t mask_shape;
     size_t shape;
-    size_t i;
 
     (void)error;
 
@@ -417,12 +416,7 @@ dtl_eval_where_shape_expression(
     mask_shape_expression = dtl_ir_array_expression_get_shape(context->graph, mask_expression);
     mask_shape = dtl_eval_context_load_index(context, mask_shape_expression);
 
-    shape = 0;
-    for (i = 0; i < mask_shape; i++) {
-        if (dtl_bool_array_get(mask_data, i)) {
-            shape++;
-        }
-    }
+    shape = dtl_bool_array_sum(mask_data, mask_shape);
 
     dtl_eval_context_store_index(context, expression, shape);
     return DTL_STATUS_OK;
