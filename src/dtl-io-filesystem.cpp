@@ -15,6 +15,8 @@ extern "C" {
 #include <utility>
 
 extern "C" {
+#define restrict __restrict__
+
 #include "dtl-io.h"
 #include "dtl-bool-array.h"
 #include "dtl-int64-array.h"

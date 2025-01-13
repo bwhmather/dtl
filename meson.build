@@ -73,6 +73,9 @@ exe = executable(
 test_includes = include_directories('src', 'tests')
 
 test_suites = {
+  'bool-array': [
+    'not',
+  ],
   'string-interner': [
     'intern',
     'reallocate',
