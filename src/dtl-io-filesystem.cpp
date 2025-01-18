@@ -160,7 +160,6 @@ dtl_io_filesystem_importer_import_table(
     struct dtl_io_filesystem_importer* fs_importer;
     arrow::Status status;
     std::shared_ptr<arrow::io::ReadableFile> input_file;
-    std::unique_ptr<parquet::arrow::FileReader> arrow_reader;
     std::shared_ptr<arrow::Table> arrow_table;
     struct dtl_io_filesystem_table* fs_table;
 
@@ -174,11 +173,9 @@ dtl_io_filesystem_importer_import_table(
     assert(input_file_result.ok()); // TODO
     input_file = input_file_result.ValueUnsafe();
 
-    status = parquet::arrow::OpenFile(input_file, arrow::default_memory_pool(), &arrow_reader);
-    if (!status.ok()) {
-        dtl_io_filesystem_set_error_from_arrow_status(error, status);
-        return NULL;
-    }
+    auto reader_result = parquet::arrow::OpenFile(input_file, arrow::default_memory_pool());
+    assert(reader_result.ok()); // TODO
+    auto arrow_reader = std::move(reader_result).ValueUnsafe();
 
     status = arrow_reader->ReadTable(&arrow_table);
     assert(status.ok()); // TODO
