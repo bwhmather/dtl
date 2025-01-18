@@ -795,6 +795,175 @@ dtl_ast_to_ir_compile_expression(
 }
 
 static struct dtl_ast_to_ir_scope *
+dtl_ast_to_ir_compile_join_clause(
+    struct dtl_ast_to_ir_context *context,
+    struct dtl_ast_node *join_clause_node,
+    struct dtl_ast_to_ir_scope *left_scope,
+    struct dtl_error **error
+) {
+    struct dtl_ast_node *binding_node;
+    struct dtl_ast_node *table_node;
+    struct dtl_ast_node *table_name_node;
+    char const *join_table_name;
+    struct dtl_ast_to_ir_scope *right_scope;
+    struct dtl_ir_ref left_shape;
+    struct dtl_ir_ref right_shape;
+    struct dtl_ir_ref full_shape;
+    struct dtl_ir_ref full_left_index;
+    struct dtl_ir_ref full_right_index;
+    struct dtl_ast_to_ir_scope *full_scope;
+    char const *binding_name;
+    char const *binding_namespace;
+    struct dtl_ir_ref binding_expression;
+    struct dtl_ast_node *constraint_node;
+    struct dtl_ir_ref shape;
+    struct dtl_ir_ref mask;
+    struct dtl_ir_ref left_index;
+    struct dtl_ir_ref right_index;
+    struct dtl_ast_to_ir_scope *output_scope;
+    size_t i;
+
+    binding_node = dtl_ast_join_clause_node_get_table_binding(join_clause_node);
+
+    if (dtl_ast_node_is_implicit_table_binding(binding_node)) {
+        table_node = dtl_ast_implicit_table_binding_node_get_expression(binding_node);
+        join_table_name = "TODO";
+    } else {
+        assert(dtl_ast_node_is_aliased_table_binding(binding_node));
+
+        table_node = dtl_ast_aliased_table_binding_node_get_expression(binding_node);
+        table_name_node = dtl_ast_aliased_table_binding_node_get_alias(binding_node);
+        join_table_name = dtl_ast_name_node_get_value(table_name_node);
+    }
+    (void)join_table_name; // TODO
+
+    // This is the scope representing the table we're joining against.
+    right_scope = dtl_ast_to_ir_compile_table_expression(context, table_node, error);
+    if (right_scope == NULL) {
+        return NULL;
+    }
+
+    // Create a full, unfiltered scope that we can run the predicate against.
+    left_shape = dtl_ast_to_ir_scope_shape(left_scope);
+    right_shape = dtl_ast_to_ir_scope_shape(right_scope);
+
+    full_shape = dtl_ir_join_shape_expression_create(
+        context->graph, left_shape, right_shape
+    );
+
+    full_left_index = dtl_ir_join_left_expression_create(
+        context->graph, full_shape, left_shape, right_shape
+    );
+    full_right_index = dtl_ir_join_right_expression_create(
+        context->graph, full_shape, left_shape, right_shape
+    );
+
+    // Do not trace the full join scope!  We'd like to be able to optimise it away.  For tracing, we
+    // should generate a new table containing only the rows which evaluate to true.
+    full_scope = dtl_ast_to_ir_scope_create();
+
+    for (i = 0; i < left_scope->num_columns; i++) {
+        binding_name = left_scope->columns[i].name;
+        binding_namespace = left_scope->columns[i].namespace;
+        binding_expression = left_scope->columns[i].expression;
+
+        binding_expression = dtl_ir_pick_expression_create(
+            context->graph,
+            dtl_ir_expression_get_dtype(context->graph, binding_expression),
+            full_shape,
+            binding_expression,
+            full_left_index
+        );
+
+        full_scope = dtl_ast_to_ir_scope_add(
+            full_scope, binding_name, binding_namespace, binding_expression
+        );
+    }
+
+    for (i = 0; i < right_scope->num_columns; i++) {
+        binding_name = right_scope->columns[i].name;
+        binding_namespace = right_scope->columns[i].namespace;
+        binding_expression = right_scope->columns[i].expression;
+
+        binding_expression = dtl_ir_pick_expression_create(
+            context->graph,
+            dtl_ir_expression_get_dtype(context->graph, binding_expression),
+            full_shape,
+            binding_expression,
+            full_left_index
+        );
+
+        full_scope = dtl_ast_to_ir_scope_add(
+            full_scope, binding_name, binding_namespace, binding_expression
+        );
+    }
+
+    mask = dtl_ast_to_ir_compile_expression(
+        context, full_scope, constraint_node, error
+    );
+    if (dtl_ir_ref_is_null(mask)) {
+        return NULL;
+    }
+
+    shape = dtl_ir_where_shape_expression_create(context->graph, mask);
+
+    left_index = dtl_ir_where_expression_create(
+        context->graph,
+        DTL_DTYPE_INDEX_ARRAY,
+        shape,
+        full_left_index,
+        mask
+    );
+    right_index = dtl_ir_where_expression_create(
+        context->graph,
+        DTL_DTYPE_INDEX_ARRAY,
+        shape,
+        full_right_index,
+        mask
+    );
+
+    output_scope = dtl_ast_to_ir_scope_create();
+
+    for (i = 0; i < left_scope->num_columns; i++) {
+        binding_name = left_scope->columns[i].name;
+        binding_namespace = left_scope->columns[i].namespace;
+        binding_expression = left_scope->columns[i].expression;
+
+        binding_expression = dtl_ir_pick_expression_create(
+            context->graph,
+            dtl_ir_expression_get_dtype(context->graph, binding_expression),
+            shape,
+            binding_expression,
+            left_index
+        );
+
+        output_scope = dtl_ast_to_ir_scope_add(
+            output_scope, binding_name, binding_namespace, binding_expression
+        );
+    }
+
+    for (i = 0; i < right_scope->num_columns; i++) {
+        binding_name = right_scope->columns[i].name;
+        binding_namespace = right_scope->columns[i].namespace;
+        binding_expression = right_scope->columns[i].expression;
+
+        binding_expression = dtl_ir_pick_expression_create(
+            context->graph,
+            dtl_ir_expression_get_dtype(context->graph, binding_expression),
+            shape,
+            binding_expression,
+            right_index
+        );
+
+        output_scope = dtl_ast_to_ir_scope_add(
+            output_scope, binding_name, binding_namespace, binding_expression
+        );
+    }
+
+    return output_scope;
+}
+
+static struct dtl_ast_to_ir_scope *
 dtl_ast_to_ir_compile_select_expression(
     struct dtl_ast_to_ir_context *context, struct dtl_ast_node *select_node, struct dtl_error **error
 ) {
@@ -840,7 +1009,22 @@ dtl_ast_to_ir_compile_select_expression(
     // TODO
 
     // Compile join clauses.
-    // TODO
+    struct dtl_ast_node *join_clause_list_node;
+    struct dtl_ast_node *join_clause_node;
+
+    join_clause_list_node = dtl_ast_select_expression_node_get_join_clauses(select_node);
+    if (join_clause_list_node != NULL) {
+        assert(dtl_ast_node_is_join_clause_list(join_clause_list_node));
+
+        for (i = 0; i < dtl_ast_join_clause_list_node_get_num_clauses(join_clause_list_node); i++) {
+            join_clause_node = dtl_ast_join_clause_list_node_get_clause(join_clause_list_node, i);
+
+            source_scope = dtl_ast_to_ir_compile_join_clause(context, join_clause_node, source_scope, error);
+            if (source_scope == NULL) {
+                return NULL;
+            }
+        }
+    }
 
     // Compile where clause.
     where_clause_node = dtl_ast_select_expression_node_get_where_clause(select_node);
