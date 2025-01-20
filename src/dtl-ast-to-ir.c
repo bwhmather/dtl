@@ -329,6 +329,21 @@ dtl_ast_to_ir_context_export_table(
     export->expressions = expressions;
 }
 
+/* === Helpers ================================================================================== */
+
+static struct dtl_ir_ref
+dtl_ast_to_ir_scope_shape(struct dtl_ast_to_ir_context *context, struct dtl_ast_to_ir_scope *scope) {
+    struct dtl_ir_ref first_column;
+
+    assert(scope != NULL);
+    assert(scope->num_columns > 0);
+
+    first_column = scope->columns[0].expression;
+    assert(dtl_ir_is_array_expression(context->graph, first_column));
+
+    return dtl_ir_array_expression_get_shape(context->graph, first_column);
+}
+
 /* === Compilation ============================================================================== */
 
 static struct dtl_ir_ref
@@ -844,8 +859,8 @@ dtl_ast_to_ir_compile_join_clause(
     }
 
     // Create a full, unfiltered scope that we can run the predicate against.
-    left_shape = dtl_ast_to_ir_scope_shape(left_scope);
-    right_shape = dtl_ast_to_ir_scope_shape(right_scope);
+    left_shape = dtl_ast_to_ir_scope_shape(context, left_scope);
+    right_shape = dtl_ast_to_ir_scope_shape(context, right_scope);
 
     full_shape = dtl_ir_join_shape_expression_create(
         context->graph, left_shape, right_shape
@@ -898,6 +913,8 @@ dtl_ast_to_ir_compile_join_clause(
         );
     }
 
+    constraint_node = dtl_ast_join_clause_node_get_constraint(join_clause_node);
+
     mask = dtl_ast_to_ir_compile_expression(
         context, full_scope, constraint_node, error
     );
@@ -921,8 +938,6 @@ dtl_ast_to_ir_compile_join_clause(
         full_right_index,
         mask
     );
-
-    output_scope = dtl_ast_to_ir_scope_create();
 
     for (i = 0; i < left_scope->num_columns; i++) {
         binding_name = left_scope->columns[i].name;
@@ -959,6 +974,9 @@ dtl_ast_to_ir_compile_join_clause(
             output_scope, binding_name, binding_namespace, binding_expression
         );
     }
+
+    dtl_ast_to_ir_scope_destroy(right_scope);
+    dtl_ast_to_ir_scope_destroy(left_scope);
 
     return output_scope;
 }
