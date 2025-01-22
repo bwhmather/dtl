@@ -116,6 +116,11 @@ main(int argc, char **argv) {
     }
 
     status = dtl_eval(source, source_path, importer, exporter, tracer, &error);
+    if (status != DTL_STATUS_OK) {
+        dtl_print_error(error);
+        dtl_clear_error(&error);
+        return 1;
+    }
 
     free(source);
 
