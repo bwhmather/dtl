@@ -216,7 +216,7 @@ bool
 dtl_ast_node_is_int_literal(struct dtl_ast_node *);
 
 struct dtl_ast_node *
-    dtl_ast_int_literal_node_create(int64_t);
+dtl_ast_int_literal_node_create(int64_t);
 
 int64_t
 dtl_ast_int_literal_node_get_value(struct dtl_ast_node *);
