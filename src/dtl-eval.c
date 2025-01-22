@@ -527,10 +527,10 @@ dtl_eval_join_left_expression(
     shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
     shape = dtl_eval_context_load_index(context, shape_expression);
 
-    left_shape_expression = dtl_ir_join_left_expression_left(context->graph, expression);
+    left_shape_expression = dtl_ir_join_left_expression_left_shape(context->graph, expression);
     left_shape = dtl_eval_context_load_index(context, left_shape_expression);
 
-    right_shape_expression = dtl_ir_join_left_expression_right(context->graph, expression);
+    right_shape_expression = dtl_ir_join_left_expression_right_shape(context->graph, expression);
     right_shape = dtl_eval_context_load_index(context, right_shape_expression);
 
     assert(left_shape * right_shape == shape);
@@ -568,10 +568,10 @@ dtl_eval_join_right_expression(
     shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
     shape = dtl_eval_context_load_index(context, shape_expression);
 
-    left_shape_expression = dtl_ir_join_left_expression_left(context->graph, expression);
+    left_shape_expression = dtl_ir_join_left_expression_left_shape(context->graph, expression);
     left_shape = dtl_eval_context_load_index(context, left_shape_expression);
 
-    right_shape_expression = dtl_ir_join_left_expression_right(context->graph, expression);
+    right_shape_expression = dtl_ir_join_left_expression_right_shape(context->graph, expression);
     right_shape = dtl_eval_context_load_index(context, right_shape_expression);
 
     assert(left_shape * right_shape == shape);

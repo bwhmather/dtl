@@ -278,10 +278,10 @@ bool
 dtl_ir_is_join_left_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 struct dtl_ir_ref
-dtl_ir_join_left_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_join_left_expression_left_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 struct dtl_ir_ref
-dtl_ir_join_left_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_join_left_expression_right_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 /* --- Join Right Expressions ------------------------------------------------------------------- */
 // Takes two shapes and returns an index array that selects repeats each value from the right array
@@ -298,10 +298,10 @@ bool
 dtl_ir_is_join_right_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 struct dtl_ir_ref
-dtl_ir_join_right_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_join_right_expression_left_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 struct dtl_ir_ref
-dtl_ir_join_right_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
+dtl_ir_join_right_expression_right_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref ref);
 
 /* --- Equal-to Expressions --------------------------------------------------------------------- */
 

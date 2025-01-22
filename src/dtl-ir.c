@@ -1103,14 +1103,14 @@ dtl_ir_is_join_left_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref exp
 }
 
 struct dtl_ir_ref
-dtl_ir_join_left_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+dtl_ir_join_left_expression_left_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(dtl_ir_is_join_left_expression(graph, expression));
     assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
     return dtl_ir_expression_get_dependency(graph, expression, 1);
 }
 
 struct dtl_ir_ref
-dtl_ir_join_left_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+dtl_ir_join_left_expression_right_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(dtl_ir_is_join_left_expression(graph, expression));
     assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
     return dtl_ir_expression_get_dependency(graph, expression, 2);
@@ -1146,7 +1146,7 @@ dtl_ir_is_join_right_expression(struct dtl_ir_graph *graph, struct dtl_ir_ref ex
 }
 
 struct dtl_ir_ref
-dtl_ir_join_right_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+dtl_ir_join_right_expression_left_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
     assert(dtl_ir_is_join_right_expression(graph, expression));
     assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
@@ -1155,7 +1155,7 @@ dtl_ir_join_right_expression_left(struct dtl_ir_graph *graph, struct dtl_ir_ref 
 }
 
 struct dtl_ir_ref
-dtl_ir_join_right_expression_right(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
+dtl_ir_join_right_expression_right_shape(struct dtl_ir_graph *graph, struct dtl_ir_ref expression) {
     assert(graph != NULL);
     assert(dtl_ir_is_join_right_expression(graph, expression));
     assert(dtl_ir_expression_get_num_dependencies(graph, expression) == 3);
