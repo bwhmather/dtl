@@ -107,6 +107,7 @@ void
 dtl_ir_viz(FILE *output, struct dtl_ir_graph *graph) {
     size_t i;
     size_t j;
+    size_t num_deps;
     size_t size;
     struct dtl_ir_ref ref;
     struct dtl_ir_ref dep;
@@ -122,23 +123,24 @@ dtl_ir_viz(FILE *output, struct dtl_ir_graph *graph) {
     size = dtl_ir_graph_get_size(graph);
     for (i = 0; i < size; i++) {
         ref = dtl_ir_index_to_ref(graph, i);
+        num_deps = dtl_ir_expression_get_num_dependencies(graph, ref);
 
         fprintf(output, "  %li ", i);
 
         fprintf(output, "[label=\"{");
-        if (dtl_ir_expression_get_num_dependencies(graph, ref)) {
+        if (num_deps > 0) {
             fprintf(output, "{");
-            for (j = 0; j + 1 < dtl_ir_expression_get_num_dependencies(graph, ref); j++) {
-                fprintf(output, "%li|", j);
+            for (j = 0; j + 1 < num_deps; j++) {
+                fprintf(output, "<d%li> %li|", j, j);
             }
-            fprintf(output, "%li}|", dtl_ir_expression_get_num_dependencies(graph, ref));
+            fprintf(output, "<d%li> %li}|", num_deps - 1, num_deps - 1);
         }
 
         fprintf(output, "%s|%s}\"];\n", dtl_ir_viz_get_name(graph, ref), dtl_ir_viz_get_dtype_name(graph, ref));
 
-        for (j = 0; j < dtl_ir_expression_get_num_dependencies(graph, ref); j++) {
+        for (j = 0; j < num_deps; j++) {
             dep = dtl_ir_expression_get_dependency(graph, ref, j);
-            fprintf(output, "  %li -> %li;\n", i, dtl_ir_ref_to_index(graph, dep));
+            fprintf(output, "  %li:d%li -> %li;\n", i, j, dtl_ir_ref_to_index(graph, dep));
         }
     }
 
