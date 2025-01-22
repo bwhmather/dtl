@@ -13,6 +13,7 @@
 #include "dtl-bool-array.h"
 #include "dtl-dtype.h"
 #include "dtl-error.h"
+#include "dtl-index-array.h"
 #include "dtl-io.h"
 #include "dtl-ir-viz.h"
 #include "dtl-ir.h"
@@ -149,6 +150,18 @@ dtl_eval_context_store_int64_array(
     assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INT64_ARRAY);
     index = dtl_ir_ref_to_index(context->graph, expression);
     dtl_value_take_int64_array(&context->values[index], array);
+}
+
+static void
+dtl_eval_context_store_index_array(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    size_t *array
+) {
+    size_t index;
+    assert(dtl_ir_expression_get_dtype(context->graph, expression) == DTL_DTYPE_INDEX_ARRAY);
+    index = dtl_ir_ref_to_index(context->graph, expression);
+    dtl_value_take_index_array(&context->values[index], array);
 }
 
 /* --- Clear ------------------------------------------------------------------------------------ */
@@ -462,6 +475,116 @@ dtl_eval_where_expression(
     }
 
     dtl_eval_context_store_int64_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_join_shape_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref left_shape_expression;
+    size_t left_shape;
+    struct dtl_ir_ref right_shape_expression;
+    size_t right_shape;
+    size_t shape;
+
+    (void)error;
+
+    assert(dtl_ir_is_join_shape_expression(context->graph, expression));
+
+    left_shape_expression = dtl_ir_join_shape_expression_get_left(context->graph, expression);
+    left_shape = dtl_eval_context_load_index(context, left_shape_expression);
+
+    right_shape_expression = dtl_ir_join_shape_expression_get_right(context->graph, expression);
+    right_shape = dtl_eval_context_load_index(context, right_shape_expression);
+
+    shape = left_shape * right_shape;
+
+    dtl_eval_context_store_index(context, expression, shape);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_join_left_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref left_shape_expression;
+    size_t left_shape;
+    struct dtl_ir_ref right_shape_expression;
+    size_t right_shape;
+    size_t *output;
+    size_t left_index;
+    size_t right_index;
+
+    (void)error;
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    left_shape_expression = dtl_ir_join_left_expression_left(context->graph, expression);
+    left_shape = dtl_eval_context_load_index(context, left_shape_expression);
+
+    right_shape_expression = dtl_ir_join_left_expression_right(context->graph, expression);
+    right_shape = dtl_eval_context_load_index(context, right_shape_expression);
+
+    assert(left_shape * right_shape == shape);
+
+    output = dtl_index_array_create(shape);
+
+    for (left_index = 0; left_index < left_shape; left_index++) {
+        for (right_index = 0; right_index < right_shape; right_index++) {
+            dtl_index_array_set(output, left_shape * right_index + left_index, left_index);
+        }
+    }
+
+    dtl_eval_context_store_index_array(context, expression, output);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_join_right_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref left_shape_expression;
+    size_t left_shape;
+    struct dtl_ir_ref right_shape_expression;
+    size_t right_shape;
+    size_t *output;
+    size_t left_index;
+    size_t right_index;
+
+    (void)error;
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    left_shape_expression = dtl_ir_join_left_expression_left(context->graph, expression);
+    left_shape = dtl_eval_context_load_index(context, left_shape_expression);
+
+    right_shape_expression = dtl_ir_join_left_expression_right(context->graph, expression);
+    right_shape = dtl_eval_context_load_index(context, right_shape_expression);
+
+    assert(left_shape * right_shape == shape);
+
+    output = dtl_index_array_create(shape);
+
+    for (left_index = 0; left_index < left_shape; left_index++) {
+        for (right_index = 0; right_index < right_shape; right_index++) {
+            dtl_index_array_set(output, left_shape * right_index + left_index, right_index);
+        }
+    }
+
+    dtl_eval_context_store_index_array(context, expression, output);
     return DTL_STATUS_OK;
 }
 
@@ -914,7 +1037,11 @@ dtl_eval(
         }
 
         if (dtl_ir_is_join_shape_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            status = dtl_eval_join_shape_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
         }
 
         if (dtl_ir_is_int64_constant_expression(graph, expression)) {
@@ -958,11 +1085,19 @@ dtl_eval(
         }
 
         if (dtl_ir_is_join_left_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            status = dtl_eval_join_left_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
         }
 
         if (dtl_ir_is_join_right_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            status = dtl_eval_join_right_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
         }
 
         if (dtl_ir_is_equal_to_expression(graph, expression)) {
