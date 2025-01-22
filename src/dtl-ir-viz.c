@@ -131,16 +131,16 @@ dtl_ir_viz(FILE *output, struct dtl_ir_graph *graph) {
         if (num_deps > 0) {
             fprintf(output, "{");
             for (j = 0; j + 1 < num_deps; j++) {
-                fprintf(output, "<d%li> %li|", j, j);
+                fprintf(output, "<i%li> %li|", j, j);
             }
-            fprintf(output, "<d%li> %li}|", num_deps - 1, num_deps - 1);
+            fprintf(output, "<i%li> %li}|", num_deps - 1, num_deps - 1);
         }
 
-        fprintf(output, "%s|%s}\"];\n", dtl_ir_viz_get_name(graph, ref), dtl_ir_viz_get_dtype_name(graph, ref));
+        fprintf(output, "%s|<o0> %s}\"];\n", dtl_ir_viz_get_name(graph, ref), dtl_ir_viz_get_dtype_name(graph, ref));
 
         for (j = 0; j < num_deps; j++) {
             dep = dtl_ir_expression_get_dependency(graph, ref, j);
-            fprintf(output, "  %li:d%li -> %li;\n", i, j, dtl_ir_ref_to_index(graph, dep));
+            fprintf(output, "  %li:i%li -> %li:o0;\n", i, j, dtl_ir_ref_to_index(graph, dep));
         }
     }
 
