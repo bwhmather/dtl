@@ -114,7 +114,7 @@ dtl_ir_viz(FILE *output, struct dtl_ir_graph *graph) {
     fprintf(output, "digraph G {\n");
     fprintf(output, "fontname=\"Helvetica,Arial,sans-serif;\"\n");
     fprintf(output, "concentrate=True;\n");
-    fprintf(output, "rankdir=LR;\n");
+    fprintf(output, "rankdir=BT;\n");
     fprintf(output, "node [fontname=\"Helvetica,Arial,sans-serif\"];\n");
     fprintf(output, "node [shape=record];\n");
     fprintf(output, "edge [fontname=\"Helvetica,Arial,sans-serif\"]\n");
@@ -125,11 +125,11 @@ dtl_ir_viz(FILE *output, struct dtl_ir_graph *graph) {
 
         fprintf(output, "  %li ", i);
 
-        fprintf(output, "[label=\"{");
+        fprintf(output, "[label=\"{{");
         for (j = 0; j < dtl_ir_expression_get_num_dependencies(graph, ref); j++) {
             fprintf(output, "%li|", j);
         }
-        fprintf(output, "}|%s|%s\"];\n", dtl_ir_viz_get_name(graph, ref), dtl_ir_viz_get_dtype_name(graph, ref));
+        fprintf(output, "}|%s|%s}\"];\n", dtl_ir_viz_get_name(graph, ref), dtl_ir_viz_get_dtype_name(graph, ref));
 
         for (j = 0; j < dtl_ir_expression_get_num_dependencies(graph, ref); j++) {
             dep = dtl_ir_expression_get_dependency(graph, ref, j);
