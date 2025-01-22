@@ -14,6 +14,7 @@
 #include "dtl-dtype.h"
 #include "dtl-error.h"
 #include "dtl-index-array.h"
+#include "dtl-int64-array.h"
 #include "dtl-io.h"
 #include "dtl-ir-viz.h"
 #include "dtl-ir.h"
@@ -88,7 +89,6 @@ dtl_eval_context_load_int64_array(struct dtl_eval_context *context, struct dtl_i
     return dtl_value_get_int64_array(&context->values[index]);
 }
 
-/*
 static size_t *
 dtl_eval_context_load_index_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
     size_t index;
@@ -97,6 +97,7 @@ dtl_eval_context_load_index_array(struct dtl_eval_context *context, struct dtl_i
     return dtl_value_get_index_array(&context->values[index]);
 }
 
+/*
 static double *
 dtl_eval_context_load_double_array(struct dtl_eval_context *context, struct dtl_ir_ref expression) {
     size_t index;
@@ -475,6 +476,46 @@ dtl_eval_where_expression(
     }
 
     dtl_eval_context_store_int64_array(context, expression, data);
+    return DTL_STATUS_OK;
+}
+
+static enum dtl_status
+dtl_eval_pick_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_ref shape_expression;
+    size_t shape;
+    struct dtl_ir_ref source_expression;
+    int64_t *source;
+    struct dtl_ir_ref indexes_expression;
+    size_t *indexes;
+    int64_t *target;
+    size_t target_index;
+    size_t source_index;
+    int64_t value;
+
+    (void)error;
+
+    shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
+    shape = dtl_eval_context_load_index(context, shape_expression);
+
+    source_expression = dtl_ir_pick_expression_get_source(context->graph, expression);
+    source = dtl_eval_context_load_int64_array(context, source_expression);
+
+    indexes_expression = dtl_ir_pick_expression_get_indexes(context->graph, expression);
+    indexes = dtl_eval_context_load_index_array(context, indexes_expression);
+
+    target = dtl_int64_array_create(shape);
+
+    for (target_index = 0; target_index < shape; target_index++) {
+        source_index = dtl_index_array_get(indexes, target_index);
+        value = dtl_int64_array_get(source, source_index);
+        dtl_int64_array_set(target, target_index, value);
+    }
+
+    dtl_eval_context_store_int64_array(context, expression, target);
     return DTL_STATUS_OK;
 }
 
@@ -1077,7 +1118,11 @@ dtl_eval(
         }
 
         if (dtl_ir_is_pick_expression(graph, expression)) {
-            assert(false); // Not implemented.
+            status = dtl_eval_pick_expression(&context, expression, error);
+            if (status != DTL_STATUS_OK) {
+                return status;
+            }
+            continue;
         }
 
         if (dtl_ir_is_index_expression(graph, expression)) {
