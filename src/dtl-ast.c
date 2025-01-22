@@ -434,7 +434,7 @@ dtl_ast_join_clause_node_create(struct dtl_ast_node *table_binding, struct dtl_a
     struct dtl_ast_node *node;
 
     assert(dtl_ast_node_is_table_binding(table_binding));
-    assert(dtl_ast_node_is_join_constraint(constraint));
+    assert(constraint == NULL || dtl_ast_node_is_join_constraint(constraint));
 
     node = dtl_ast_node_create_with_children(DTL_AST_JOIN_CLAUSE);
     node = dtl_ast_node_append_child(node, table_binding);

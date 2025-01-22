@@ -915,6 +915,10 @@ dtl_ast_to_ir_compile_join_clause(
 
     constraint_node = dtl_ast_join_clause_node_get_constraint(join_clause_node);
 
+    if (constraint_node == NULL) {
+        return full_scope;
+    }
+
     mask = dtl_ast_to_ir_compile_expression(
         context, full_scope, constraint_node, error
     );

@@ -639,6 +639,9 @@ join_clause
     : JOIN table_binding join_constraint {
         $$ = dtl_ast_join_clause_node_create($table_binding, $join_constraint);
     }
+    | JOIN table_binding {
+        $$ = dtl_ast_join_clause_node_create($table_binding, NULL);
+    }
     ;
 
 join_clause_list
