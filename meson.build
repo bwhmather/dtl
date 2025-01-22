@@ -110,6 +110,7 @@ py_test_suites = {
     'duplicate-columns',
     'equal',
     'export-twice',
+    'full-outer-join',
     'less-than',
     'rename-columns',
     'split-columns',
