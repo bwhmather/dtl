@@ -16,6 +16,7 @@
     #include <string.h>
 
     #include "dtl-ast.h"
+    #include "dtl-error.h"
     #include "dtl-tokenizer.h"
 }
 
@@ -26,6 +27,7 @@
 
 %param {struct dtl_tokenizer *tokenizer}
 %parse-param {struct dtl_ast_node **result}
+%parse-param {struct dtl_error **error}
 
 %token <token> INT
 %token <token> FLOAT
@@ -239,11 +241,11 @@
     }
 
     static int
-    yyerror(YYLTYPE *llocp, struct dtl_tokenizer *tokenizer, struct dtl_ast_node **result, const char *s) {
+    yyerror(YYLTYPE *llocp, struct dtl_tokenizer *tokenizer, struct dtl_ast_node **result, struct dtl_error **error, const char *s) {
         (void) llocp;
         (void) tokenizer;
         (void) result;
-        (void) s;
+        dtl_set_error(error, dtl_error_create("Parse error: %s", s));
         return 0;
     }
 }

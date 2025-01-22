@@ -809,8 +809,10 @@ dtl_eval(
     // === Parse Source Code =======================================================================
 
     tokenizer = dtl_tokenizer_create(source, filename);
-    parse_result = dtl_parser_parse(tokenizer, &root);
-    assert(parse_result == 0);
+    parse_result = dtl_parser_parse(tokenizer, &root, error);
+    if (parse_result != 0) {
+        return DTL_STATUS_ERROR;
+    }
     dtl_tokenizer_destroy(tokenizer);
 
     // === Compile AST to List of Tables Referencing IR Expressions ================================
