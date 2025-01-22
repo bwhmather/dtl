@@ -905,7 +905,7 @@ dtl_ast_to_ir_compile_join_clause(
             dtl_ir_expression_get_dtype(context->graph, binding_expression),
             full_shape,
             binding_expression,
-            full_left_index
+            full_right_index
         );
 
         full_scope = dtl_ast_to_ir_scope_add(
