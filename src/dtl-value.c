@@ -1,6 +1,7 @@
 #include "dtl-value.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -19,7 +20,6 @@
 void
 dtl_value_set_bool(struct dtl_value *value, bool b) {
     assert(value != NULL);
-    assert(value->dtype == 0);
 
 #ifndef NDEBUG
     value->dtype = DTL_DTYPE_BOOL;
@@ -39,11 +39,7 @@ dtl_value_get_bool(struct dtl_value *value) {
 void
 dtl_value_clear_bool(struct dtl_value *value) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_BOOL);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
+    assert(value->dtype == DTL_DTYPE_BOOL);
 
     value->as_bool = false;
 }
@@ -53,7 +49,6 @@ dtl_value_clear_bool(struct dtl_value *value) {
 void
 dtl_value_set_int64(struct dtl_value *value, int64_t i) {
     assert(value != NULL);
-    assert(value->dtype == 0);
 
 #ifndef NDEBUG
     value->dtype = DTL_DTYPE_INT64;
@@ -73,13 +68,9 @@ dtl_value_get_int64(struct dtl_value *value) {
 void
 dtl_value_clear_int64(struct dtl_value *value) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_INT64);
+    assert(value->dtype == DTL_DTYPE_INT64);
 
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
-
-    value->as_int64 = false;
+    value->as_int64 = 0;
 }
 
 /* --- Doubles ---------------------------------------------------------------------------------- */
@@ -87,7 +78,6 @@ dtl_value_clear_int64(struct dtl_value *value) {
 void
 dtl_value_set_double(struct dtl_value *value, int64_t d) {
     assert(value != NULL);
-    assert(value->dtype == 0);
 
 #ifndef NDEBUG
     value->dtype = DTL_DTYPE_DOUBLE;
@@ -107,13 +97,9 @@ dtl_value_get_double(struct dtl_value *value) {
 void
 dtl_value_clear_double(struct dtl_value *value) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_DOUBLE);
+    assert(value->dtype == DTL_DTYPE_DOUBLE);
 
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
-
-    value->as_double = false;
+    value->as_double = NAN;
 }
 
 /* --- Strings ---------------------------------------------------------------------------------- */
@@ -121,7 +107,6 @@ dtl_value_clear_double(struct dtl_value *value) {
 void
 dtl_value_set_string(struct dtl_value *value, char const *s) {
     assert(value != NULL);
-    assert(value->dtype == 0);
     assert(s != NULL);
 
 #ifndef NDEBUG
@@ -134,7 +119,6 @@ dtl_value_set_string(struct dtl_value *value, char const *s) {
 void
 dtl_value_take_string(struct dtl_value *value, char *s) {
     assert(value != NULL);
-    assert(value->dtype == 0);
     assert(s != NULL);
 
 #ifndef NDEBUG
@@ -155,11 +139,7 @@ dtl_value_get_string(struct dtl_value *value) {
 void
 dtl_value_clear_string(struct dtl_value *value) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_STRING);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
+    assert(value->dtype == DTL_DTYPE_STRING);
 
     free(value->as_string);
     value->as_string = NULL;
@@ -170,7 +150,6 @@ dtl_value_clear_string(struct dtl_value *value) {
 void
 dtl_value_set_index(struct dtl_value *value, size_t index) {
     assert(value != NULL);
-    assert(value->dtype == 0);
 
 #ifndef NDEBUG
     value->dtype = DTL_DTYPE_INDEX;
@@ -190,11 +169,7 @@ dtl_value_get_index(struct dtl_value *value) {
 void
 dtl_value_clear_index(struct dtl_value *value) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_INDEX);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
+    assert(value->dtype == DTL_DTYPE_INDEX);
 
     value->as_index = 0;
 }
@@ -204,7 +179,6 @@ dtl_value_clear_index(struct dtl_value *value) {
 void
 dtl_value_take_bool_array(struct dtl_value *value, void *bool_array) {
     assert(value != NULL);
-    assert(value->dtype == 0);
     assert(bool_array != NULL);
 
 #ifndef NDEBUG
@@ -225,11 +199,7 @@ dtl_value_get_bool_array(struct dtl_value *value) {
 void
 dtl_value_clear_bool_array(struct dtl_value *value, size_t size) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_BOOL_ARRAY);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
+    assert(value->dtype == DTL_DTYPE_BOOL_ARRAY);
 
     dtl_bool_array_destroy(value, size);
     value->as_bool_array = NULL;
@@ -240,7 +210,6 @@ dtl_value_clear_bool_array(struct dtl_value *value, size_t size) {
 void
 dtl_value_take_int64_array(struct dtl_value *value, int64_t *int64_array) {
     assert(value != NULL);
-    assert(value->dtype == 0);
     assert(int64_array != NULL);
 
 #ifndef NDEBUG
@@ -261,11 +230,7 @@ dtl_value_get_int64_array(struct dtl_value *value) {
 void
 dtl_value_clear_int64_array(struct dtl_value *value, size_t size) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_INT64_ARRAY);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
+    assert(value->dtype == DTL_DTYPE_INT64_ARRAY);
 
     dtl_int64_array_destroy(value->as_int64_array, size);
     value->as_int64_array = NULL;
@@ -276,7 +241,6 @@ dtl_value_clear_int64_array(struct dtl_value *value, size_t size) {
 void
 dtl_value_take_double_array(struct dtl_value *value, double *double_array) {
     assert(value != NULL);
-    assert(value->dtype == 0);
     assert(double_array != NULL);
 
 #ifndef NDEBUG
@@ -297,11 +261,7 @@ dtl_value_get_double_array(struct dtl_value *value) {
 void
 dtl_value_clear_double_array(struct dtl_value *value, size_t size) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_DOUBLE_ARRAY);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
+    assert(value->dtype == DTL_DTYPE_DOUBLE_ARRAY);
 
     dtl_double_array_destroy(value->as_double_array, size);
     value->as_double_array = NULL;
@@ -312,7 +272,6 @@ dtl_value_clear_double_array(struct dtl_value *value, size_t size) {
 void
 dtl_value_take_string_array(struct dtl_value *value, char **string_array) {
     assert(value != NULL);
-    assert(value->dtype == 0);
     assert(string_array != NULL);
 
 #ifndef NDEBUG
@@ -333,11 +292,7 @@ dtl_value_get_string_array(struct dtl_value *value) {
 void
 dtl_value_clear_string_array(struct dtl_value *value, size_t size) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_STRING_ARRAY);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
+    assert(value->dtype == DTL_DTYPE_STRING_ARRAY);
 
     dtl_string_array_destroy(value->as_string_array, size);
     value->as_string_array = NULL;
@@ -348,7 +303,6 @@ dtl_value_clear_string_array(struct dtl_value *value, size_t size) {
 void
 dtl_value_take_index_array(struct dtl_value *value, size_t *index_array) {
     assert(value != NULL);
-    assert(value->dtype == 0);
     assert(index_array != NULL);
 
 #ifndef NDEBUG
@@ -369,11 +323,7 @@ dtl_value_get_index_array(struct dtl_value *value) {
 void
 dtl_value_clear_index_array(struct dtl_value *value, size_t size) {
     assert(value != NULL);
-    assert(value->dtype == 0 || value->dtype == DTL_DTYPE_INDEX_ARRAY);
-
-#ifndef NDEBUG
-    value->dtype = 0;
-#endif
+    assert(value->dtype == DTL_DTYPE_INDEX_ARRAY);
 
     dtl_index_array_destroy(value->as_index_array, size);
     value->as_index_array = NULL;
