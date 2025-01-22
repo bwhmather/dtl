@@ -242,7 +242,7 @@ dtl_eval_ast_to_ir_import_callback(
     }
     if (import == NULL) {
         context->imports = realloc(
-            context->imports, sizeof(struct dtl_eval_context_import) * context->num_imports + 1
+            context->imports, sizeof(struct dtl_eval_context_import) * (context->num_imports + 1)
         );
         import = &context->imports[context->num_imports];
 
