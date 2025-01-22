@@ -1089,7 +1089,7 @@ dtl_ir_join_left_expression_create(
     assert(dtl_ir_ref_equal(graph, dtl_ir_join_shape_expression_get_left(graph, shape), left));
     assert(dtl_ir_ref_equal(graph, dtl_ir_join_shape_expression_get_right(graph, shape), right));
 
-    dtl_ir_scratch_begin(graph, DTL_IR_OP_JOIN_LEFT, DTL_DTYPE_INDEX);
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_JOIN_LEFT, DTL_DTYPE_INDEX_ARRAY);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, left);
     dtl_ir_scratch_add_dependency(graph, right);
@@ -1132,7 +1132,7 @@ dtl_ir_join_right_expression_create(
     assert(dtl_ir_ref_equal(graph, dtl_ir_join_shape_expression_get_left(graph, shape), left));
     assert(dtl_ir_ref_equal(graph, dtl_ir_join_shape_expression_get_right(graph, shape), right));
 
-    dtl_ir_scratch_begin(graph, DTL_IR_OP_JOIN_RIGHT, DTL_DTYPE_INDEX);
+    dtl_ir_scratch_begin(graph, DTL_IR_OP_JOIN_RIGHT, DTL_DTYPE_INDEX_ARRAY);
     dtl_ir_scratch_add_dependency(graph, shape);
     dtl_ir_scratch_add_dependency(graph, left);
     dtl_ir_scratch_add_dependency(graph, right);
