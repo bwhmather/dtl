@@ -539,7 +539,7 @@ dtl_eval_join_left_expression(
 
     for (left_index = 0; left_index < left_shape; left_index++) {
         for (right_index = 0; right_index < right_shape; right_index++) {
-            dtl_index_array_set(output, left_shape * right_index + left_index, left_index);
+            dtl_index_array_set(output, right_shape * left_index + right_index, left_index);
         }
     }
 
@@ -580,7 +580,7 @@ dtl_eval_join_right_expression(
 
     for (left_index = 0; left_index < left_shape; left_index++) {
         for (right_index = 0; right_index < right_shape; right_index++) {
-            dtl_index_array_set(output, left_shape * right_index + left_index, right_index);
+            dtl_index_array_set(output, right_shape * left_index + right_index, right_index);
         }
     }
 
