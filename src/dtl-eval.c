@@ -966,9 +966,11 @@ dtl_eval(
     struct dtl_ir_graph *graph;
     struct dtl_eval_context context;
 
-    status = dtl_io_tracer_record_source(tracer, source, filename, error);
-    if (status != DTL_STATUS_OK) {
-        return status;
+    if (tracer != NULL) {
+        status = dtl_io_tracer_record_source(tracer, source, filename, error);
+        if (status != DTL_STATUS_OK) {
+            return status;
+        }
     }
 
     // === Parse Source Code =======================================================================
@@ -1208,9 +1210,13 @@ dtl_eval(
     }
 
     for (size_t i = 0; i < num_expressions; i++) {
-        assert(context.tracer != NULL);
-        assert(traced_expressions != NULL);
-        if (traced_expressions == NULL || !dtl_bool_array_get(traced_expressions, i)) {
+        if (context.tracer == NULL) {
+            break;
+        }
+        if (traced_expressions == NULL) {
+            continue;
+        }
+        if (!dtl_bool_array_get(traced_expressions, i)) {
             continue;
         }
 
