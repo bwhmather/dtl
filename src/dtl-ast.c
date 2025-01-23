@@ -208,9 +208,7 @@ dtl_ast_node_append_child(struct dtl_ast_node *node, struct dtl_ast_node *child)
 
     container_node->num_children += 1;
     container_node = realloc(
-        container_node,
-        sizeof(struct dtl_ast_container_node) +
-            container_node->num_children * sizeof(struct dtl_ast_node *)
+        container_node, sizeof(struct dtl_ast_container_node) + sizeof(struct dtl_ast_node *) * container_node->num_children
     );
 
     container_node->children[container_node->num_children - 1] = child;

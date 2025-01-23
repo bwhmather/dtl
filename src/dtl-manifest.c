@@ -42,8 +42,8 @@ dtl_manifest_add_source(struct dtl_manifest *manifest, char const *text, char co
     assert(text != NULL);
     assert(filename != NULL);
 
-    manifest->sources = realloc(manifest->sources, sizeof(struct dtl_manifest_source) * manifest->num_sources + 1);
     manifest->num_sources += 1;
+    manifest->sources = realloc(manifest->sources, sizeof(struct dtl_manifest_source) * manifest->num_sources);
 
     source = &manifest->sources[manifest->num_sources - 1];
     source->text = strdup(text);
@@ -66,8 +66,8 @@ dtl_manifest_add_trace(
     assert(start_offset < end_offset);
     assert(column != NULL);
 
-    manifest->traces = realloc(manifest->traces, sizeof(struct dtl_manifest_trace) * manifest->num_traces + 1);
     manifest->num_traces += 1;
+    manifest->traces = realloc(manifest->traces, sizeof(struct dtl_manifest_trace) * manifest->num_traces);
 
     trace = &manifest->traces[manifest->num_traces - 1];
     trace->filename = strdup(filename);
@@ -92,8 +92,8 @@ dtl_manifest_add_mapping(
     assert(src_index_array >= -1);
     assert(tgt_index_array >= -1);
 
-    manifest->mappings = realloc(manifest->mappings, sizeof(struct dtl_manifest_mapping) * manifest->num_mappings + 1);
     manifest->num_mappings += 1;
+    manifest->mappings = realloc(manifest->mappings, sizeof(struct dtl_manifest_mapping) * manifest->num_mappings);
 
     mapping = &manifest->mappings[manifest->num_mappings - 1];
     mapping->src_array = src_array;

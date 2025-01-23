@@ -29,7 +29,8 @@ dtl_schema_add_column(struct dtl_schema *schema, char const *name, enum dtl_dtyp
     assert(dtl_dtype_is_array_type(dtype));
 
     schema->num_columns += 1;
-    schema = realloc(schema, sizeof(struct dtl_schema) + schema->num_columns * sizeof(struct dtl_schema_column));
+    schema = realloc(schema, sizeof(struct dtl_schema) + sizeof(struct dtl_schema_column) * schema->num_columns);
+
     schema->columns[schema->num_columns - 1].name = strdup(name);
     schema->columns[schema->num_columns - 1].dtype = dtype;
 

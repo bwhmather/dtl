@@ -76,11 +76,8 @@ dtl_ast_to_ir_scope_add_unsafe(
     assert(name != NULL);
 
     scope->num_columns += 1;
-    scope = realloc(
-        scope,
-        sizeof(struct dtl_ast_to_ir_scope) +
-            sizeof(struct dtl_ast_to_ir_scope_column) * (scope->num_columns)
-    );
+    scope = realloc(scope, sizeof(struct dtl_ast_to_ir_scope) + sizeof(struct dtl_ast_to_ir_scope_column) * scope->num_columns);
+
     scope->columns[scope->num_columns - 1] = (struct dtl_ast_to_ir_scope_column){
         .name = name,
         .namespace = namespace,
@@ -317,10 +314,9 @@ dtl_ast_to_ir_context_export_table(
         }
     }
     if (export == NULL) {
-        context->exports = realloc(
-            context->exports, sizeof(struct dtl_ast_to_ir_export) * (context->num_exports + 1)
-        );
         context->num_exports += 1;
+        context->exports = realloc(context->exports, sizeof(struct dtl_ast_to_ir_export) * context->num_exports);
+
         export = &context->exports[context->num_exports - 1];
     }
 

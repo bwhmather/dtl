@@ -242,10 +242,12 @@ dtl_eval_ast_to_ir_import_callback(
         }
     }
     if (import == NULL) {
+        context->num_imports += 1;
         context->imports = realloc(
-            context->imports, sizeof(struct dtl_eval_context_import) * (context->num_imports + 1)
+            context->imports, sizeof(struct dtl_eval_context_import) * context->num_imports
         );
-        import = &context->imports[context->num_imports];
+
+        import = &context->imports[context->num_imports - 1];
 
         import->name = table_name;
         import->table = dtl_io_importer_import_table(context->importer, table_name, error);
@@ -253,7 +255,6 @@ dtl_eval_ast_to_ir_import_callback(
             return NULL;
         }
 
-        context->num_imports += 1;
     }
 
     return dtl_io_table_get_schema(import->table);
@@ -272,8 +273,8 @@ dtl_eval_ast_to_ir_export_callback(
     assert(context != NULL);
     assert(schema != NULL);
 
-    context->exports = realloc(context->exports, sizeof(struct dtl_eval_context_export) * (context->num_exports + 1));
     context->num_exports += 1;
+    context->exports = realloc(context->exports, sizeof(struct dtl_eval_context_export) * context->num_exports);
 
     export = &context->exports[context->num_exports - 1];
     export->name = table_name;
@@ -294,8 +295,8 @@ dtl_eval_ast_to_ir_trace_callback(
 
     assert(context != NULL);
 
-    context->traces = realloc(context->traces, sizeof(struct dtl_eval_context_trace) * (context->num_traces + 1));
     context->num_traces += 1;
+    context->traces = realloc(context->traces, sizeof(struct dtl_eval_context_trace) * context->num_traces);
 
     trace = &context->traces[context->num_traces - 1];
     trace->start = start;
