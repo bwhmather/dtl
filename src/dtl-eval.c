@@ -254,7 +254,6 @@ dtl_eval_ast_to_ir_import_callback(
         if (import->table == NULL) {
             return NULL;
         }
-
     }
 
     return dtl_io_table_get_schema(import->table);
@@ -950,6 +949,105 @@ dtl_eval_tracing_mark_dependencies(struct dtl_eval_context *context) {
 
 /* === Eval ===================================================================================== */
 
+static enum dtl_status
+dtl_eval_expression(
+    struct dtl_eval_context *context,
+    struct dtl_ir_ref expression,
+    struct dtl_error **error
+) {
+    struct dtl_ir_graph *graph;
+    enum dtl_status (*eval)(struct dtl_eval_context *, struct dtl_ir_ref, struct dtl_error **) = NULL;
+
+    assert(context != NULL);
+    graph = context->graph;
+
+    if (dtl_ir_is_table_shape_expression(graph, expression)) {
+        eval = dtl_eval_table_shape_expression;
+    }
+
+    if (dtl_ir_is_where_shape_expression(graph, expression)) {
+        eval = dtl_eval_where_shape_expression;
+    }
+
+    if (dtl_ir_is_join_shape_expression(graph, expression)) {
+        eval = dtl_eval_join_shape_expression;
+    }
+
+    if (dtl_ir_is_int64_constant_expression(graph, expression)) {
+        assert(false); // Not implemented.
+    }
+
+    if (dtl_ir_is_double_constant_expression(graph, expression)) {
+        assert(false); // Not implemented.
+    }
+
+    if (dtl_ir_is_open_table_expression(graph, expression)) {
+        eval = dtl_eval_open_table_expression;
+    }
+
+    if (dtl_ir_is_read_column_expression(graph, expression)) {
+        eval = dtl_eval_read_column_expression;
+    }
+
+    if (dtl_ir_is_where_expression(graph, expression)) {
+        eval = dtl_eval_where_expression;
+    }
+
+    if (dtl_ir_is_pick_expression(graph, expression)) {
+        eval = dtl_eval_pick_expression;
+    }
+
+    if (dtl_ir_is_index_expression(graph, expression)) {
+        assert(false); // Not implemented.
+    }
+
+    if (dtl_ir_is_join_left_expression(graph, expression)) {
+        eval = dtl_eval_join_left_expression;
+    }
+
+    if (dtl_ir_is_join_right_expression(graph, expression)) {
+        eval = dtl_eval_join_right_expression;
+    }
+
+    if (dtl_ir_is_equal_to_expression(graph, expression)) {
+        eval = dtl_eval_equal_to_expression;
+    }
+
+    if (dtl_ir_is_less_than_expression(graph, expression)) {
+        eval = dtl_eval_less_than_expression;
+    }
+
+    if (dtl_ir_is_less_than_or_equal_to_expression(graph, expression)) {
+        eval = dtl_eval_less_than_or_equal_to_expression;
+    }
+
+    if (dtl_ir_is_greater_than_expression(graph, expression)) {
+        eval = dtl_eval_greater_than_expression;
+    }
+
+    if (dtl_ir_is_greater_than_or_equal_to_expression(graph, expression)) {
+        eval = dtl_eval_greater_than_or_equal_to_expression;
+    }
+
+    if (dtl_ir_is_add_expression(graph, expression)) {
+        eval = dtl_eval_add_expression;
+    }
+
+    if (dtl_ir_is_subtract_expression(graph, expression)) {
+        assert(false); // Not implemented.
+    }
+
+    if (dtl_ir_is_multiply_expression(graph, expression)) {
+        assert(false); // Not implemented.
+    }
+    if (dtl_ir_is_divide_expression(graph, expression)) {
+        assert(false); // Not implemented.
+    }
+
+    assert(eval != NULL);
+    return eval(context, expression, error);
+}
+
 enum dtl_status
 dtl_eval(
     char const *source,
@@ -1064,149 +1162,7 @@ dtl_eval(
     for (size_t i = 0; i < num_expressions; i++) {
         struct dtl_ir_ref expression = dtl_ir_index_to_ref(graph, i);
 
-        if (dtl_ir_is_table_shape_expression(graph, expression)) {
-            status = dtl_eval_table_shape_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_where_shape_expression(graph, expression)) {
-            status = dtl_eval_where_shape_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_join_shape_expression(graph, expression)) {
-            status = dtl_eval_join_shape_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_int64_constant_expression(graph, expression)) {
-            assert(false); // Not implemented.
-        }
-
-        if (dtl_ir_is_double_constant_expression(graph, expression)) {
-            assert(false); // Not implemented.
-        }
-
-        if (dtl_ir_is_open_table_expression(graph, expression)) {
-            status = dtl_eval_open_table_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_read_column_expression(graph, expression)) {
-            status = dtl_eval_read_column_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_where_expression(graph, expression)) {
-            status = dtl_eval_where_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_pick_expression(graph, expression)) {
-            status = dtl_eval_pick_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_index_expression(graph, expression)) {
-            assert(false); // Not implemented.
-        }
-
-        if (dtl_ir_is_join_left_expression(graph, expression)) {
-            status = dtl_eval_join_left_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_join_right_expression(graph, expression)) {
-            status = dtl_eval_join_right_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_equal_to_expression(graph, expression)) {
-            status = dtl_eval_equal_to_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_less_than_expression(graph, expression)) {
-            status = dtl_eval_less_than_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_less_than_or_equal_to_expression(graph, expression)) {
-            status = dtl_eval_less_than_or_equal_to_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_greater_than_expression(graph, expression)) {
-            status = dtl_eval_greater_than_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_greater_than_or_equal_to_expression(graph, expression)) {
-            status = dtl_eval_greater_than_or_equal_to_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_add_expression(graph, expression)) {
-            status = dtl_eval_add_expression(&context, expression, error);
-            if (status != DTL_STATUS_OK) {
-                return status;
-            }
-            continue;
-        }
-
-        if (dtl_ir_is_subtract_expression(graph, expression)) {
-            assert(false); // Not implemented.
-        }
-
-        if (dtl_ir_is_multiply_expression(graph, expression)) {
-            assert(false); // Not implemented.
-        }
-        if (dtl_ir_is_divide_expression(graph, expression)) {
-            assert(false); // Not implemented.
-        }
-        assert(false);
+        status = dtl_eval_expression(&context, expression, error);
     }
 
     for (size_t i = 0; i < num_expressions; i++) {
