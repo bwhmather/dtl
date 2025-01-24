@@ -851,6 +851,7 @@ dtl_ast_to_ir_compile_join_clause(
     // This is the scope representing the table we're joining against.
     right_scope = dtl_ast_to_ir_compile_table_expression(context, table_node, error);
     if (right_scope == NULL) {
+        dtl_ast_to_ir_scope_destroy(left_scope);
         return NULL;
     }
 
@@ -911,68 +912,74 @@ dtl_ast_to_ir_compile_join_clause(
 
     constraint_node = dtl_ast_join_clause_node_get_constraint(join_clause_node);
 
-    if (constraint_node == NULL) {
-        return full_scope;
-    }
+    output_scope = full_scope;
 
-    mask = dtl_ast_to_ir_compile_expression(
-        context, full_scope, constraint_node, error
-    );
-    if (dtl_ir_ref_is_null(mask)) {
-        return NULL;
-    }
+    if (constraint_node != NULL) {
+        mask = dtl_ast_to_ir_compile_expression(
+            context, full_scope, constraint_node, error
+        );
+        if (dtl_ir_ref_is_null(mask)) {
+            dtl_ast_to_ir_scope_destroy(left_scope);
+            dtl_ast_to_ir_scope_destroy(right_scope);
+            dtl_ast_to_ir_scope_destroy(full_scope);
 
-    shape = dtl_ir_where_shape_expression_create(context->graph, mask);
+            return NULL;
+        }
 
-    left_index = dtl_ir_where_expression_create(
-        context->graph,
-        DTL_DTYPE_INDEX_ARRAY,
-        shape,
-        full_left_index,
-        mask
-    );
-    right_index = dtl_ir_where_expression_create(
-        context->graph,
-        DTL_DTYPE_INDEX_ARRAY,
-        shape,
-        full_right_index,
-        mask
-    );
+        shape = dtl_ir_where_shape_expression_create(context->graph, mask);
 
-    for (i = 0; i < left_scope->num_columns; i++) {
-        binding_name = left_scope->columns[i].name;
-        binding_namespace = left_scope->columns[i].namespace;
-        binding_expression = left_scope->columns[i].expression;
-
-        binding_expression = dtl_ir_pick_expression_create(
+        left_index = dtl_ir_where_expression_create(
             context->graph,
-            dtl_ir_expression_get_dtype(context->graph, binding_expression),
+            DTL_DTYPE_INDEX_ARRAY,
             shape,
-            binding_expression,
-            left_index
+            full_left_index,
+            mask
         );
-
-        output_scope = dtl_ast_to_ir_scope_add(
-            output_scope, binding_name, binding_namespace, binding_expression
-        );
-    }
-
-    for (i = 0; i < right_scope->num_columns; i++) {
-        binding_name = right_scope->columns[i].name;
-        binding_namespace = right_scope->columns[i].namespace;
-        binding_expression = right_scope->columns[i].expression;
-
-        binding_expression = dtl_ir_pick_expression_create(
+        right_index = dtl_ir_where_expression_create(
             context->graph,
-            dtl_ir_expression_get_dtype(context->graph, binding_expression),
+            DTL_DTYPE_INDEX_ARRAY,
             shape,
-            binding_expression,
-            right_index
+            full_right_index,
+            mask
         );
 
-        output_scope = dtl_ast_to_ir_scope_add(
-            output_scope, binding_name, binding_namespace, binding_expression
-        );
+        for (i = 0; i < left_scope->num_columns; i++) {
+            binding_name = left_scope->columns[i].name;
+            binding_namespace = left_scope->columns[i].namespace;
+            binding_expression = left_scope->columns[i].expression;
+
+            binding_expression = dtl_ir_pick_expression_create(
+                context->graph,
+                dtl_ir_expression_get_dtype(context->graph, binding_expression),
+                shape,
+                binding_expression,
+                left_index
+            );
+
+            output_scope = dtl_ast_to_ir_scope_add(
+                output_scope, binding_name, binding_namespace, binding_expression
+            );
+        }
+
+        for (i = 0; i < right_scope->num_columns; i++) {
+            binding_name = right_scope->columns[i].name;
+            binding_namespace = right_scope->columns[i].namespace;
+            binding_expression = right_scope->columns[i].expression;
+
+            binding_expression = dtl_ir_pick_expression_create(
+                context->graph,
+                dtl_ir_expression_get_dtype(context->graph, binding_expression),
+                shape,
+                binding_expression,
+                right_index
+            );
+
+            output_scope = dtl_ast_to_ir_scope_add(
+                output_scope, binding_name, binding_namespace, binding_expression
+            );
+        }
+
+        dtl_ast_to_ir_scope_destroy(full_scope);
     }
 
     dtl_ast_to_ir_scope_destroy(right_scope);
