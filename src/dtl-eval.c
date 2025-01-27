@@ -442,19 +442,26 @@ dtl_eval_where_expression(
     struct dtl_ir_ref expression,
     struct dtl_error **error
 ) {
+    enum dtl_dtype dtype;
     struct dtl_ir_ref shape_expression;
     size_t shape;
     struct dtl_ir_ref mask_expression;
     void *mask_data;
     struct dtl_ir_ref source_expression;
-    int64_t *source_data;
-    int64_t *data;
+    int64_t *int64_source_data;
+    int64_t *int64_data;
+    int64_t int64_value;
+    size_t *index_source_data;
+    size_t *index_data;
+    size_t index_value;
     size_t cursor;
     size_t i;
 
     (void)error;
 
     assert(dtl_ir_is_where_expression(context->graph, expression));
+
+    dtype = dtl_ir_expression_get_dtype(context->graph, expression);
 
     shape_expression = dtl_ir_array_expression_get_shape(context->graph, expression);
     shape = dtl_eval_context_load_index(context, shape_expression);
@@ -463,19 +470,48 @@ dtl_eval_where_expression(
     mask_data = dtl_eval_context_load_bool_array(context, mask_expression);
 
     source_expression = dtl_ir_where_expression_get_source(context->graph, expression);
-    source_data = dtl_eval_context_load_int64_array(context, source_expression); // TODO
 
-    data = calloc(shape, sizeof(int64_t)); // TODO
+    switch (dtype) {
+    case DTL_DTYPE_INT64_ARRAY:
+        int64_source_data = dtl_eval_context_load_int64_array(context, source_expression);
+        int64_data = dtl_int64_array_create(shape);
 
-    cursor = 0;
-    for (i = 0; i < shape; i++) {
-        if (dtl_bool_array_get(mask_data, i)) {
-            data[cursor] = source_data[i];
+        cursor = 0;
+        for (i = 0; i < shape; i++) {
+            while (!dtl_bool_array_get(mask_data, cursor)) {
+                cursor += 1;
+            }
+
+            int64_value = dtl_int64_array_get(int64_source_data, cursor);
+            dtl_int64_array_set(int64_data, i, int64_value);
             cursor += 1;
         }
+
+        dtl_eval_context_store_int64_array(context, expression, int64_data);
+        break;
+
+    case DTL_DTYPE_INDEX_ARRAY:
+        index_source_data = dtl_eval_context_load_index_array(context, source_expression);
+        index_data = dtl_index_array_create(shape);
+
+        cursor = 0;
+        for (i = 0; i < shape; i++) {
+            while (!dtl_bool_array_get(mask_data, cursor)) {
+                cursor += 1;
+            }
+
+            index_value = dtl_index_array_get(index_source_data, cursor);
+            dtl_index_array_set(index_data, i, index_value);
+            cursor += 1;
+        }
+
+        dtl_eval_context_store_index_array(context, expression, index_data);
+        break;
+
+    default:
+        assert(false);
     }
 
-    dtl_eval_context_store_int64_array(context, expression, data);
     return DTL_STATUS_OK;
 }
 
