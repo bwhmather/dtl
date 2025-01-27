@@ -826,6 +826,7 @@ dtl_ast_to_ir_compile_join_clause(
     char const *binding_namespace;
     struct dtl_ir_ref binding_expression;
     struct dtl_ast_node *constraint_node;
+    struct dtl_ast_node *predicate_node;
     struct dtl_ir_ref shape;
     struct dtl_ir_ref mask;
     struct dtl_ir_ref left_index;
@@ -913,9 +914,11 @@ dtl_ast_to_ir_compile_join_clause(
 
     output_scope = full_scope;
 
-    if (constraint_node != NULL) {
+    if (constraint_node != NULL && dtl_ast_node_is_join_on_constraint(constraint_node)) {
+        predicate_node = dtl_ast_join_on_constraint_node_get_predicate(constraint_node);
+
         mask = dtl_ast_to_ir_compile_expression(
-            context, full_scope, constraint_node, error
+            context, full_scope, predicate_node, error
         );
         if (dtl_ir_ref_is_null(mask)) {
             dtl_ast_to_ir_scope_destroy(left_scope);
@@ -941,6 +944,8 @@ dtl_ast_to_ir_compile_join_clause(
             full_right_index,
             mask
         );
+
+        output_scope = dtl_ast_to_ir_scope_create();
 
         for (i = 0; i < left_scope->num_columns; i++) {
             binding_name = left_scope->columns[i].name;
