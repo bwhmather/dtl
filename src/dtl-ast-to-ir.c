@@ -418,7 +418,6 @@ dtl_ast_to_ir_compile_column_reference_expression(
 
     referenced_expression = dtl_ast_to_ir_scope_lookup(scope, name, namespace);
     if (dtl_ir_ref_is_null(referenced_expression)) {
-        assert(false);
         if (namespace != NULL) {
             dtl_set_error(error, dtl_error_create("Could not resolve column '%s.%s'", namespace, name));
             dtl_ast_to_ir_shrink_error(error, expression_node);
